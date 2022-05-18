@@ -1,0 +1,8 @@
+[package]
+name = "credx"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+yeti = { version = "0.2", path = "../yeti" }
