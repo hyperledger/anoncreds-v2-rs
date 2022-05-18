@@ -7,3 +7,4 @@ edition = "2021"
 [dependencies]
 hex = "0.4"
 yeti = { version = "0.2", path = "../yeti" }
+serde = { version = "1", features = ["serde_derive"] }
