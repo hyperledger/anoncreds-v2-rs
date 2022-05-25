@@ -26,4 +26,22 @@ pub struct ClaimSchema {
     pub claim_type: ClaimType,
     /// The claim label
     pub label: String,
+    /// The claim data validators
+    pub validators: Vec<ClaimValidator>,
+}
+
+impl ClaimSchema {
+    /// [`Some(true)`] if the claim is the right type and meets the validator requirements
+    /// [`Some(false)`] if the claim is the right type but doesn't meet the requirements
+    /// [`None`] if the claim is the incorrect type
+    pub fn is_valid(&self, claim: &ClaimData) -> Option<bool> {
+        let mut result = true;
+        for v in &self.validators {
+            match v.is_valid(claim) {
+                Some(b) => result &= b,
+                None => return None,
+            }
+        }
+        Some(result)
+    }
 }

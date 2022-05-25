@@ -1,5 +1,7 @@
 mod validator;
 
+pub use validator::*;
+
 use crate::error::Error;
 use crate::CredxResult;
 use core::fmt::{self, Debug, Display, Formatter};
@@ -8,7 +10,7 @@ use yeti::knox::accumulator::vb20;
 use yeti::knox::{bls12_381_plus::Scalar, Knox};
 
 /// The claim type
-#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 #[repr(u8)]
 pub enum ClaimType {
     /// The case where its none of the others
@@ -24,7 +26,7 @@ pub enum ClaimType {
 }
 
 /// The type of claim data that can be signed
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub enum ClaimData {
     /// Data is hashed before signing
     Hashed(HashedClaim),
@@ -99,6 +101,18 @@ impl ClaimData {
             _ => Err(Error::InvalidClaimData),
         }
     }
+
+    /// [`true`] if the claim is the right type
+    /// [`false`] if the claim is the incorrect type
+    pub fn is_type(&self, claim_type: ClaimType) -> bool {
+        match (self, claim_type) {
+            (Self::Hashed(_), ClaimType::Hashed)
+            | (Self::Number(_), ClaimType::Number)
+            | (Self::Scalar(_), ClaimType::Scalar)
+            | (Self::Revocation(_), ClaimType::Revocation) => true,
+            (_, _) => false,
+        }
+    }
 }
 
 /// Represents claims
@@ -115,7 +129,7 @@ pub trait Claim {
 }
 
 /// Claims that are hashed to a scalar
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct HashedClaim {
     /// The value to be hashed
     pub value: Vec<u8>,
@@ -166,7 +180,7 @@ impl Claim for HashedClaim {
 }
 
 /// A claim that is a 64-bit signed number
-#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Deserialize, Serialize)]
 pub struct NumberClaim {
     /// The claim value
     pub value: isize,
@@ -215,7 +229,7 @@ impl Claim for NumberClaim {
 }
 
 /// A claim that is already a scalar
-#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct ScalarClaim {
     /// The scalar value
     pub value: Scalar,
@@ -250,7 +264,7 @@ impl Claim for ScalarClaim {
 }
 
 /// A claim used for revocation
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct RevocationClaim {
     /// The revocation id
     pub value: String,

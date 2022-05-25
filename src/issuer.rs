@@ -95,6 +95,24 @@ impl Issuer {
         revocation_element_index: usize,
         claims: &[ClaimData],
     ) -> CredxResult<CredentialBundle> {
+        // Check if claim data matches schema and validators
+        if claims.len() != self.schema.claims.len() {
+            return Err(Error::InvalidClaimData);
+        }
+        for (c, t) in claims.iter().zip(&self.schema.claims) {
+            if !c.is_type(t.claim_type) {
+                return Err(Error::InvalidClaimData);
+            }
+            match t.is_valid(c) {
+                Some(b) => {
+                    if !b {
+                        return Err(Error::InvalidClaimData);
+                    }
+                }
+                None => return Err(Error::InvalidClaimData),
+            };
+        }
+
         let attributes: Vec<Scalar> = claims.iter().map(|c| c.to_scalar()).collect();
         let revocation_id = vb20::Element(attributes[revocation_element_index]);
         let elements: Vec<vb20::Element> = self
