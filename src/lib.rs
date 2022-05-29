@@ -7,8 +7,6 @@
     unused_qualifications
 )]
 
-extern crate core;
-
 use rand_core::{CryptoRng, RngCore};
 
 /// The result type for this crate
@@ -32,3 +30,8 @@ pub mod issuer;
 pub mod presentation;
 /// Revocation registry methods
 pub mod revocation_registry;
+/// Presentation statements
+pub mod statement;
+
+/// Re-export yeti
+pub extern crate yeti;
