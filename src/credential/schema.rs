@@ -27,6 +27,7 @@ pub struct ClaimSchema {
     /// The claim label
     pub label: String,
     /// The claim data validators
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub validators: Vec<ClaimValidator>,
 }
 

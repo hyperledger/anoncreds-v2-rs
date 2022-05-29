@@ -2,9 +2,11 @@ use super::{credential::CredentialSchema, error::Error, revocation_registry::Rev
 use crate::claim::ClaimData;
 use crate::credential::{Credential, CredentialBundle};
 use crate::{random_string, CredxResult};
+use group::Curve;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::num::NonZeroUsize;
-use yeti::knox::bls12_381_plus::Scalar;
+use yeti::knox::bls12_381_plus::{G1Affine, G1Projective, G2Affine, G2Projective, Scalar};
 use yeti::knox::{accumulator::vb20, bls, ps, Knox};
 
 /// An issuer of a credential
@@ -39,6 +41,23 @@ pub struct IssuerPublic {
     pub verifiable_encryption_key: bls::PublicKeyVt,
     /// The revocation registry for this issuer
     pub revocation_registry: vb20::Accumulator,
+}
+
+/// The public data for an issuer in a json friendly struct
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct IssuerPublicText {
+    /// The issuer's unique id
+    pub id: String,
+    /// The schema for this issuer
+    pub schema: CredentialSchema,
+    /// The credential verifying key for this issuer
+    pub verifying_key: BTreeMap<String, String>,
+    /// The revocation registry verifying key for this issuer
+    pub revocation_verifying_key: String,
+    /// The verifiable encryption key for this issuer
+    pub verifiable_encryption_key: String,
+    /// The revocation registry for this issuer
+    pub revocation_registry: String,
 }
 
 impl From<&Issuer> for IssuerPublic {
@@ -142,6 +161,110 @@ impl Issuer {
                 revocation_handle: witness,
                 revocation_index: revocation_element_index,
             },
+        })
+    }
+}
+
+impl From<&IssuerPublic> for IssuerPublicText {
+    fn from(ip: &IssuerPublic) -> Self {
+        IssuerPublicText {
+            id: ip.id.clone(),
+            schema: ip.schema.clone(),
+            verifying_key: btreemap! {
+                "w".to_string() => hex::encode(&ip.verifying_key.w.to_affine().to_compressed()),
+                "x".to_string() => hex::encode(&ip.verifying_key.x.to_affine().to_compressed()),
+                "y".to_string() => format!("[{}]", ip.verifying_key.y.iter().map(|y| hex::encode(y.to_affine().to_compressed())).collect::<Vec<String>>().join(",")),
+                "y_blinds".to_string() => format!("[{}]", ip.verifying_key.y_blinds.iter().map(|y| hex::encode(y.to_affine().to_compressed())).collect::<Vec<String>>().join(",")),
+            },
+            revocation_verifying_key: hex::encode(&ip.revocation_verifying_key.to_bytes()),
+            verifiable_encryption_key: hex::encode(&ip.verifiable_encryption_key.to_bytes()),
+            revocation_registry: hex::encode(&ip.revocation_registry.to_bytes()),
+        }
+    }
+}
+
+impl TryFrom<&IssuerPublicText> for IssuerPublic {
+    type Error = Error;
+
+    fn try_from(ipj: &IssuerPublicText) -> Result<Self, Self::Error> {
+        let get_point = |key: &str| -> CredxResult<G2Projective> {
+            if let Some(value) = ipj.verifying_key.get(key) {
+                let tv = hex::decode(value).map_err(|_| Error::InvalidPublicKey)?;
+                let arr =
+                    <[u8; 96]>::try_from(tv.as_slice()).map_err(|_| Error::InvalidPublicKey)?;
+                let pt = G2Affine::from_compressed(&arr).map(G2Projective::from);
+                if pt.is_none().unwrap_u8() == 1 {
+                    return Err(Error::InvalidPublicKey);
+                }
+                Ok(pt.unwrap())
+            } else {
+                Err(Error::InvalidPublicKey)
+            }
+        };
+        let w = get_point("w")?;
+        let x = get_point("x")?;
+        let mut y = Vec::new();
+        if let Some(ys) = ipj.verifying_key.get("y") {
+            let yy: Vec<String> = serde_json::from_str(ys).map_err(|_| Error::InvalidPublicKey)?;
+            for yi in &yy {
+                let bytes = hex::decode(yi).map_err(|_| Error::InvalidPublicKey)?;
+                let arr =
+                    <[u8; 96]>::try_from(bytes.as_slice()).map_err(|_| Error::InvalidPublicKey)?;
+                let pt = G2Affine::from_compressed(&arr).map(G2Projective::from);
+                if pt.is_none().unwrap_u8() == 1 {
+                    return Err(Error::InvalidPublicKey);
+                }
+                y.push(pt.unwrap());
+            }
+        } else {
+            return Err(Error::InvalidPublicKey);
+        }
+        let mut y_blinds = Vec::new();
+        if let Some(ys) = ipj.verifying_key.get("y_blinds") {
+            let yy: Vec<String> = serde_json::from_str(ys).map_err(|_| Error::InvalidPublicKey)?;
+            for yi in &yy {
+                let bytes = hex::decode(yi).map_err(|_| Error::InvalidPublicKey)?;
+                let arr =
+                    <[u8; 48]>::try_from(bytes.as_slice()).map_err(|_| Error::InvalidPublicKey)?;
+                let pt = G1Affine::from_compressed(&arr).map(G1Projective::from);
+                if pt.is_none().unwrap_u8() == 1 {
+                    return Err(Error::InvalidPublicKey);
+                }
+                y_blinds.push(pt.unwrap());
+            }
+        } else {
+            return Err(Error::InvalidPublicKey);
+        }
+
+        let bytes =
+            hex::decode(&ipj.revocation_verifying_key).map_err(|_| Error::InvalidPublicKey)?;
+        let arr = <[u8; 96]>::try_from(bytes.as_slice()).map_err(|_| Error::InvalidPublicKey)?;
+        let revocation_verifying_key =
+            vb20::PublicKey::try_from(&arr).map_err(|_| Error::InvalidPublicKey)?;
+        let bytes =
+            hex::decode(&ipj.verifiable_encryption_key).map_err(|_| Error::InvalidPublicKey)?;
+        let arr = <[u8; 48]>::try_from(bytes.as_slice()).map_err(|_| Error::InvalidPublicKey)?;
+        let pt = bls::PublicKeyVt::from_bytes(&arr);
+        if pt.is_none().unwrap_u8() == 1 {
+            return Err(Error::InvalidPublicKey);
+        }
+        let verifiable_encryption_key = pt.unwrap();
+        let bytes = hex::decode(&ipj.revocation_registry).map_err(|_| Error::InvalidPublicKey)?;
+        let arr = <[u8; 48]>::try_from(bytes.as_slice()).map_err(|_| Error::InvalidPublicKey)?;
+        let pt = G1Affine::from_compressed(&arr).map(G1Projective::from);
+        if pt.is_none().unwrap_u8() == 1 {
+            return Err(Error::InvalidPublicKey);
+        }
+        let revocation_registry = vb20::Accumulator::from(pt.unwrap());
+
+        Ok(IssuerPublic {
+            id: ipj.id.clone(),
+            schema: ipj.schema.clone(),
+            verifying_key: ps::PublicKey { w, x, y, y_blinds },
+
+            revocation_verifying_key,
+            verifiable_encryption_key,
+            revocation_registry,
         })
     }
 }

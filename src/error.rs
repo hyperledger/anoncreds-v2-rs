@@ -11,4 +11,6 @@ pub enum Error {
     InvalidSigningOperation,
     /// Invalid claim data
     InvalidClaimData,
+    /// Invalid public key
+    InvalidPublicKey,
 }
