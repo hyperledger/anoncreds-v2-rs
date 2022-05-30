@@ -61,7 +61,7 @@ impl ClaimValidator {
                     let min = min.unwrap_or(0);
                     let max = max.unwrap_or(u64::MAX as usize);
                     let len = h.value.len();
-                    Some(min <= len && max <= len)
+                    Some(min <= len && len <= max)
                 }
                 _ => None,
             },
