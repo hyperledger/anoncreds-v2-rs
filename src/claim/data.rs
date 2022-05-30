@@ -41,6 +41,7 @@ impl ClaimData {
         match claim_type {
             ClaimType::Hashed => Ok(Self::Hashed(HashedClaim {
                 value: data.to_vec(),
+                print_friendly: false,
             })),
             ClaimType::Number => {
                 let n = match data.len() {

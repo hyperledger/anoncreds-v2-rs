@@ -1,6 +1,5 @@
 use super::{Claim, ClaimType};
 use core::fmt::{self, Display, Formatter};
-use std::hash::Hash;
 use serde::{Deserialize, Serialize};
 use yeti::{
     knox::{bls12_381_plus::Scalar, Knox},
@@ -13,14 +12,14 @@ pub struct HashedClaim {
     /// The value to be hashed
     pub value: Vec<u8>,
     /// Whether the claim can be printed
-    pub print_friendly: bool
+    pub print_friendly: bool,
 }
 
 impl Display for HashedClaim {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         if self.print_friendly {
             write!(f, "HashedClaim {{ ")?;
-            write!(f, String::from_utf8(self.value.clone()).unwrap())?;
+            write!(f, "{}", String::from_utf8(self.value.clone()).unwrap())?;
             write!(f, "}}")
         } else {
             write!(f, "HashedClaim {{ [")?;
