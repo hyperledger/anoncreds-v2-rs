@@ -173,8 +173,8 @@ impl From<&IssuerPublic> for IssuerPublicText {
             verifying_key: btreemap! {
                 "w".to_string() => hex::encode(&ip.verifying_key.w.to_affine().to_compressed()),
                 "x".to_string() => hex::encode(&ip.verifying_key.x.to_affine().to_compressed()),
-                "y".to_string() => format!("[{}]", ip.verifying_key.y.iter().map(|y| hex::encode(y.to_affine().to_compressed())).collect::<Vec<String>>().join(",")),
-                "y_blinds".to_string() => format!("[{}]", ip.verifying_key.y_blinds.iter().map(|y| hex::encode(y.to_affine().to_compressed())).collect::<Vec<String>>().join(",")),
+                "y".to_string() => serde_json::to_string(&ip.verifying_key.y.iter().map(|y| hex::encode(y.to_affine().to_compressed())).collect::<Vec<String>>()).unwrap(),
+                "y_blinds".to_string() => serde_json::to_string(&ip.verifying_key.y_blinds.iter().map(|y| hex::encode(y.to_affine().to_compressed())).collect::<Vec<String>>()).unwrap(),
             },
             revocation_verifying_key: hex::encode(&ip.revocation_verifying_key.to_bytes()),
             verifiable_encryption_key: hex::encode(&ip.verifiable_encryption_key.to_bytes()),
