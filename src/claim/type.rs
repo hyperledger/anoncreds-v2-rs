@@ -14,4 +14,6 @@ pub enum ClaimType {
     Scalar = 3,
     /// Revocation based claims
     Revocation = 4,
+    /// Enumeration based claims
+    Enumeration = 5,
 }

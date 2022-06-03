@@ -13,6 +13,8 @@ pub enum ClaimData {
     Scalar(ScalarClaim),
     /// Data is a fixed string
     Revocation(RevocationClaim),
+    /// Data is from a list of unique values
+    Enumeration(EnumerationClaim),
 }
 
 impl ClaimData {
@@ -23,6 +25,7 @@ impl ClaimData {
             Self::Number(n) => n.to_scalar(),
             Self::Scalar(s) => s.to_scalar(),
             Self::Revocation(r) => r.to_scalar(),
+            Self::Enumeration(e) => e.to_scalar(),
         }
     }
 
@@ -33,6 +36,7 @@ impl ClaimData {
             Self::Number(n) => n.value.to_le_bytes().to_vec(),
             Self::Scalar(s) => s.value.to_bytes().to_vec(),
             Self::Revocation(r) => r.value.as_bytes().to_vec(),
+            Self::Enumeration(e) => vec![e.value],
         }
     }
 
@@ -87,7 +91,8 @@ impl ClaimData {
             (Self::Hashed(_), ClaimType::Hashed)
             | (Self::Number(_), ClaimType::Number)
             | (Self::Scalar(_), ClaimType::Scalar)
-            | (Self::Revocation(_), ClaimType::Revocation) => true,
+            | (Self::Revocation(_), ClaimType::Revocation)
+            | (Self::Enumeration(_), ClaimType::Enumeration) => true,
             (_, _) => false,
         }
     }

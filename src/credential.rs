@@ -23,6 +23,8 @@ pub const SCALAR: &str = "scl:";
 pub const NUMBER: &str = "num:";
 /// Revocation id
 pub const REVOCATION: &str = "rev:";
+/// Enumeration
+pub const ENUMERATION: &str = "enm:";
 
 /// A credential
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -66,6 +68,11 @@ impl From<&Credential> for CredentialText {
                 ClaimData::Revocation(RevocationClaim { value }) => {
                     s.push_str(REVOCATION);
                     s.push_str(value);
+                }
+                ClaimData::Enumeration(e) => {
+                    s.push_str(ENUMERATION);
+                    let data = serde_bare::to_vec(&e).unwrap();
+                    s.push_str(&hex::encode(data.as_slice()))
                 }
             }
             claims.push(s);
@@ -158,6 +165,12 @@ impl TryFrom<&CredentialText> for Credential {
                 REVOCATION => {
                     let value = s[4..].to_string();
                     claims.push(ClaimData::Revocation(RevocationClaim { value }));
+                }
+                ENUMERATION => {
+                    let value = dehex(&s[4..])?;
+                    let e = serde_bare::from_slice::<EnumerationClaim>(value.as_slice())
+                        .map_err(|_| Error::InvalidClaimData)?;
+                    claims.push(ClaimData::Enumeration(e));
                 }
                 _ => {
                     return Err(Error::InvalidClaimData);

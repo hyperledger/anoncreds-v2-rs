@@ -1,4 +1,5 @@
 mod data;
+mod enumeration;
 mod hashed;
 mod number;
 mod revocation;
@@ -7,6 +8,7 @@ mod r#type;
 mod validator;
 
 pub use data::*;
+pub use enumeration::*;
 pub use hashed::*;
 pub use number::*;
 pub use r#type::*;

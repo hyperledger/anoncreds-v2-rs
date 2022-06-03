@@ -64,7 +64,6 @@ fn test_serialize() {
     let schema = res.unwrap();
     assert_eq!("63e8b522-3ef6-4c45-92f1-47cad2449523", schema.id);
 
-
     // let res = serde_bare::to_vec(&schema);
     // assert!(res.is_ok());
     // let bytes = res.unwrap();
