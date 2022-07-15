@@ -21,6 +21,8 @@ fn random_string(length: usize, mut rng: impl RngCore + CryptoRng) -> String {
     hex::encode(&buffer)
 }
 
+mod uint;
+
 /// Claim related methods
 pub mod claim;
 /// Credential related methods

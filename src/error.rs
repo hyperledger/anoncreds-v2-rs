@@ -13,4 +13,6 @@ pub enum Error {
     InvalidClaimData,
     /// Invalid public key
     InvalidPublicKey,
+    /// Invalid data for creating a signature proof
+    InvalidSignatureProofData,
 }

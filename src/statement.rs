@@ -1,21 +1,21 @@
-mod ps;
+mod equality;
+mod signature;
 mod r#type;
 
-pub use ps::*;
+pub use equality::*;
+pub use signature::*;
 pub use r#type::*;
-
-use crate::presentation::{PresentationProof, PresentationSchema};
-use yeti::knox::bls12_381_plus::Scalar;
 
 /// Statement methods
 pub trait Statement {
-    /// The returned proof value
-    type ProofValue: PresentationProof;
+    type Value;
 
+    /// Get the specific struct value
+    fn value(&self) -> Self::Value;
     /// Return this statement unique identifier
     fn id(&self) -> String;
-    /// Commit the blinded values and the challenge contributions
-    fn commit(&self, schema: &PresentationSchema, transcript: &mut merlin::Transcript);
-    /// Finalize proofs
-    fn gen_proof(&self, challenge: Scalar) -> Self::ProofValue;
+    /// Get the statement type
+    fn r#type(&self) -> StatementType;
+    /// Any statements that this statement references
+    fn reference_ids(&self) -> Vec<String>;
 }
