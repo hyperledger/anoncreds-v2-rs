@@ -15,4 +15,6 @@ pub enum Error {
     InvalidPublicKey,
     /// Invalid data for creating a signature proof
     InvalidSignatureProofData,
+    /// Invalid data for creating a presentation
+    InvalidPresentationData,
 }

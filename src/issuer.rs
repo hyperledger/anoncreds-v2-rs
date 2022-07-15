@@ -268,3 +268,27 @@ impl TryFrom<&IssuerPublicText> for IssuerPublic {
         })
     }
 }
+
+impl IssuerPublic {
+    /// Add data to transcript
+    pub fn add_challenge_contribution(&self, transcript: &mut merlin::Transcript) {
+        transcript.append_message(b"issuer id", self.id.as_bytes());
+        transcript.append_message(
+            b"issuer verifying key",
+            self.verifying_key.to_bytes().as_slice(),
+        );
+        transcript.append_message(
+            b"issuer revocation verifying key",
+            self.revocation_verifying_key.to_bytes().as_slice(),
+        );
+        transcript.append_message(
+            b"issuer revocation registry",
+            self.revocation_registry.to_bytes().as_slice(),
+        );
+        transcript.append_message(
+            b"issuer verifiable encryption key",
+            self.verifiable_encryption_key.to_bytes().as_slice(),
+        );
+        self.schema.add_challenge_contribution(transcript);
+    }
+}

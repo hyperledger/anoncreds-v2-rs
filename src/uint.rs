@@ -1,4 +1,7 @@
-use serde::{Deserialize, Deserializer, Serializer, Serialize, de::{Visitor, Error as DError}};
+use serde::{
+    de::{Error as DError, Visitor},
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 use std::fmt;
 
 /// The maximum number of bytes a uint will consume
@@ -35,7 +38,6 @@ impl TryFrom<&[u8]> for Uint {
         let mut x = 0u64;
         let mut s = 0;
         let mut i = 0;
-        let mut u = 0u64;
 
         while i < MAX_UINT_BYTES {
             if i > value.len() {
@@ -43,10 +45,10 @@ impl TryFrom<&[u8]> for Uint {
             }
 
             if value[i] < 0x80 {
-                u = x | (value[i] as u64) << s;
+                let u = x | (value[i] as u64) << s;
                 return Ok(Self(u));
             }
-            x |= ((value[i]&0x7f) as u64) << s;
+            x |= ((value[i] & 0x7f) as u64) << s;
             s += 7;
             i += 1;
         }
@@ -75,7 +77,7 @@ impl<'de> Deserialize<'de> for Uint {
             fn visit_bytes<E: DError>(self, v: &[u8]) -> Result<Self::Value, E> {
                 match Uint::try_from(v) {
                     Err(_) => Err(DError::invalid_length(v.len(), &self)),
-                    Ok(u) => Ok(u)
+                    Ok(u) => Ok(u),
                 }
             }
         }
@@ -87,21 +89,21 @@ impl<'de> Deserialize<'de> for Uint {
 impl Uint {
     /// Peek returns the number of bytes that would be read
     /// or None if no an Uint cannot be read
-    pub fn peek(value: &[u8]) -> Option<usize> {
-        let mut i = 0;
-
-        while i < MAX_UINT_BYTES {
-            if i > value.len() {
-                return None;
-            }
-            if value[i] < 0x80 {
-                return Some(i + 1)
-            }
-
-            i += 1;
-        }
-        return None;
-    }
+    // pub fn peek(value: &[u8]) -> Option<usize> {
+    //     let mut i = 0;
+    //
+    //     while i < MAX_UINT_BYTES {
+    //         if i > value.len() {
+    //             return None;
+    //         }
+    //         if value[i] < 0x80 {
+    //             return Some(i + 1);
+    //         }
+    //
+    //         i += 1;
+    //     }
+    //     return None;
+    // }
 
     /// Zig-zag encoding, any length from 1 to 9
     pub fn bytes(&self) -> Vec<u8> {

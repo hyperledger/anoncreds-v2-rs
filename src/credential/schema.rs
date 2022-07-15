@@ -1,6 +1,6 @@
-use crate::claim::*;
+use crate::{claim::*, uint::Uint};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 /// A credential schema
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -12,11 +12,36 @@ pub struct CredentialSchema {
     /// A longer description
     pub description: String,
     /// The list of claims allowed to be blindly signed
-    pub blind_claims: Vec<String>,
+    pub blind_claims: BTreeSet<String>,
     /// The claim labels to indices
     pub claim_indices: BTreeMap<String, usize>,
     /// The claims that can be signed
     pub claims: Vec<ClaimSchema>,
+}
+
+impl CredentialSchema {
+    /// Add data to the transcript
+    pub fn add_challenge_contribution(&self, transcript: &mut merlin::Transcript) {
+        transcript.append_message(b"schema id", self.id.as_bytes());
+        transcript.append_message(b"schema label", self.label.as_bytes());
+        transcript.append_message(b"schema description", self.description.as_bytes());
+        transcript.append_message(
+            b"blind claims length",
+            &Uint::from(self.blind_claims.len()).bytes(),
+        );
+        for b in &self.blind_claims {
+            transcript.append_message(b"blind claim", b.as_bytes());
+        }
+        transcript.append_message(
+            b"claim indices length",
+            &Uint::from(self.claim_indices.len()).bytes(),
+        );
+        for (label, index) in &self.claim_indices {
+            transcript.append_message(b"claim indices label", label.as_bytes());
+            transcript.append_message(b"claim indices index", &Uint::from(*index).bytes());
+        }
+        transcript.append_message(b"claims length", &Uint::from(self.claims.len()).bytes());
+    }
 }
 
 /// A claim schema
@@ -46,6 +71,24 @@ impl ClaimSchema {
             }
         }
         Some(result)
+    }
+
+    /// Add data to the transcript
+    pub fn add_challenge_contribution(&self, transcript: &mut merlin::Transcript) {
+        transcript.append_message(b"claim label", self.label.as_bytes());
+        transcript.append_message(b"claim type", &[self.claim_type as u8]);
+        transcript.append_message(
+            b"claim print friendly",
+            &[if self.print_friendly { 1u8 } else { 0u8 }],
+        );
+        transcript.append_message(
+            b"claim validators length",
+            &Uint::from(self.validators.len()).bytes(),
+        );
+        for (index, validator) in self.validators.iter().enumerate() {
+            transcript.append_message(b"claim validator index", &Uint::from(index).bytes());
+            validator.add_challenge_contribution(transcript);
+        }
     }
 }
 

@@ -1,14 +1,15 @@
-use super::{
-    Statement, StatementType,
-};
+use super::{Statement, StatementType};
 use crate::issuer::IssuerPublic;
-
+use crate::uint::Uint;
+use merlin::Transcript;
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 
 /// A PS signature statement
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SignatureStatement {
     /// The labels for the disclosed claims
-    pub disclosed: Vec<String>,
+    pub disclosed: BTreeSet<String>,
     /// The statement id
     pub id: String,
     /// The issuer information
@@ -16,13 +17,6 @@ pub struct SignatureStatement {
 }
 
 impl Statement for SignatureStatement {
-    type Value = SignatureStatement;
-
-    /// Get the specific struct value
-    fn value(&self) -> Self {
-        self.clone()
-    }
-
     /// Return this statement unique identifier
     fn id(&self) -> String {
         self.id.clone()
@@ -36,5 +30,22 @@ impl Statement for SignatureStatement {
     /// Any statements that this statement references
     fn reference_ids(&self) -> Vec<String> {
         Vec::with_capacity(0)
+    }
+
+    fn add_challenge_contribution(&self, transcript: &mut Transcript) {
+        transcript.append_message(b"statement id", self.id.as_bytes());
+        transcript.append_message(
+            b"disclosed message length",
+            &Uint::from(self.disclosed.len()).bytes(),
+        );
+        for (index, d) in self.disclosed.iter().enumerate() {
+            transcript.append_message(b"disclosed message label index", &Uint::from(index).bytes());
+            transcript.append_message(b"disclosed message label", d.as_bytes());
+        }
+        self.issuer.add_challenge_contribution(transcript);
+    }
+
+    fn get_claim_index(&self, _reference_id: &str) -> usize {
+        unimplemented!()
     }
 }

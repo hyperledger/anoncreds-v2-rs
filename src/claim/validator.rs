@@ -1,4 +1,5 @@
 use crate::claim::ClaimData;
+use crate::uint::Uint;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +16,7 @@ pub enum ClaimValidatorType {
     /// The regular expression type
     Regex = 3,
     /// The any one list type
-    Anyone = 4,
+    AnyOne = 4,
 }
 
 /// The validations that can be made to ClaimData
@@ -81,6 +82,61 @@ impl ClaimValidator {
                 _ => None,
             },
             Self::AnyOne(claims) => Some(claims.iter().any(|c| c == claim)),
+        }
+    }
+
+    /// Add the public data to the transcript
+    pub fn add_challenge_contribution(&self, transcript: &mut merlin::Transcript) {
+        match self {
+            Self::Length { min, max } => {
+                transcript
+                    .append_message(b"claim validator type", &[ClaimValidatorType::Length as u8]);
+                transcript.append_message(
+                    b"claim validator length - min",
+                    &min.map_or_else(Vec::new, |i| Uint::from(i).bytes()),
+                );
+                transcript.append_message(
+                    b"claim validator length - max",
+                    &max.map_or_else(Vec::new, |i| Uint::from(i).bytes()),
+                );
+            }
+            Self::Range { min, max } => {
+                transcript
+                    .append_message(b"claim validator type", &[ClaimValidatorType::Range as u8]);
+                transcript.append_message(
+                    b"claim validator range - min",
+                    &min.map_or_else(Vec::new, |i| Uint::from(i).bytes()),
+                );
+                transcript.append_message(
+                    b"claim validator range - max",
+                    &max.map_or_else(Vec::new, |i| Uint::from(i).bytes()),
+                );
+            }
+            Self::Regex(rx) => {
+                transcript
+                    .append_message(b"claim validator type", &[ClaimValidatorType::Regex as u8]);
+                transcript.append_message(b"claim validator regex", rx.to_string().as_bytes());
+            }
+            Self::AnyOne(set) => {
+                transcript
+                    .append_message(b"claim validator type", &[ClaimValidatorType::AnyOne as u8]);
+                transcript.append_message(
+                    b"claim validator anyone length",
+                    &Uint::from(set.len()).bytes(),
+                );
+                for (index, c) in set.iter().enumerate() {
+                    transcript.append_message(
+                        b"claim validator anyone claim index",
+                        &Uint::from(index).bytes(),
+                    );
+                    transcript
+                        .append_message(b"claim validator anyone claim raw data", &c.to_bytes());
+                    transcript.append_message(
+                        b"claim validator anyone claim mapped data",
+                        &c.to_scalar().to_bytes(),
+                    );
+                }
+            }
         }
     }
 }
