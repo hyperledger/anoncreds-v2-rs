@@ -1,9 +1,9 @@
 use super::{Statement, StatementType};
 use crate::issuer::IssuerPublic;
-use crate::uint::Uint;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
+use uint_zigzag::Uint;
 
 /// A PS signature statement
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -33,13 +33,17 @@ impl Statement for SignatureStatement {
     }
 
     fn add_challenge_contribution(&self, transcript: &mut Transcript) {
+        transcript.append_message(b"statement type", b"ps signature");
         transcript.append_message(b"statement id", self.id.as_bytes());
         transcript.append_message(
             b"disclosed message length",
-            &Uint::from(self.disclosed.len()).bytes(),
+            &Uint::from(self.disclosed.len()).to_vec(),
         );
         for (index, d) in self.disclosed.iter().enumerate() {
-            transcript.append_message(b"disclosed message label index", &Uint::from(index).bytes());
+            transcript.append_message(
+                b"disclosed message label index",
+                &Uint::from(index).to_vec(),
+            );
             transcript.append_message(b"disclosed message label", d.as_bytes());
         }
         self.issuer.add_challenge_contribution(transcript);

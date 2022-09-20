@@ -1,7 +1,7 @@
 use crate::claim::ClaimData;
-use crate::uint::Uint;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use uint_zigzag::Uint;
 
 /// The claim validator types
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
@@ -93,11 +93,11 @@ impl ClaimValidator {
                     .append_message(b"claim validator type", &[ClaimValidatorType::Length as u8]);
                 transcript.append_message(
                     b"claim validator length - min",
-                    &min.map_or_else(Vec::new, |i| Uint::from(i).bytes()),
+                    &min.map_or_else(Vec::new, |i| Uint::from(i).to_vec()),
                 );
                 transcript.append_message(
                     b"claim validator length - max",
-                    &max.map_or_else(Vec::new, |i| Uint::from(i).bytes()),
+                    &max.map_or_else(Vec::new, |i| Uint::from(i).to_vec()),
                 );
             }
             Self::Range { min, max } => {
@@ -105,11 +105,11 @@ impl ClaimValidator {
                     .append_message(b"claim validator type", &[ClaimValidatorType::Range as u8]);
                 transcript.append_message(
                     b"claim validator range - min",
-                    &min.map_or_else(Vec::new, |i| Uint::from(i).bytes()),
+                    &min.map_or_else(Vec::new, |i| Uint::from(i).to_vec()),
                 );
                 transcript.append_message(
                     b"claim validator range - max",
-                    &max.map_or_else(Vec::new, |i| Uint::from(i).bytes()),
+                    &max.map_or_else(Vec::new, |i| Uint::from(i).to_vec()),
                 );
             }
             Self::Regex(rx) => {
@@ -122,12 +122,12 @@ impl ClaimValidator {
                     .append_message(b"claim validator type", &[ClaimValidatorType::AnyOne as u8]);
                 transcript.append_message(
                     b"claim validator anyone length",
-                    &Uint::from(set.len()).bytes(),
+                    &Uint::from(set.len()).to_vec(),
                 );
                 for (index, c) in set.iter().enumerate() {
                     transcript.append_message(
                         b"claim validator anyone claim index",
-                        &Uint::from(index).bytes(),
+                        &Uint::from(index).to_vec(),
                     );
                     transcript
                         .append_message(b"claim validator anyone claim raw data", &c.to_bytes());

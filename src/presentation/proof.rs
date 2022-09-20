@@ -23,6 +23,7 @@ pub trait PresentationProof {
 pub enum PresentationProofs {
     /// Signature proofs of knowledge
     Signature(SignatureProof),
+    Equality,
 }
 
 impl PresentationProofs {
@@ -30,6 +31,7 @@ impl PresentationProofs {
     pub fn id(&self) -> String {
         match self {
             PresentationProofs::Signature(ss) => ss.id(),
+            PresentationProofs::Equality => String::new(),
         }
     }
 

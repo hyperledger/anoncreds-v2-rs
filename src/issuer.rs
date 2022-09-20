@@ -140,17 +140,11 @@ impl Issuer {
             .iter()
             .map(|e| vb20::Element::hash(e.as_bytes()))
             .collect();
-        let index = elements
-            .iter()
-            .position(|e| e.0 == revocation_id.0)
-            .ok_or(Error::InvalidRevocationRegistryRevokeOperation)?;
         let witness = vb20::MembershipWitness::new(
-            index,
-            elements.as_slice(),
+            revocation_id,
             self.revocation_registry.value,
             &self.revocation_key,
-        )
-        .ok_or(Error::InvalidRevocationRegistryRevokeOperation)?;
+        );
         let signature = ps::Signature::new(&self.signing_key, &attributes)
             .map_err(|_| Error::InvalidSigningOperation)?;
         Ok(CredentialBundle {

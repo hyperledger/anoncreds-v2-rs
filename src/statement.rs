@@ -1,10 +1,14 @@
+mod commitment;
 mod equality;
 mod signature;
 mod r#type;
+mod verifiable_encryption;
 
+pub use commitment::*;
 pub use equality::*;
 pub use r#type::*;
 pub use signature::*;
+pub use verifiable_encryption::*;
 
 use serde::{Deserialize, Serialize};
 

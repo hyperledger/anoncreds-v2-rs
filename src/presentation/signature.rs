@@ -1,8 +1,9 @@
 use super::*;
-use crate::{error::Error, uint::Uint, CredxResult};
+use crate::{error::Error, CredxResult};
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use uint_zigzag::Uint;
 use yeti::knox::{
     bls12_381_plus::Scalar,
     ps::{PokSignature, PokSignatureProof, Signature as PsSignature},
@@ -46,7 +47,7 @@ impl SignatureBuilder {
                 let disclosed_messages = messages
                     .iter()
                     .enumerate()
-                    .filter(|(_i, m)|  matches!(m, ProofMessage::Revealed(_)))
+                    .filter(|(_i, m)| matches!(m, ProofMessage::Revealed(_)))
                     .map(|(i, m)| (i, m.get_message()))
                     .collect::<BTreeMap<usize, Scalar>>();
                 let idx_to_label: BTreeMap<usize, String> = statement
@@ -60,10 +61,10 @@ impl SignatureBuilder {
                 // Add the disclosed messages to the transcript
                 transcript.append_message(
                     b"disclosed messages length",
-                    &Uint::from(disclosed_messages.len()).bytes(),
+                    &Uint::from(disclosed_messages.len()).to_vec(),
                 );
                 for (i, m) in &disclosed_messages {
-                    transcript.append_message(b"disclosed message index", &Uint::from(*i).bytes());
+                    transcript.append_message(b"disclosed message index", &Uint::from(*i).to_vec());
                     transcript
                         .append_message(b"disclosed message label", idx_to_label[i].as_bytes());
                     transcript.append_message(b"disclosed message value", &m.to_bytes());

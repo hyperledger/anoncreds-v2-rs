@@ -1,7 +1,7 @@
 use crate::statement::Statements;
-use crate::uint::Uint;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use uint_zigzag::Uint;
 
 /// A description of the proofs to be created by the verifier
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -18,7 +18,7 @@ impl PresentationSchema {
         transcript.append_message(b"presentation schema id", self.id.as_bytes());
         transcript.append_message(
             b"presentation statement length",
-            &Uint::from(self.statements.len()).bytes(),
+            &Uint::from(self.statements.len()).to_vec(),
         );
         for (id, statement) in &self.statements {
             transcript.append_message(b"presentation statement id", id.as_bytes());

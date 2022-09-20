@@ -21,8 +21,6 @@ fn random_string(length: usize, mut rng: impl RngCore + CryptoRng) -> String {
     hex::encode(&buffer)
 }
 
-mod uint;
-
 /// Claim related methods
 pub mod claim;
 /// Credential related methods
@@ -37,6 +35,8 @@ pub mod presentation;
 pub mod revocation_registry;
 /// Presentation statements
 pub mod statement;
+
+mod utils;
 
 /// Re-export yeti
 pub extern crate yeti;

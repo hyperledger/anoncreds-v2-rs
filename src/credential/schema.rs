@@ -1,6 +1,7 @@
-use crate::{claim::*, uint::Uint};
+use crate::claim::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
+use uint_zigzag::Uint;
 
 /// A credential schema
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -27,20 +28,20 @@ impl CredentialSchema {
         transcript.append_message(b"schema description", self.description.as_bytes());
         transcript.append_message(
             b"blind claims length",
-            &Uint::from(self.blind_claims.len()).bytes(),
+            &Uint::from(self.blind_claims.len()).to_vec(),
         );
         for b in &self.blind_claims {
             transcript.append_message(b"blind claim", b.as_bytes());
         }
         transcript.append_message(
             b"claim indices length",
-            &Uint::from(self.claim_indices.len()).bytes(),
+            &Uint::from(self.claim_indices.len()).to_vec(),
         );
         for (label, index) in &self.claim_indices {
             transcript.append_message(b"claim indices label", label.as_bytes());
-            transcript.append_message(b"claim indices index", &Uint::from(*index).bytes());
+            transcript.append_message(b"claim indices index", &Uint::from(*index).to_vec());
         }
-        transcript.append_message(b"claims length", &Uint::from(self.claims.len()).bytes());
+        transcript.append_message(b"claims length", &Uint::from(self.claims.len()).to_vec());
     }
 }
 
@@ -83,10 +84,10 @@ impl ClaimSchema {
         );
         transcript.append_message(
             b"claim validators length",
-            &Uint::from(self.validators.len()).bytes(),
+            &Uint::from(self.validators.len()).to_vec(),
         );
         for (index, validator) in self.validators.iter().enumerate() {
-            transcript.append_message(b"claim validator index", &Uint::from(index).bytes());
+            transcript.append_message(b"claim validator index", &Uint::from(index).to_vec());
             validator.add_challenge_contribution(transcript);
         }
     }
