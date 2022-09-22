@@ -1,5 +1,7 @@
 use super::SignatureProof;
-use crate::presentation::PresentationSchema;
+use crate::presentation::{
+    AccumulatorSetMembershipProof, CommitmentProof, EqualityProof, PresentationSchema,
+};
 use crate::CredxResult;
 use yeti::knox::bls12_381_plus::Scalar;
 
@@ -23,7 +25,14 @@ pub trait PresentationProof {
 pub enum PresentationProofs {
     /// Signature proofs of knowledge
     Signature(SignatureProof),
-    Equality,
+    /// Accumulator set membership proof
+    AccumulatorSetMembership(AccumulatorSetMembershipProof),
+    /// Equality proof
+    Equality(EqualityProof),
+    /// Commitment proof
+    Commitment(CommitmentProof),
+    /// Verifiable Encryption proof
+    VerifiableEncryption,
 }
 
 impl PresentationProofs {
@@ -31,7 +40,10 @@ impl PresentationProofs {
     pub fn id(&self) -> String {
         match self {
             PresentationProofs::Signature(ss) => ss.id(),
-            PresentationProofs::Equality => String::new(),
+            PresentationProofs::Equality(e) => e.id(),
+            PresentationProofs::AccumulatorSetMembership(a) => a.id(),
+            PresentationProofs::Commitment(c) => c.id(),
+            PresentationProofs::VerifiableEncryption => todo!(),
         }
     }
 
@@ -46,6 +58,16 @@ impl PresentationProofs {
             PresentationProofs::Signature(ss) => {
                 ss.get_proof_contribution(challenge, schema, transcript)
             }
+            PresentationProofs::Equality(e) => {
+                e.get_proof_contribution(challenge, schema, transcript)
+            }
+            PresentationProofs::AccumulatorSetMembership(a) => {
+                a.get_proof_contribution(challenge, schema, transcript);
+            }
+            PresentationProofs::Commitment(c) => {
+                c.get_proof_contribution(challenge, schema, transcript)
+            }
+            PresentationProofs::VerifiableEncryption => todo!(),
         }
     }
 
@@ -53,6 +75,10 @@ impl PresentationProofs {
     pub fn verify(&self, schema: &PresentationSchema) -> CredxResult<()> {
         match self {
             PresentationProofs::Signature(ss) => ss.verify(schema),
+            PresentationProofs::Equality(e) => e.verify(schema),
+            PresentationProofs::AccumulatorSetMembership(a) => a.verify(schema),
+            PresentationProofs::Commitment(c) => c.verify(schema),
+            PresentationProofs::VerifiableEncryption => todo!(),
         }
     }
 }

@@ -1,9 +1,11 @@
+mod accumulator_set_membership;
 mod commitment;
 mod equality;
 mod signature;
 mod r#type;
 mod verifiable_encryption;
 
+pub use accumulator_set_membership::*;
 pub use commitment::*;
 pub use equality::*;
 pub use r#type::*;
@@ -11,6 +13,7 @@ pub use signature::*;
 pub use verifiable_encryption::*;
 
 use serde::{Deserialize, Serialize};
+use yeti::knox::bls12_381_plus::G1Projective;
 
 /// Statement methods
 pub trait Statement {
@@ -31,6 +34,14 @@ pub trait Statement {
 pub enum Statements {
     /// Signature statements
     Signature(SignatureStatement),
+    /// Equality statements
+    Equality(EqualityStatement),
+    /// Accumulator set membership statements
+    AccumulatorSetMembership(AccumulatorSetMembershipStatement),
+    /// Commitment statements
+    Commitment(CommitmentStatement<G1Projective>),
+    /// Verifiable Encryption statements
+    VerifiableEncryption(VerifiableEncryptionStatement<G1Projective>),
 }
 
 impl Statements {
@@ -38,6 +49,10 @@ impl Statements {
     pub fn id(&self) -> String {
         match self {
             Self::Signature(s) => s.id(),
+            Self::Equality(e) => e.id(),
+            Self::AccumulatorSetMembership(a) => a.id(),
+            Self::Commitment(c) => c.id(),
+            Self::VerifiableEncryption(v) => v.id(),
         }
     }
 
@@ -45,6 +60,10 @@ impl Statements {
     pub fn r#type(&self) -> StatementType {
         match self {
             Self::Signature(s) => s.r#type(),
+            Self::AccumulatorSetMembership(a) => a.r#type(),
+            Self::Equality(e) => e.r#type(),
+            Self::Commitment(c) => c.r#type(),
+            Self::VerifiableEncryption(v) => v.r#type(),
         }
     }
 
@@ -52,6 +71,10 @@ impl Statements {
     pub fn reference_ids(&self) -> Vec<String> {
         match self {
             Self::Signature(s) => s.reference_ids(),
+            Self::Equality(e) => e.reference_ids(),
+            Self::AccumulatorSetMembership(a) => a.reference_ids(),
+            Self::Commitment(c) => c.reference_ids(),
+            Self::VerifiableEncryption(v) => v.reference_ids(),
         }
     }
 
@@ -59,6 +82,10 @@ impl Statements {
     pub fn add_challenge_contribution(&self, transcript: &mut merlin::Transcript) {
         match self {
             Self::Signature(s) => s.add_challenge_contribution(transcript),
+            Self::Equality(e) => e.add_challenge_contribution(transcript),
+            Self::AccumulatorSetMembership(a) => a.add_challenge_contribution(transcript),
+            Self::Commitment(c) => c.add_challenge_contribution(transcript),
+            Self::VerifiableEncryption(v) => v.add_challenge_contribution(transcript),
         }
     }
 
@@ -66,6 +93,10 @@ impl Statements {
     pub fn get_claim_index(&self, reference_id: &str) -> usize {
         match self {
             Self::Signature(s) => s.get_claim_index(reference_id),
+            Self::Equality(e) => e.get_claim_index(reference_id),
+            Self::AccumulatorSetMembership(a) => a.get_claim_index(reference_id),
+            Self::Commitment(c) => c.get_claim_index(reference_id),
+            Self::VerifiableEncryption(v) => v.get_claim_index(reference_id),
         }
     }
 }

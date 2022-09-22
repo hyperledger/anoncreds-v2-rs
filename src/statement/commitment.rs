@@ -1,17 +1,13 @@
 use crate::statement::{Statement, StatementType};
 use crate::utils::*;
-use group::ff::PrimeField;
 use group::{Group, GroupEncoding};
 use merlin::Transcript;
-use serde::{
-    de::{DeserializeOwned, Error as DError, Unexpected},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uint_zigzag::Uint;
 
 /// A commitment statement
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Commitment<P: Group + GroupEncoding + DeserializeOwned + Serialize> {
+pub struct CommitmentStatement<P: Group + GroupEncoding + DeserializeOwned + Serialize> {
     /// The generator for the message element
     #[serde(
         serialize_with = "serialize_point",
@@ -32,7 +28,7 @@ pub struct Commitment<P: Group + GroupEncoding + DeserializeOwned + Serialize> {
     pub claim: usize,
 }
 
-impl<P: Group + GroupEncoding + DeserializeOwned + Serialize> Statement for Commitment<P> {
+impl<P: Group + GroupEncoding + DeserializeOwned + Serialize> Statement for CommitmentStatement<P> {
     fn id(&self) -> String {
         self.id.clone()
     }

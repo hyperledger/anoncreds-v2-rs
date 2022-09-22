@@ -1,16 +1,23 @@
+mod accumulator_set_membership;
+mod commitment;
+mod equality;
 mod proof;
 mod schema;
 mod signature;
 
+pub use accumulator_set_membership::*;
+pub use commitment::*;
+pub use equality::*;
 pub use proof::*;
 pub use schema::*;
 pub use signature::*;
 
-use crate::{claim::ClaimData, credential::Credential, error::Error, CredxResult};
+use crate::{claim::ClaimData, error::Error, CredxResult};
 use group::ff::Field;
 use rand_core::{CryptoRng, RngCore};
 use std::collections::BTreeMap;
 
+use crate::credential::CredentialBundle;
 use crate::statement::{StatementType, Statements};
 use yeti::knox::bls12_381_plus::Scalar;
 use yeti::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
@@ -19,6 +26,26 @@ use yeti::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
 pub trait PresentationBuilder {
     /// Finalize proofs
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs;
+}
+
+/// Encapsulates the builders for later conversion to proofs
+enum PresentationBuilders<'a> {
+    Signature(SignatureBuilder<'a>),
+    AccumulatorSetMembership(AccumulatorSetMembershipProofBuilder<'a>),
+    Equality(EqualityBuilder<'a>),
+    Commitment(CommitmentBuilder<'a>),
+}
+
+impl<'a> PresentationBuilders<'a> {
+    /// Convert to proofs
+    pub fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
+        match self {
+            Self::Signature(s) => s.gen_proof(challenge),
+            Self::Equality(e) => e.gen_proof(challenge),
+            Self::Commitment(c) => c.gen_proof(challenge),
+            Self::AccumulatorSetMembership(a) => a.gen_proof(challenge),
+        }
+    }
 }
 
 /// Defines the proofs for a verifier
@@ -35,7 +62,7 @@ pub struct Presentation {
 impl Presentation {
     /// Create a new presentation composed of 1 to many proofs
     pub fn create(
-        credentials: &BTreeMap<String, Credential>,
+        credentials: &BTreeMap<String, CredentialBundle>,
         schema: &PresentationSchema,
         nonce: &[u8],
         mut rng: impl RngCore + CryptoRng,
@@ -80,41 +107,74 @@ impl Presentation {
         let mut disclosed_messages = BTreeMap::new();
 
         for (id, sig_statement) in &signature_statements {
-            match sig_statement {
-                Statements::Signature(ss) => {
-                    let builder = SignatureBuilder::commit(
-                        ss,
-                        credentials[id].signature,
-                        &messages[id],
-                        &mut rng,
-                        transcript,
-                    )?;
-                    builders.push(builder);
-                    id_to_builder.insert(id.clone(), current);
-                    let mut dm = BTreeMap::new();
-                    for (index, claim) in credentials[id].claims.iter().enumerate() {
-                        if matches!(messages[id][index], ProofMessage::Revealed(_)) {
-                            let (label, _) = ss
-                                .issuer
-                                .schema
-                                .claim_indices
-                                .iter()
-                                .find(|(_, v)| **v == index)
-                                .unwrap();
-                            dm.insert(label.clone(), claim.clone());
-                        }
+            if let Statements::Signature(ss) = sig_statement {
+                let builder = SignatureBuilder::commit(
+                    ss,
+                    credentials[id].credential.signature,
+                    &messages[id],
+                    &mut rng,
+                    transcript,
+                )?;
+                builders.push(PresentationBuilders::Signature(builder));
+                id_to_builder.insert(id.clone(), current);
+                let mut dm = BTreeMap::new();
+                for (index, claim) in credentials[id].credential.claims.iter().enumerate() {
+                    if matches!(messages[id][index], ProofMessage::Revealed(_)) {
+                        let (label, _) = ss
+                            .issuer
+                            .schema
+                            .claim_indices
+                            .iter()
+                            .find(|(_, v)| **v == index)
+                            .unwrap();
+                        dm.insert(label.clone(), claim.clone());
                     }
-                    disclosed_messages.insert(id.clone(), dm);
                 }
+                disclosed_messages.insert(id.clone(), dm);
+                current += 1;
             }
-            current += 1;
         }
 
-        for (_id, pred_statement) in &predicate_statements {
+        for (id, pred_statement) in &predicate_statements {
             match pred_statement {
-                _ => return Err(Error::InvalidPresentationData),
+                Statements::Equality(e) => {
+                    let builder = EqualityBuilder::commit(e, credentials)?;
+                    builders.push(PresentationBuilders::Equality(builder));
+                    id_to_builder.insert(id.clone(), current);
+                    current += 1;
+                }
+                Statements::AccumulatorSetMembership(a) => {
+                    let credential = &credentials[&a.reference_id];
+                    let message = messages[&a.id][a.claim];
+                    let builder = AccumulatorSetMembershipProofBuilder::commit(
+                        a,
+                        &credential.credential,
+                        message,
+                        nonce,
+                        transcript,
+                    )?;
+                    builders.push(PresentationBuilders::AccumulatorSetMembership(builder));
+                    id_to_builder.insert(id.clone(), current);
+                    current += 1;
+                }
+                Statements::Commitment(c) => {
+                    let proof_message = messages[&c.id][c.claim];
+                    if matches!(proof_message, ProofMessage::Revealed(_)) {
+                        return Err(Error::InvalidClaimData);
+                    }
+                    let message = proof_message.get_message();
+                    let blinder = proof_message.get_blinder(&mut rng).unwrap();
+                    let builder =
+                        CommitmentBuilder::commit(c, message, blinder, &mut rng, transcript)?;
+                    builders.push(PresentationBuilders::Commitment(builder));
+                    id_to_builder.insert(id.clone(), current);
+                    current += 1;
+                }
+                Statements::VerifiableEncryption(v) => {
+                    todo!()
+                }
+                Statements::Signature(_) => {}
             }
-            current += 1;
         }
         let mut okm = [0u8; 64];
         transcript.challenge_bytes(b"challenge bytes", &mut okm);
@@ -136,7 +196,7 @@ impl Presentation {
 
     /// Map the claims to the respective types
     fn get_message_types(
-        credentials: &BTreeMap<String, Credential>,
+        credentials: &BTreeMap<String, CredentialBundle>,
         signature_statements: &BTreeMap<String, &Statements>,
         predicate_statements: &BTreeMap<String, &Statements>,
         mut rng: impl RngCore + CryptoRng,
@@ -145,7 +205,7 @@ impl Presentation {
 
         for (id, cred) in credentials {
             let mut indexer = BTreeMap::new();
-            for i in 0..cred.claims.len() {
+            for i in 0..cred.credential.claims.len() {
                 indexer.insert(i, false);
             }
             shared_proof_msg_indices.insert(id.clone(), indexer);
@@ -186,34 +246,33 @@ impl Presentation {
 
         for (id, sig) in signature_statements {
             let signature = &credentials[id];
-            let mut proof_claims = Vec::with_capacity(signature.claims.len());
+            let mut proof_claims = Vec::with_capacity(signature.credential.claims.len());
 
-            for (index, claim) in signature.claims.iter().enumerate() {
+            for (index, claim) in signature.credential.claims.iter().enumerate() {
                 let claim_value = claim.to_scalar();
 
                 // If the claim is not disclosed and used in a statement,
                 // it must use a shared blinder, otherwise its proof specific
-                match sig {
-                    Statements::Signature(ss) => {
-                        let (claim_label, _) = ss
-                            .issuer
-                            .schema
-                            .claim_indices
-                            .iter()
-                            .find(|(_, i)| index == **i)
-                            .unwrap();
-                        if ss.disclosed.contains(claim_label) {
-                            proof_claims.push(ProofMessage::Revealed(claim_value));
-                        } else if shared_proof_msg_indices[id][&index] {
-                            let blinder = Scalar::random(&mut rng);
-                            proof_claims.push(ProofMessage::Hidden(
-                                HiddenMessage::ExternalBlinding(claim_value, blinder),
-                            ));
-                        } else {
-                            proof_claims.push(ProofMessage::Hidden(
-                                HiddenMessage::ProofSpecificBlinding(claim_value),
-                            ));
-                        }
+                if let Statements::Signature(ss) = sig {
+                    let (claim_label, _) = ss
+                        .issuer
+                        .schema
+                        .claim_indices
+                        .iter()
+                        .find(|(_, i)| index == **i)
+                        .unwrap();
+                    if ss.disclosed.contains(claim_label) {
+                        proof_claims.push(ProofMessage::Revealed(claim_value));
+                    } else if shared_proof_msg_indices[id][&index] {
+                        let blinder = Scalar::random(&mut rng);
+                        proof_claims.push(ProofMessage::Hidden(HiddenMessage::ExternalBlinding(
+                            claim_value,
+                            blinder,
+                        )));
+                    } else {
+                        proof_claims.push(ProofMessage::Hidden(
+                            HiddenMessage::ProofSpecificBlinding(claim_value),
+                        ));
                     }
                 }
             }

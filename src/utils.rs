@@ -1,7 +1,7 @@
 use group::{Group, GroupEncoding};
 use serde::{
     de::{DeserializeOwned, Error as DError, Unexpected, Visitor},
-    Deserialize, Deserializer, Serialize, Serializer,
+    Deserializer, Serialize, Serializer,
 };
 use std::fmt::{self, Formatter};
 use std::marker::PhantomData;

@@ -1,4 +1,5 @@
 use super::*;
+use crate::statement::SignatureStatement;
 use crate::{error::Error, CredxResult};
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
@@ -11,31 +12,31 @@ use yeti::knox::{
 };
 
 /// A builder for creating signature presentations
-pub struct SignatureBuilder {
+pub(crate) struct SignatureBuilder<'a> {
     /// The statement identifier
-    id: String,
+    id: &'a String,
     /// The messages that belong to this signature
     disclosed_messages: BTreeMap<usize, Scalar>,
     /// The signature proof of knowledge builder
     pok_sig: PokSignature,
 }
 
-impl PresentationBuilder for SignatureBuilder {
+impl<'a> PresentationBuilder for SignatureBuilder<'a> {
     /// Finalize proofs
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         // PS signature generate_proof can't fail, okay to unwrap
         PresentationProofs::Signature(SignatureProof {
-            id: self.id,
+            id: self.id.clone(),
             disclosed_messages: self.disclosed_messages,
             pok: self.pok_sig.generate_proof(challenge).unwrap(),
         })
     }
 }
 
-impl SignatureBuilder {
+impl<'a> SignatureBuilder<'a> {
     /// Create a new signature builder
     pub fn commit(
-        statement: &crate::statement::SignatureStatement,
+        statement: &'a SignatureStatement,
         signature: PsSignature,
         messages: &[ProofMessage<Scalar>],
         rng: impl RngCore + CryptoRng,
@@ -72,7 +73,7 @@ impl SignatureBuilder {
                 poksig.add_proof_contribution(transcript);
 
                 Ok(Self {
-                    id: statement.id.clone(),
+                    id: &statement.id,
                     disclosed_messages,
                     pok_sig: poksig,
                 })
