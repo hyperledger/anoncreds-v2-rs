@@ -2,7 +2,7 @@ use crate::statement::{Statement, StatementType};
 use crate::utils::*;
 use group::{Group, GroupEncoding};
 use merlin::Transcript;
-use serde::{de::DeserializeOwned, Deserialize, Serialize, Serializer};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uint_zigzag::Uint;
 
 /// Verifiable encryption

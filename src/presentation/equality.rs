@@ -1,5 +1,4 @@
 use super::*;
-use crate::credential::CredentialBundle;
 use crate::statement::{EqualityStatement, Statement};
 use crate::{error::Error, CredxResult};
 use merlin::Transcript;
@@ -21,14 +20,14 @@ impl<'a> PresentationBuilder for EqualityBuilder<'a> {
 impl<'a> EqualityBuilder<'a> {
     pub fn commit(
         reference_statement: &'a EqualityStatement,
-        reference_id_credential: &BTreeMap<String, CredentialBundle>,
+        reference_id_credential: &BTreeMap<String, Credential>,
     ) -> CredxResult<Self> {
         let mut scalars = Vec::new();
         for (id, claim_index) in &reference_statement.ref_id_claim_index {
             match reference_id_credential.get(id) {
                 None => return Err(Error::InvalidPresentationData),
                 Some(cred) => {
-                    let sc = cred.credential.claims[*claim_index].to_scalar();
+                    let sc = cred.claims[*claim_index].to_scalar();
                     scalars.push(sc);
                 }
             }

@@ -12,13 +12,17 @@ pub use proof::*;
 pub use schema::*;
 pub use signature::*;
 
-use crate::{claim::ClaimData, error::Error, CredxResult};
+use crate::{
+    claim::ClaimData,
+    credential::Credential,
+    error::Error,
+    statement::{StatementType, Statements},
+    CredxResult,
+};
 use group::ff::Field;
 use rand_core::{CryptoRng, RngCore};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-
-use crate::credential::CredentialBundle;
-use crate::statement::{StatementType, Statements};
 use yeti::knox::bls12_381_plus::Scalar;
 use yeti::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
 
@@ -49,7 +53,7 @@ impl<'a> PresentationBuilders<'a> {
 }
 
 /// Defines the proofs for a verifier
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Presentation {
     /// The proofs
     pub proofs: BTreeMap<String, PresentationProofs>,
@@ -62,7 +66,7 @@ pub struct Presentation {
 impl Presentation {
     /// Create a new presentation composed of 1 to many proofs
     pub fn create(
-        credentials: &BTreeMap<String, CredentialBundle>,
+        credentials: &BTreeMap<String, Credential>,
         schema: &PresentationSchema,
         nonce: &[u8],
         mut rng: impl RngCore + CryptoRng,
@@ -110,7 +114,7 @@ impl Presentation {
             if let Statements::Signature(ss) = sig_statement {
                 let builder = SignatureBuilder::commit(
                     ss,
-                    credentials[id].credential.signature,
+                    credentials[id].signature,
                     &messages[id],
                     &mut rng,
                     transcript,
@@ -118,7 +122,7 @@ impl Presentation {
                 builders.push(PresentationBuilders::Signature(builder));
                 id_to_builder.insert(id.clone(), current);
                 let mut dm = BTreeMap::new();
-                for (index, claim) in credentials[id].credential.claims.iter().enumerate() {
+                for (index, claim) in credentials[id].claims.iter().enumerate() {
                     if matches!(messages[id][index], ProofMessage::Revealed(_)) {
                         let (label, _) = ss
                             .issuer
@@ -148,7 +152,7 @@ impl Presentation {
                     let message = messages[&a.id][a.claim];
                     let builder = AccumulatorSetMembershipProofBuilder::commit(
                         a,
-                        &credential.credential,
+                        &credential,
                         message,
                         nonce,
                         transcript,
@@ -196,7 +200,7 @@ impl Presentation {
 
     /// Map the claims to the respective types
     fn get_message_types(
-        credentials: &BTreeMap<String, CredentialBundle>,
+        credentials: &BTreeMap<String, Credential>,
         signature_statements: &BTreeMap<String, &Statements>,
         predicate_statements: &BTreeMap<String, &Statements>,
         mut rng: impl RngCore + CryptoRng,
@@ -205,7 +209,7 @@ impl Presentation {
 
         for (id, cred) in credentials {
             let mut indexer = BTreeMap::new();
-            for i in 0..cred.credential.claims.len() {
+            for i in 0..cred.claims.len() {
                 indexer.insert(i, false);
             }
             shared_proof_msg_indices.insert(id.clone(), indexer);
@@ -246,9 +250,9 @@ impl Presentation {
 
         for (id, sig) in signature_statements {
             let signature = &credentials[id];
-            let mut proof_claims = Vec::with_capacity(signature.credential.claims.len());
+            let mut proof_claims = Vec::with_capacity(signature.claims.len());
 
-            for (index, claim) in signature.credential.claims.iter().enumerate() {
+            for (index, claim) in signature.claims.iter().enumerate() {
                 let claim_value = claim.to_scalar();
 
                 // If the claim is not disclosed and used in a statement,

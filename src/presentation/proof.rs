@@ -3,6 +3,7 @@ use crate::presentation::{
     AccumulatorSetMembershipProof, CommitmentProof, EqualityProof, PresentationSchema,
 };
 use crate::CredxResult;
+use serde::{Deserialize, Serialize};
 use yeti::knox::bls12_381_plus::Scalar;
 
 /// The methods for proofs given in the presentation
@@ -21,7 +22,7 @@ pub trait PresentationProof {
 }
 
 /// The types of presentation proofs
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum PresentationProofs {
     /// Signature proofs of knowledge
     Signature(SignatureProof),
