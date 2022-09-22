@@ -70,8 +70,9 @@ impl Presentation {
         schema: &PresentationSchema,
         nonce: &[u8],
         mut rng: impl RngCore + CryptoRng,
-        transcript: &mut merlin::Transcript,
     ) -> CredxResult<Self> {
+        let mut transcript = merlin::Transcript::new(b"credx presentation");
+
         let mut signature_statements: BTreeMap<String, &Statements> = BTreeMap::new();
         let mut predicate_statements: BTreeMap<String, &Statements> = BTreeMap::new();
 
@@ -96,7 +97,7 @@ impl Presentation {
         }
 
         transcript.append_message(b"nonce", nonce);
-        schema.add_challenge_contribution(transcript);
+        schema.add_challenge_contribution(&mut transcript);
 
         let messages = Self::get_message_types(
             credentials,
