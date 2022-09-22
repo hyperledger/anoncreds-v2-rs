@@ -35,6 +35,8 @@ pub mod presentation;
 pub mod revocation_registry;
 /// Presentation statements
 pub mod statement;
+/// Presentation verifiers
+mod verifier;
 
 mod utils;
 

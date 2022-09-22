@@ -1,7 +1,5 @@
 use crate::credential::Credential;
-use crate::presentation::{
-    PresentationBuilder, PresentationProof, PresentationProofs, PresentationSchema,
-};
+use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::AccumulatorSetMembershipStatement;
 use crate::CredxResult;
 use merlin::Transcript;
@@ -59,23 +57,4 @@ pub struct AccumulatorSetMembershipProof {
     pub id: String,
     /// The membership proof
     pub proof: MembershipProof,
-}
-
-impl PresentationProof for AccumulatorSetMembershipProof {
-    fn id(&self) -> String {
-        self.id.clone()
-    }
-
-    fn get_proof_contribution(
-        &self,
-        _challenge: Scalar,
-        _schema: &PresentationSchema,
-        _transcript: &mut Transcript,
-    ) {
-        todo!()
-    }
-
-    fn verify(&self, _schema: &PresentationSchema) -> CredxResult<()> {
-        todo!()
-    }
 }

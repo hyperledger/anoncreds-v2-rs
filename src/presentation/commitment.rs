@@ -1,6 +1,4 @@
-use crate::presentation::{
-    PresentationBuilder, PresentationProof, PresentationProofs, PresentationSchema,
-};
+use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::CommitmentStatement;
 use crate::CredxResult;
 use group::ff::Field;
@@ -76,23 +74,4 @@ pub struct CommitmentProof {
     pub message_proof: Scalar,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
-}
-
-impl PresentationProof for CommitmentProof {
-    fn id(&self) -> String {
-        self.id.clone()
-    }
-
-    fn get_proof_contribution(
-        &self,
-        _challenge: Scalar,
-        _schema: &PresentationSchema,
-        _transcript: &mut Transcript,
-    ) {
-        todo!()
-    }
-
-    fn verify(&self, _schema: &PresentationSchema) -> CredxResult<()> {
-        todo!()
-    }
 }

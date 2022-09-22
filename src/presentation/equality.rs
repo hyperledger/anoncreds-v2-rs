@@ -1,7 +1,6 @@
 use super::*;
 use crate::statement::{EqualityStatement, Statement};
 use crate::{error::Error, CredxResult};
-use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 
 pub(crate) struct EqualityBuilder<'a> {
@@ -52,22 +51,4 @@ pub struct EqualityProof {
     pub id: String,
     /// The reference id to claim index
     pub reference_id_claim_index: BTreeMap<String, usize>,
-}
-
-impl PresentationProof for EqualityProof {
-    fn id(&self) -> String {
-        self.id.clone()
-    }
-
-    fn get_proof_contribution(
-        &self,
-        _challenge: Scalar,
-        _schema: &PresentationSchema,
-        _transcript: &mut Transcript,
-    ) {
-    }
-
-    fn verify(&self, _schema: &PresentationSchema) -> CredxResult<()> {
-        Ok(())
-    }
 }

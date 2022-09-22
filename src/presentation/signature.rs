@@ -4,7 +4,6 @@ use crate::{error::Error, CredxResult};
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use uint_zigzag::Uint;
 use yeti::knox::{
     bls12_381_plus::Scalar,
     ps::{PokSignature, PokSignatureProof, Signature as PsSignature},
@@ -40,7 +39,7 @@ impl<'a> SignatureBuilder<'a> {
         signature: PsSignature,
         messages: &[ProofMessage<Scalar>],
         rng: impl RngCore + CryptoRng,
-        transcript: &mut merlin::Transcript,
+        transcript: &mut Transcript,
     ) -> CredxResult<Self> {
         match PokSignature::init(signature, &statement.issuer.verifying_key, messages, rng) {
             Err(_) => Err(Error::InvalidSignatureProofData),
@@ -51,25 +50,7 @@ impl<'a> SignatureBuilder<'a> {
                     .filter(|(_i, m)| matches!(m, ProofMessage::Revealed(_)))
                     .map(|(i, m)| (i, m.get_message()))
                     .collect::<BTreeMap<usize, Scalar>>();
-                let idx_to_label: BTreeMap<usize, String> = statement
-                    .issuer
-                    .schema
-                    .claim_indices
-                    .iter()
-                    .map(|(k, v)| (*v, k.clone()))
-                    .collect();
 
-                // Add the disclosed messages to the transcript
-                transcript.append_message(
-                    b"disclosed messages length",
-                    &Uint::from(disclosed_messages.len()).to_vec(),
-                );
-                for (i, m) in &disclosed_messages {
-                    transcript.append_message(b"disclosed message index", &Uint::from(*i).to_vec());
-                    transcript
-                        .append_message(b"disclosed message label", idx_to_label[i].as_bytes());
-                    transcript.append_message(b"disclosed message value", &m.to_bytes());
-                }
                 poksig.add_proof_contribution(transcript);
 
                 Ok(Self {
@@ -91,25 +72,4 @@ pub struct SignatureProof {
     pub disclosed_messages: BTreeMap<usize, Scalar>,
     /// The proof
     pub pok: PokSignatureProof,
-}
-
-impl PresentationProof for SignatureProof {
-    fn id(&self) -> String {
-        self.id.clone()
-    }
-
-    /// Recreate the proof contributions for schnorr proofs
-    fn get_proof_contribution(
-        &self,
-        _challenge: Scalar,
-        _schema: &PresentationSchema,
-        _transcript: &mut merlin::Transcript,
-    ) {
-        todo!();
-    }
-
-    /// Verify this proof if separate from schnorr
-    fn verify(&self, _schema: &PresentationSchema) -> CredxResult<()> {
-        Ok(())
-    }
 }
