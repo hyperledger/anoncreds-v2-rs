@@ -18,7 +18,7 @@ impl PresentationSchema {
     pub fn new(statements: &[Statements]) -> Self {
         let id = random_string(16, rand::thread_rng());
         let statements = statements
-            .into_iter()
+            .iter()
             .map(|s| (s.id(), s.clone()))
             .collect();
         Self { id, statements }

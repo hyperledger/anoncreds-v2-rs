@@ -82,12 +82,7 @@ fn test_presentation() -> CredxResult<()> {
     let mut nonce = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut nonce);
     let credentials = btreemap! { CRED_ID.to_string() => credential.credential};
-    let presentation = Presentation::create(
-        &credentials,
-        &presentation_schema,
-        &nonce,
-        rand::thread_rng(),
-    )?;
+    let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
 
     presentation.verify(&presentation_schema, &nonce)
 }

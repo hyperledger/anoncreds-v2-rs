@@ -1,4 +1,4 @@
-use crate::presentation::{PresentationBuilder, PresentationProofs};
+use crate::presentation::{PresentationBuilder, PresentationBuilders, PresentationProofs};
 use crate::statement::VerifiableEncryptionStatement;
 use crate::CredxResult;
 use group::ff::Field;
@@ -66,6 +66,12 @@ impl<'a> VerifiableEncryptionBuilder<'a> {
     }
 }
 
+impl<'a> Into<PresentationBuilders<'a>> for VerifiableEncryptionBuilder<'a> {
+    fn into(self) -> PresentationBuilders<'a> {
+        PresentationBuilders::VerifiableEncryption(self)
+    }
+}
+
 /// A verifiable encryption proof
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct VerifiableEncryptionProof {
@@ -79,4 +85,10 @@ pub struct VerifiableEncryptionProof {
     pub message_proof: Scalar,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
+}
+
+impl Into<PresentationProofs> for VerifiableEncryptionProof {
+    fn into(self) -> PresentationProofs {
+        PresentationProofs::VerifiableEncryption(self)
+    }
 }

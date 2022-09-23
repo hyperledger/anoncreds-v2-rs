@@ -43,9 +43,21 @@ impl<'a> EqualityBuilder<'a> {
     }
 }
 
+impl<'a> Into<PresentationBuilders<'a>> for EqualityBuilder<'a> {
+    fn into(self) -> PresentationBuilders<'a> {
+        PresentationBuilders::Equality(self)
+    }
+}
+
 /// An equality proof for checking message equality
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EqualityProof {
     /// The statement identifier
     pub id: String,
+}
+
+impl Into<PresentationProofs> for EqualityProof {
+    fn into(self) -> PresentationProofs {
+        PresentationProofs::Equality(self)
+    }
 }

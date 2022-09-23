@@ -1,6 +1,6 @@
 use crate::presentation::CommitmentProof;
 use crate::statement::CommitmentStatement;
-use crate::verifier::ProofVerifier;
+use crate::verifier::{ProofVerifier, ProofVerifiers};
 use crate::CredxResult;
 use group::Curve;
 use merlin::Transcript;
@@ -35,5 +35,11 @@ impl<'a, 'b> ProofVerifier for CommitmentVerifier<'a, 'b> {
 
     fn verify(&self, _challenge: Scalar) -> CredxResult<()> {
         Ok(())
+    }
+}
+
+impl<'a, 'b, 'c> Into<ProofVerifiers<'a, 'b, 'c>> for CommitmentVerifier<'a, 'b> {
+    fn into(self) -> ProofVerifiers<'a, 'b, 'c> {
+        ProofVerifiers::Commitment(self)
     }
 }

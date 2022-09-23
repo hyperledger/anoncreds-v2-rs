@@ -1,6 +1,6 @@
 use crate::presentation::AccumulatorSetMembershipProof;
 use crate::statement::AccumulatorSetMembershipStatement;
-use crate::verifier::ProofVerifier;
+use crate::verifier::{ProofVerifier, ProofVerifiers};
 use crate::CredxResult;
 use merlin::Transcript;
 use yeti::knox::accumulator::vb20::{Element, ProofParams};
@@ -46,5 +46,11 @@ impl<'a, 'b> ProofVerifier for AccumulatorSetMembershipVerifier<'a, 'b> {
 
     fn verify(&self, _challenge: Scalar) -> CredxResult<()> {
         Ok(())
+    }
+}
+
+impl<'a, 'b, 'c> Into<ProofVerifiers<'a, 'b, 'c>> for AccumulatorSetMembershipVerifier<'a, 'b> {
+    fn into(self) -> ProofVerifiers<'a, 'b, 'c> {
+        ProofVerifiers::AccumulatorSetMembership(self)
     }
 }

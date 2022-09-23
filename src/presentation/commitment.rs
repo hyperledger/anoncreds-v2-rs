@@ -1,4 +1,4 @@
-use crate::presentation::{PresentationBuilder, PresentationProofs};
+use crate::presentation::{PresentationBuilder, PresentationBuilders, PresentationProofs};
 use crate::statement::CommitmentStatement;
 use crate::CredxResult;
 use group::ff::Field;
@@ -63,6 +63,12 @@ impl<'a> CommitmentBuilder<'a> {
     }
 }
 
+impl<'a> Into<PresentationBuilders<'a>> for CommitmentBuilder<'a> {
+    fn into(self) -> PresentationBuilders<'a> {
+        PresentationBuilders::Commitment(self)
+    }
+}
+
 /// A commitment proof
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CommitmentProof {
@@ -74,4 +80,10 @@ pub struct CommitmentProof {
     pub message_proof: Scalar,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
+}
+
+impl Into<PresentationProofs> for CommitmentProof {
+    fn into(self) -> PresentationProofs {
+        PresentationProofs::Commitment(self)
+    }
 }

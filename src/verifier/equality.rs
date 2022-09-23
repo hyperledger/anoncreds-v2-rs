@@ -1,7 +1,7 @@
 use crate::error::Error;
 use crate::presentation::{PresentationProofs, PresentationSchema};
 use crate::statement::{EqualityStatement, Statements};
-use crate::verifier::ProofVerifier;
+use crate::verifier::{ProofVerifier, ProofVerifiers};
 use crate::CredxResult;
 use merlin::Transcript;
 use std::collections::BTreeMap;
@@ -65,5 +65,11 @@ impl<'a, 'b, 'c> ProofVerifier for EqualityVerifier<'a, 'b, 'c> {
             }
         }
         Ok(())
+    }
+}
+
+impl<'a, 'b, 'c> Into<ProofVerifiers<'a, 'b, 'c>> for EqualityVerifier<'a, 'b, 'c> {
+    fn into(self) -> ProofVerifiers<'a, 'b, 'c> {
+        ProofVerifiers::Equality(self)
     }
 }
