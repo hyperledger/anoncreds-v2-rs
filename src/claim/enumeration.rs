@@ -1,4 +1,4 @@
-use crate::claim::{Claim, ClaimType};
+use crate::claim::{Claim, ClaimData, ClaimType};
 use core::fmt::{self, Display, Formatter};
 use serde::{Deserialize, Serialize};
 use yeti::knox::bls12_381_plus::Scalar;
@@ -20,6 +20,12 @@ pub struct EnumerationClaim {
 impl Display for EnumerationClaim {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "EnumerationClaim {{ {} }}", self.value)
+    }
+}
+
+impl Into<ClaimData> for EnumerationClaim {
+    fn into(self) -> ClaimData {
+        ClaimData::Enumeration(self)
     }
 }
 

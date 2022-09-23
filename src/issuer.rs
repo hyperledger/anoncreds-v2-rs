@@ -1,12 +1,15 @@
 use super::{credential::CredentialSchema, error::Error, revocation_registry::RevocationRegistry};
-use crate::claim::ClaimData;
+use crate::claim::{ClaimData, ClaimType};
 use crate::credential::{Credential, CredentialBundle};
 use crate::{random_string, CredxResult};
 use group::Curve;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use yeti::knox::bls12_381_plus::{G1Affine, G1Projective, G2Affine, G2Projective, Scalar};
-use yeti::knox::{accumulator::vb20, bls, ps, Knox};
+use yeti::knox::{
+    accumulator::vb20::{self, Accumulator, Element, MembershipWitness},
+    bls, ps, Knox,
+};
 
 /// An issuer of a credential
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -39,7 +42,7 @@ pub struct IssuerPublic {
     /// The verifiable encryption key for this issuer
     pub verifiable_encryption_key: bls::PublicKeyVt,
     /// The revocation registry for this issuer
-    pub revocation_registry: vb20::Accumulator,
+    pub revocation_registry: Accumulator,
 }
 
 /// The public data for an issuer in a json friendly struct
@@ -108,16 +111,13 @@ impl Issuer {
     }
 
     /// Sign the claims into a credential
-    pub fn sign_credential(
-        &self,
-        revocation_element_index: usize,
-        claims: &[ClaimData],
-    ) -> CredxResult<CredentialBundle> {
+    pub fn sign_credential(&self, claims: &[ClaimData]) -> CredxResult<CredentialBundle> {
         // Check if claim data matches schema and validators
         if claims.len() != self.schema.claims.len() {
             return Err(Error::InvalidClaimData);
         }
-        for (c, t) in claims.iter().zip(&self.schema.claims) {
+        let mut revocation_element_index = None;
+        for (i, (c, t)) in claims.iter().zip(&self.schema.claims).enumerate() {
             if !c.is_type(t.claim_type) {
                 return Err(Error::InvalidClaimData);
             }
@@ -129,11 +129,15 @@ impl Issuer {
                 }
                 None => return Err(Error::InvalidClaimData),
             };
+            if matches!(t.claim_type, ClaimType::Revocation) {
+                revocation_element_index = Some(i);
+            }
         }
+        let revocation_element_index = revocation_element_index.ok_or(Error::InvalidClaimData)?;
 
         let attributes: Vec<Scalar> = claims.iter().map(|c| c.to_scalar()).collect();
-        let revocation_id = vb20::Element(attributes[revocation_element_index]);
-        let witness = vb20::MembershipWitness::new(
+        let revocation_id = Element(attributes[revocation_element_index]);
+        let witness = MembershipWitness::new(
             revocation_id,
             self.revocation_registry.value,
             &self.revocation_key,

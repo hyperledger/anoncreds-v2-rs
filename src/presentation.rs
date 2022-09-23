@@ -298,7 +298,7 @@ impl Presentation {
         }
 
         for verifier in &verifiers {
-            verifier.verify(self.challenge, &mut transcript)?;
+            verifier.verify(self.challenge)?;
         }
 
         Ok(())

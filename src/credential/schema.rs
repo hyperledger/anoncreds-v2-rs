@@ -1,4 +1,6 @@
 use crate::claim::*;
+use crate::error::Error;
+use crate::{random_string, CredxResult};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use uint_zigzag::Uint;
@@ -9,9 +11,11 @@ pub struct CredentialSchema {
     /// The unique identifier for this schema
     pub id: String,
     /// Friendly label
-    pub label: String,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub label: Option<String>,
     /// A longer description
-    pub description: String,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub description: Option<String>,
     /// The list of claims allowed to be blindly signed
     pub blind_claims: BTreeSet<String>,
     /// The claim labels to indices
@@ -21,11 +25,64 @@ pub struct CredentialSchema {
 }
 
 impl CredentialSchema {
+    /// Create a new credential schema
+    pub fn new(
+        label: Option<&str>,
+        description: Option<&str>,
+        blind_claims: &[&str],
+        claims: &[ClaimSchema],
+    ) -> CredxResult<Self> {
+        let claims = claims.to_vec();
+        if claims.is_empty() {
+            return Err(Error::InvalidClaimData);
+        }
+
+        let id = random_string(16, rand::thread_rng());
+        let mut claim_indices = BTreeMap::new();
+        for (index, claim) in claims.iter().enumerate() {
+            if claim_indices
+                .insert(claim.label.to_string(), index)
+                .is_some()
+            {
+                return Err(Error::InvalidClaimData);
+            }
+        }
+        for blind_claim in blind_claims {
+            if !claim_indices.contains_key(&blind_claim.to_string()) {
+                return Err(Error::InvalidClaimData);
+            }
+        }
+        let blind_claims = blind_claims.iter().map(|b| b.to_string()).collect();
+        Ok(Self {
+            id,
+            blind_claims,
+            claims,
+            claim_indices,
+            label: label.map(|l| l.to_string()),
+            description: description.map(|d| d.to_string()),
+        })
+    }
     /// Add data to the transcript
     pub fn add_challenge_contribution(&self, transcript: &mut merlin::Transcript) {
+        let label = self
+            .label
+            .as_ref()
+            .map(|l| l.as_bytes())
+            .unwrap_or_default();
+        let description = self
+            .description
+            .as_ref()
+            .map(|d| d.as_bytes())
+            .unwrap_or_default();
+        transcript.append_message(b"schema id length", &Uint::from(self.id.len()).to_vec());
         transcript.append_message(b"schema id", self.id.as_bytes());
-        transcript.append_message(b"schema label", self.label.as_bytes());
-        transcript.append_message(b"schema description", self.description.as_bytes());
+        transcript.append_message(b"schema label length", &Uint::from(label.len()).to_vec());
+        transcript.append_message(b"schema label", label);
+        transcript.append_message(
+            b"schema description length",
+            &Uint::from(description.len()).to_vec(),
+        );
+        transcript.append_message(b"schema description", description);
         transcript.append_message(
             b"blind claims length",
             &Uint::from(self.blind_claims.len()).to_vec(),
@@ -38,6 +95,10 @@ impl CredentialSchema {
             &Uint::from(self.claim_indices.len()).to_vec(),
         );
         for (label, index) in &self.claim_indices {
+            transcript.append_message(
+                b"claim indices label length",
+                &Uint::from(label.len()).to_vec(),
+            );
             transcript.append_message(b"claim indices label", label.as_bytes());
             transcript.append_message(b"claim indices index", &Uint::from(*index).to_vec());
         }

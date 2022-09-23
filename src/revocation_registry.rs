@@ -46,7 +46,11 @@ impl RevocationRegistry {
     /// Add the elements to the registry
     pub fn add(&mut self, elements: &[String]) {
         for e in elements {
-            if self.elements.insert(self.elements.len(), e.clone()).is_none() {
+            if self
+                .elements
+                .insert(self.elements.len(), e.clone())
+                .is_none()
+            {
                 self.active.insert(e.clone());
             }
         }

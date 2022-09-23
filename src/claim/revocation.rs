@@ -1,4 +1,5 @@
 use super::{Claim, ClaimType};
+use crate::claim::ClaimData;
 use core::fmt::{self, Display, Formatter};
 use serde::{Deserialize, Serialize};
 use yeti::knox::{accumulator::vb20::Element, bls12_381_plus::Scalar};
@@ -16,9 +17,29 @@ impl Display for RevocationClaim {
     }
 }
 
+impl Into<ClaimData> for RevocationClaim {
+    fn into(self) -> ClaimData {
+        ClaimData::Revocation(self)
+    }
+}
+
 impl From<String> for RevocationClaim {
     fn from(s: String) -> Self {
         Self { value: s }
+    }
+}
+
+impl From<&String> for RevocationClaim {
+    fn from(s: &String) -> Self {
+        Self { value: s.clone() }
+    }
+}
+
+impl From<&str> for RevocationClaim {
+    fn from(s: &str) -> Self {
+        Self {
+            value: s.to_string(),
+        }
     }
 }
 

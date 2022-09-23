@@ -1,3 +1,4 @@
+use crate::random_string;
 use crate::statement::Statements;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -13,6 +14,16 @@ pub struct PresentationSchema {
 }
 
 impl PresentationSchema {
+    /// Create a new presentation schema
+    pub fn new(statements: &[Statements]) -> Self {
+        let id = random_string(16, rand::thread_rng());
+        let statements = statements
+            .into_iter()
+            .map(|s| (s.id(), s.clone()))
+            .collect();
+        Self { id, statements }
+    }
+
     /// Add challenge contribution
     pub fn add_challenge_contribution(&self, transcript: &mut merlin::Transcript) {
         transcript.append_message(b"presentation schema id", self.id.as_bytes());

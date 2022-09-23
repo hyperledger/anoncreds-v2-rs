@@ -1,4 +1,5 @@
 use super::{Claim, ClaimType};
+use crate::claim::ClaimData;
 use core::fmt::{self, Display, Formatter};
 use serde::{Deserialize, Serialize};
 use yeti::knox::bls12_381_plus::Scalar;
@@ -13,6 +14,12 @@ pub struct NumberClaim {
 impl Display for NumberClaim {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "NumberClaim {{ {} }}", self.value)
+    }
+}
+
+impl Into<ClaimData> for NumberClaim {
+    fn into(self) -> ClaimData {
+        ClaimData::Number(self)
     }
 }
 
