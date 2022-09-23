@@ -44,7 +44,7 @@ impl<'a, 'b> ProofVerifier for AccumulatorSetMembershipVerifier<'a, 'b> {
         Ok(())
     }
 
-    fn verify(&self, _challenge: Scalar, _transcript: &mut Transcript) -> CredxResult<()> {
+    fn verify(&self, _challenge: Scalar) -> CredxResult<()> {
         Ok(())
     }
 }

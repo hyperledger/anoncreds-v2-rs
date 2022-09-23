@@ -23,7 +23,7 @@ pub(crate) trait ProofVerifier {
         transcript: &mut Transcript,
     ) -> CredxResult<()>;
     /// Verify any additional proof material
-    fn verify(&self, challenge: Scalar, transcript: &mut Transcript) -> CredxResult<()>;
+    fn verify(&self, challenge: Scalar) -> CredxResult<()>;
 }
 
 pub(crate) enum ProofVerifiers<'a, 'b, 'c> {
@@ -36,13 +36,13 @@ pub(crate) enum ProofVerifiers<'a, 'b, 'c> {
 
 impl<'a, 'b, 'c> ProofVerifiers<'a, 'b, 'c> {
     /// Verify any additional proof material
-    pub fn verify(&self, challenge: Scalar, transcript: &mut Transcript) -> CredxResult<()> {
+    pub fn verify(&self, challenge: Scalar) -> CredxResult<()> {
         match self {
-            Self::Signature(s) => s.verify(challenge, transcript),
-            Self::AccumulatorSetMembership(a) => a.verify(challenge, transcript),
-            Self::Equality(e) => e.verify(challenge, transcript),
-            Self::Commitment(c) => c.verify(challenge, transcript),
-            Self::VerifiableEncryption(v) => v.verify(challenge, transcript),
+            Self::Signature(s) => s.verify(challenge),
+            Self::AccumulatorSetMembership(a) => a.verify(challenge),
+            Self::Equality(e) => e.verify(challenge),
+            Self::Commitment(c) => c.verify(challenge),
+            Self::VerifiableEncryption(v) => v.verify(challenge),
         }
     }
 }

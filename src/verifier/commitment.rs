@@ -33,7 +33,7 @@ impl<'a, 'b> ProofVerifier for CommitmentVerifier<'a, 'b> {
         Ok(())
     }
 
-    fn verify(&self, _challenge: Scalar, _transcript: &mut Transcript) -> CredxResult<()> {
+    fn verify(&self, _challenge: Scalar) -> CredxResult<()> {
         Ok(())
     }
 }

@@ -42,7 +42,7 @@ impl<'a, 'b> ProofVerifier for SignatureVerifier<'a, 'b> {
         Ok(())
     }
 
-    fn verify(&self, _challenge: Scalar, _transcript: &mut Transcript) -> CredxResult<()> {
+    fn verify(&self, _challenge: Scalar) -> CredxResult<()> {
         if self.signature_proof.pok.verify(
             &self.disclosed_messages,
             &self.statement.issuer.verifying_key,

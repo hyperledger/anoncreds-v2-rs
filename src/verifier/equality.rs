@@ -22,7 +22,7 @@ impl<'a, 'b, 'c> ProofVerifier for EqualityVerifier<'a, 'b, 'c> {
         Ok(())
     }
 
-    fn verify(&self, _challenge: Scalar, _transcript: &mut Transcript) -> CredxResult<()> {
+    fn verify(&self, _challenge: Scalar) -> CredxResult<()> {
         let mut messages = Vec::with_capacity(self.statement.ref_id_claim_index.len());
         for (id, claim_idx) in &self.statement.ref_id_claim_index {
             let proof = self.proofs.get(id).ok_or(Error::InvalidPresentationData)?;
