@@ -20,6 +20,7 @@ pub enum PresentationProofs {
 }
 
 impl PresentationProofs {
+    /// Get the underlying statement identifier
     pub fn id(&self) -> &String {
         match self {
             Self::Signature(s) => &s.id,

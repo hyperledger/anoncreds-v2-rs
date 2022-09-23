@@ -11,7 +11,6 @@ impl<'a> PresentationBuilder for EqualityBuilder<'a> {
     fn gen_proof(self, _challenge: Scalar) -> PresentationProofs {
         PresentationProofs::Equality(EqualityProof {
             id: self.reference_statement.id(),
-            reference_id_claim_index: self.reference_statement.ref_id_claim_index.clone(),
         })
     }
 }
@@ -49,6 +48,4 @@ impl<'a> EqualityBuilder<'a> {
 pub struct EqualityProof {
     /// The statement identifier
     pub id: String,
-    /// The reference id to claim index
-    pub reference_id_claim_index: BTreeMap<String, usize>,
 }

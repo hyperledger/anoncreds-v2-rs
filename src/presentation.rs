@@ -14,7 +14,7 @@ pub use schema::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
 
-use crate::verifier::{ProofVerifier, ProofVerifiers, SignatureVerifier};
+use crate::verifier::*;
 use crate::{
     claim::ClaimData,
     credential::Credential,
@@ -144,7 +144,7 @@ impl Presentation {
             }
         }
 
-        for (_, pred_statement) in &predicate_statements {
+        for pred_statement in predicate_statements.values() {
             match pred_statement {
                 Statements::Equality(e) => {
                     let builder = EqualityBuilder::commit(e, credentials)?;
@@ -158,7 +158,7 @@ impl Presentation {
                     let credential = &credentials[&a.reference_id];
                     let builder = AccumulatorSetMembershipProofBuilder::commit(
                         a,
-                        &credential,
+                        credential,
                         proof_message,
                         nonce,
                         &mut transcript,
@@ -241,17 +241,64 @@ impl Presentation {
                         &self.disclosed_messages[&ss.id],
                         &mut transcript,
                     );
-                    let verifier = SignatureVerifier {
-                        statement: ss,
-                        signature_proof: proof,
-                        disclosed_messages: &self.disclosed_messages[&ss.id],
-                    };
+                    let verifier = SignatureVerifier::new(ss, proof);
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(ProofVerifiers::Signature(verifier));
                 }
                 (Statements::Signature(_), None) => return Err(Error::InvalidPresentationData),
                 (_, _) => {}
             }
+        }
+
+        for (id, pred_statement) in &predicate_statements {
+            match (pred_statement, self.proofs.get(id)) {
+                (
+                    Statements::AccumulatorSetMembership(aa),
+                    Some(PresentationProofs::AccumulatorSetMembership(proof)),
+                ) => {
+                    let verifier = AccumulatorSetMembershipVerifier::new(aa, proof, nonce);
+                    verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
+                    verifiers.push(ProofVerifiers::AccumulatorSetMembership(verifier));
+                }
+                (Statements::Equality(statement), Some(PresentationProofs::Equality(_))) => {
+                    let verifier = EqualityVerifier {
+                        statement,
+                        schema,
+                        proofs: &self.proofs,
+                    };
+                    verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
+                    verifiers.push(ProofVerifiers::Equality(verifier));
+                }
+                (
+                    Statements::Commitment(statement),
+                    Some(PresentationProofs::Commitment(proof)),
+                ) => {
+                    let verifier = CommitmentVerifier { statement, proof };
+                    verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
+                    verifiers.push(ProofVerifiers::Commitment(verifier));
+                }
+                (
+                    Statements::VerifiableEncryption(statement),
+                    Some(PresentationProofs::VerifiableEncryption(proof)),
+                ) => {
+                    let verifier = VerifiableEncryptionVerifier { statement, proof };
+                    verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
+                    verifiers.push(ProofVerifiers::VerifiableEncryption(verifier));
+                }
+                (_, _) => return Err(Error::InvalidPresentationData),
+            }
+        }
+
+        let mut okm = [0u8; 64];
+        transcript.challenge_bytes(b"challenge bytes", &mut okm);
+        let challenge = Scalar::from_bytes_wide(&okm);
+
+        if challenge != self.challenge {
+            return Err(Error::InvalidPresentationData);
+        }
+
+        for verifier in &verifiers {
+            verifier.verify(self.challenge, &mut transcript)?;
         }
 
         Ok(())
@@ -293,13 +340,11 @@ impl Presentation {
     ) {
         transcript.append_message(b"disclosed messages from statement ", id.as_bytes());
         transcript.append_message(b"disclosed messages length", &Uint::from(dm.len()).to_vec());
-        let mut i = 0;
-        for (label, claim) in dm {
+        for (i, (label, claim)) in dm.iter().enumerate() {
             transcript.append_message(b"disclosed message label", label.as_bytes());
             transcript.append_message(b"disclosed message index", &Uint::from(i).to_vec());
             transcript.append_message(b"disclosed message value", &claim.to_bytes());
             transcript.append_message(b"disclosed message scalar", &claim.to_scalar().to_bytes());
-            i += 1;
         }
     }
 

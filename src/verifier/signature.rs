@@ -1,41 +1,55 @@
-use crate::claim::ClaimData;
+use crate::error::Error;
 use crate::presentation::SignatureProof;
 use crate::statement::SignatureStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
 use merlin::Transcript;
-use std::collections::BTreeMap;
 use yeti::knox::bls12_381_plus::Scalar;
 
-#[derive(Clone, Debug)]
-pub struct SignatureVerifier<'a, 'b, 'c> {
-    pub statement: &'a SignatureStatement,
-    pub signature_proof: &'b SignatureProof,
-    pub disclosed_messages: &'c BTreeMap<String, ClaimData>,
+pub struct SignatureVerifier<'a, 'b> {
+    statement: &'a SignatureStatement,
+    signature_proof: &'b SignatureProof,
+    disclosed_messages: Vec<(usize, Scalar)>,
 }
 
-impl<'a, 'b, 'c> ProofVerifier for SignatureVerifier<'a, 'b, 'c> {
+impl<'a, 'b> SignatureVerifier<'a, 'b> {
+    pub fn new(statement: &'a SignatureStatement, signature_proof: &'b SignatureProof) -> Self {
+        let disclosed_messages: Vec<(usize, Scalar)> = signature_proof
+            .disclosed_messages
+            .iter()
+            .map(|(idx, sc)| (*idx, *sc))
+            .collect();
+        Self {
+            statement,
+            signature_proof,
+            disclosed_messages,
+        }
+    }
+}
+
+impl<'a, 'b> ProofVerifier for SignatureVerifier<'a, 'b> {
     fn add_challenge_contribution(
         &self,
         challenge: Scalar,
         transcript: &mut Transcript,
     ) -> CredxResult<()> {
-        let disclosed: Vec<(usize, Scalar)> = self
-            .signature_proof
-            .disclosed_messages
-            .iter()
-            .map(|(idx, sc)| (*idx, *sc))
-            .collect();
         self.signature_proof.pok.add_challenge_contribution(
             &self.statement.issuer.verifying_key,
-            &disclosed,
+            &self.disclosed_messages,
             challenge,
             transcript,
         );
         Ok(())
     }
 
-    fn verify(&self, challenge: Scalar, transcript: &mut Transcript) -> CredxResult<()> {
-        todo!()
+    fn verify(&self, _challenge: Scalar, _transcript: &mut Transcript) -> CredxResult<()> {
+        if self.signature_proof.pok.verify(
+            &self.disclosed_messages,
+            &self.statement.issuer.verifying_key,
+        ) {
+            Ok(())
+        } else {
+            Err(Error::InvalidSignatureProofData)
+        }
     }
 }

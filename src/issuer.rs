@@ -134,12 +134,6 @@ impl Issuer {
 
         let attributes: Vec<Scalar> = claims.iter().map(|c| c.to_scalar()).collect();
         let revocation_id = vb20::Element(attributes[revocation_element_index]);
-        let elements: Vec<vb20::Element> = self
-            .revocation_registry
-            .elements
-            .iter()
-            .map(|e| vb20::Element::hash(e.as_bytes()))
-            .collect();
         let witness = vb20::MembershipWitness::new(
             revocation_id,
             self.revocation_registry.value,
