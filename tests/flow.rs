@@ -1,16 +1,19 @@
-use credx::claim::{
-    ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim,
-};
+use credx::claim::{ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim};
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::issuer::Issuer;
 use credx::presentation::{Presentation, PresentationSchema};
-use credx::statement::{AccumulatorSetMembershipStatement, SignatureStatement};
+use credx::statement::{
+    AccumulatorSetMembershipStatement, CommitmentStatement, SignatureStatement,
+    VerifiableEncryptionStatement,
+};
 use credx::{random_string, CredxResult};
 use maplit::{btreemap, btreeset};
 use rand_core::RngCore;
+use yeti::knox::bls12_381_plus::{ExpandMsgXmd, G1Projective};
+use yeti::sha2;
 
 #[test]
-fn presentation() {
+fn presentation_1_credential() {
     let res = test_presentation();
     assert!(res.is_ok(), "{:?}", res);
 }
@@ -77,11 +80,36 @@ fn test_presentation() -> CredxResult<()> {
         verification_key: issuer_public.revocation_verifying_key,
         claim: 0,
     };
+    let comm_st = CommitmentStatement {
+        id: random_string(16, rand::thread_rng()),
+        reference_id: sig_st.id.clone(),
+        message_generator: G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(
+            b"message generator",
+            b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
+        ),
+        blinder_generator: G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(
+            b"blinder generator",
+            b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
+        ),
+        claim: 3,
+    };
+    let verenc_st = VerifiableEncryptionStatement {
+        message_generator: G1Projective::generator(),
+        encryption_key: issuer_public.verifiable_encryption_key,
+        id: random_string(16, rand::thread_rng()),
+        reference_id: sig_st.id.clone(),
+        claim: 0,
+    };
 
     let mut nonce = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut nonce);
     let credentials = btreemap! { sig_st.id.clone() => credential.credential};
-    let presentation_schema = PresentationSchema::new(&[sig_st.into(), acc_st.into()]);
+    let presentation_schema = PresentationSchema::new(&[
+        sig_st.into(),
+        acc_st.into(),
+        comm_st.into(),
+        verenc_st.into(),
+    ]);
     let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
 
     presentation.verify(&presentation_schema, &nonce)

@@ -22,3 +22,4 @@ uint-zigzag = { version = "0.2", features = ["std"] }
 
 [dev-dependencies]
 serde_cbor = "0.11"
+sha2 = "0.9"

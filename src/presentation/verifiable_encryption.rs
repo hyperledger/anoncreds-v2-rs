@@ -21,7 +21,7 @@ pub(crate) struct VerifiableEncryptionBuilder<'a> {
 impl<'a> PresentationBuilder for VerifiableEncryptionBuilder<'a> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         let message_proof = self.b + challenge * self.message;
-        let blinder_proof = self.r + challenge * self.r;
+        let blinder_proof = self.r + challenge * self.b;
         PresentationProofs::VerifiableEncryption(VerifiableEncryptionProof {
             id: self.statement.id.clone(),
             c1: self.c1,

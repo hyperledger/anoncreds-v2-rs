@@ -284,7 +284,9 @@ impl Presentation {
         Ok(())
     }
 
-    fn split_statements(schema: &PresentationSchema) -> (BTreeMap<String, &Statements>, BTreeMap<String, &Statements>) {
+    fn split_statements(
+        schema: &PresentationSchema,
+    ) -> (BTreeMap<String, &Statements>, BTreeMap<String, &Statements>) {
         let mut signature_statements: BTreeMap<String, &Statements> = BTreeMap::new();
         let mut predicate_statements: BTreeMap<String, &Statements> = BTreeMap::new();
 
