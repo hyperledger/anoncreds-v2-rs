@@ -5,7 +5,6 @@ use crate::{random_string, CredxResult};
 use group::Curve;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::num::NonZeroUsize;
 use yeti::knox::bls12_381_plus::{G1Affine, G1Projective, G2Affine, G2Projective, Scalar};
 use yeti::knox::{accumulator::vb20, bls, ps, Knox};
 
@@ -78,7 +77,7 @@ impl From<&Issuer> for IssuerPublic {
 
 impl Issuer {
     /// Create a new Issuer
-    pub fn new(schema: &CredentialSchema, max_issuance: NonZeroUsize) -> (IssuerPublic, Self) {
+    pub fn new(schema: &CredentialSchema) -> (IssuerPublic, Self) {
         let id = random_string(16, rand::thread_rng());
         let (verifying_key, signing_key) =
             ps::Issuer::new_keys(schema.claims.len(), rand::thread_rng()).unwrap();
@@ -87,7 +86,7 @@ impl Issuer {
         let revocation_key = vb20::SecretKey(seckey.0);
         let (verifiable_encryption_key, verifiable_decryption_key) =
             Knox::new_bls381g1_keys(rand::thread_rng());
-        let revocation_registry = RevocationRegistry::new(&revocation_key, max_issuance);
+        let revocation_registry = RevocationRegistry::new(rand::thread_rng());
         (
             IssuerPublic {
                 id: id.clone(),
