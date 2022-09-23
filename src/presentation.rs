@@ -83,17 +83,7 @@ impl Presentation {
         transcript.append_message(b"nonce", nonce);
         schema.add_challenge_contribution(&mut transcript);
 
-        let mut signature_statements: BTreeMap<String, &Statements> = BTreeMap::new();
-        let mut predicate_statements: BTreeMap<String, &Statements> = BTreeMap::new();
-
-        for (id, statement) in &schema.statements {
-            match statement.r#type() {
-                StatementType::PS | StatementType::BBS => {
-                    signature_statements.insert(id.clone(), statement)
-                }
-                _ => predicate_statements.insert(id.clone(), statement),
-            };
-        }
+        let (signature_statements, predicate_statements) = Self::split_statements(schema);
 
         if signature_statements.len() != credentials.len() {
             return Err(Error::InvalidPresentationData);
@@ -151,7 +141,7 @@ impl Presentation {
                     builders.push(builder.into());
                 }
                 Statements::AccumulatorSetMembership(a) => {
-                    let proof_message = messages[&a.id][a.claim];
+                    let proof_message = messages[&a.reference_id][a.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData);
                     }
@@ -166,7 +156,7 @@ impl Presentation {
                     builders.push(builder.into());
                 }
                 Statements::Commitment(c) => {
-                    let proof_message = messages[&c.id][c.claim];
+                    let proof_message = messages[&c.reference_id][c.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData);
                     }
@@ -177,7 +167,7 @@ impl Presentation {
                     builders.push(builder.into());
                 }
                 Statements::VerifiableEncryption(v) => {
-                    let proof_message = messages[&v.id][v.claim];
+                    let proof_message = messages[&v.reference_id][v.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData);
                     }
@@ -220,17 +210,7 @@ impl Presentation {
         transcript.append_message(b"nonce", nonce);
         schema.add_challenge_contribution(&mut transcript);
 
-        let mut signature_statements: BTreeMap<String, &Statements> = BTreeMap::new();
-        let mut predicate_statements: BTreeMap<String, &Statements> = BTreeMap::new();
-
-        for (id, statement) in &schema.statements {
-            match statement.r#type() {
-                StatementType::PS | StatementType::BBS => {
-                    signature_statements.insert(id.clone(), statement)
-                }
-                _ => predicate_statements.insert(id.clone(), statement),
-            };
-        }
+        let (signature_statements, predicate_statements) = Self::split_statements(schema);
 
         let mut verifiers = Vec::<ProofVerifiers>::with_capacity(schema.statements.len());
         for (id, sig_statement) in &signature_statements {
@@ -302,6 +282,21 @@ impl Presentation {
         }
 
         Ok(())
+    }
+
+    fn split_statements(schema: &PresentationSchema) -> (BTreeMap<String, &Statements>, BTreeMap<String, &Statements>) {
+        let mut signature_statements: BTreeMap<String, &Statements> = BTreeMap::new();
+        let mut predicate_statements: BTreeMap<String, &Statements> = BTreeMap::new();
+
+        for (id, statement) in &schema.statements {
+            match statement.r#type() {
+                StatementType::PS | StatementType::BBS => {
+                    signature_statements.insert(id.clone(), statement)
+                }
+                _ => predicate_statements.insert(id.clone(), statement),
+            };
+        }
+        (signature_statements, predicate_statements)
     }
 
     fn add_curve_parameters_challenge_contribution(transcript: &mut Transcript) {

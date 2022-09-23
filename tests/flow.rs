@@ -1,10 +1,10 @@
 use credx::claim::{
-    ClaimData, ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim,
+    ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim,
 };
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::issuer::Issuer;
 use credx::presentation::{Presentation, PresentationSchema};
-use credx::statement::{AccumulatorSetMembershipStatement, SignatureStatement, Statements};
+use credx::statement::{AccumulatorSetMembershipStatement, SignatureStatement};
 use credx::{random_string, CredxResult};
 use maplit::{btreemap, btreeset};
 use rand_core::RngCore;
@@ -78,10 +78,10 @@ fn test_presentation() -> CredxResult<()> {
         claim: 0,
     };
 
-    let presentation_schema = PresentationSchema::new(&[sig_st.into(), acc_st.into()]);
     let mut nonce = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut nonce);
-    let credentials = btreemap! { CRED_ID.to_string() => credential.credential};
+    let credentials = btreemap! { sig_st.id.clone() => credential.credential};
+    let presentation_schema = PresentationSchema::new(&[sig_st.into(), acc_st.into()]);
     let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
 
     presentation.verify(&presentation_schema, &nonce)
