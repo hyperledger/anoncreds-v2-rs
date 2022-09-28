@@ -81,12 +81,12 @@ impl<'a, 'b, 'c> ProofVerifier for RangeProofVerifier<'a, 'b, 'c> {
             B_blinding: self.commitment_statement.blinder_generator,
         };
 
-        let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
         let mut transcript = Transcript::new(b"credx range proof");
         transcript.append_message(b"challenge", &challenge.to_bytes());
 
         match (self.statement.lower, self.statement.upper) {
             (Some(lower), Some(upper)) => {
+                let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 2);
                 let sc_lower = get_num_scalar(lower);
                 let adjusted_lower_commitment =
                     self.commitment - self.commitment_statement.message_generator * sc_lower;
@@ -105,6 +105,7 @@ impl<'a, 'b, 'c> ProofVerifier for RangeProofVerifier<'a, 'b, 'c> {
                     .map_err(|_| Error::InvalidBulletproofRange)
             }
             (None, Some(upper)) => {
+                let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
                 let sc_upper = Scalar::from(u64::MAX - zero_center(upper));
                 let adjusted_upper_commitment =
                     self.commitment + self.commitment_statement.message_generator * sc_upper;
@@ -120,6 +121,7 @@ impl<'a, 'b, 'c> ProofVerifier for RangeProofVerifier<'a, 'b, 'c> {
                     .map_err(|_| Error::InvalidBulletproofRange)
             }
             (Some(lower), None) => {
+                let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
                 let sc_lower = get_num_scalar(lower);
                 let adjusted_lower_commitment =
                     self.commitment - self.commitment_statement.message_generator * sc_lower;

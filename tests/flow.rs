@@ -4,7 +4,7 @@ use credx::error::Error;
 use credx::issuer::Issuer;
 use credx::presentation::{Presentation, PresentationSchema};
 use credx::statement::{
-    AccumulatorSetMembershipStatement, CommitmentStatement, SignatureStatement,
+    AccumulatorSetMembershipStatement, CommitmentStatement, RangeStatement, SignatureStatement,
     VerifiableEncryptionStatement,
 };
 use credx::{random_string, CredxResult};
@@ -101,6 +101,14 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
         reference_id: sig_st.id.clone(),
         claim: 0,
     };
+    let range_st = RangeStatement {
+        id: random_string(16, rand::thread_rng()),
+        reference_id: comm_st.id.clone(),
+        signature_id: sig_st.id.clone(),
+        claim: 3,
+        lower: Some(0),
+        upper: Some(44829),
+    };
 
     let mut nonce = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut nonce);
@@ -110,6 +118,7 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
         acc_st.into(),
         comm_st.into(),
         verenc_st.into(),
+        range_st.into(),
     ]);
     let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
 
@@ -157,7 +166,7 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
             print_friendly: true,
             validators: vec![ClaimValidator::Range {
                 min: Some(0),
-                max: Some(u16::MAX as isize),
+                max: Some(u32::MAX as isize),
             }],
         },
     ];
@@ -205,6 +214,14 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
         reference_id: sig_st.id.clone(),
         claim: 0,
     };
+    let range_st = RangeStatement {
+        id: random_string(16, rand::thread_rng()),
+        reference_id: comm_st.id.clone(),
+        signature_id: sig_st.id.clone(),
+        claim: 3,
+        lower: Some(0),
+        upper: Some(44829),
+    };
 
     let mut nonce = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut nonce);
@@ -214,6 +231,7 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
         acc_st.into(),
         comm_st.into(),
         verenc_st.into(),
+        range_st.into(),
     ]);
     let mut presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
 

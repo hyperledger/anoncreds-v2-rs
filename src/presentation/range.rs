@@ -25,7 +25,6 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
             B_blinding: self.commitment_builder.statement.blinder_generator,
         };
 
-        let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
         let mut transcript = Transcript::new(b"credx range proof");
         transcript.append_message(b"challenge", &challenge.to_bytes());
 
@@ -33,6 +32,7 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
 
         match (self.adjusted_upper, self.adjusted_lower) {
             (Some(upper), Some(lower)) => {
+                let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 2);
                 let (proof, commitments) = RangeProofBulletproof::prove_multiple(
                     &bulletproof_gens,
                     &pedersen_gen,
@@ -42,6 +42,7 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                     64,
                 )
                 .unwrap();
+
                 debug_assert_eq!(
                     commitments[0],
                     self.commitment_builder.commitment
@@ -62,6 +63,7 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                 })
             }
             (Some(upper), None) => {
+                let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
                 let (proof, commitment) = RangeProofBulletproof::prove_single(
                     &bulletproof_gens,
                     &pedersen_gen,
@@ -85,6 +87,7 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                 })
             }
             (None, Some(lower)) => {
+                let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
                 let (proof, commitment) = RangeProofBulletproof::prove_single(
                     &bulletproof_gens,
                     &pedersen_gen,
@@ -125,6 +128,13 @@ impl<'a> RangeBuilder<'a> {
         message: isize,
         transcript: &mut Transcript,
     ) -> CredxResult<Self> {
+        if statement.claim != commitment_builder.statement.claim
+            && statement.signature_id != commitment_builder.statement.reference_id
+        {
+            // Not testing the same message from the same signature
+            return Err(Error::InvalidPresentationData);
+        }
+
         transcript.append_message(b"", statement.id.as_bytes());
         transcript.append_message(
             b"used commitment",
@@ -138,7 +148,7 @@ impl<'a> RangeBuilder<'a> {
         // negation zero centers in the positive range
         match (statement.lower, statement.upper) {
             (Some(lower), Some(upper)) => {
-                let adjusted_lower = zero_center(message - lower);
+                let adjusted_lower = zero_center(message) - zero_center(lower);
                 let max_upper = u64::MAX - zero_center(upper);
                 let adjusted_upper = zero_center(message) + max_upper;
                 l = Some(adjusted_lower);
@@ -173,7 +183,7 @@ impl<'a> RangeBuilder<'a> {
                 );
             }
             (Some(lower), None) => {
-                let adjusted_lower = zero_center(message - lower);
+                let adjusted_lower = zero_center(message) - zero_center(lower);
                 l = Some(adjusted_lower);
                 let adjusted_lower_commitment = commitment_builder.statement.message_generator
                     * Scalar::from(adjusted_lower)

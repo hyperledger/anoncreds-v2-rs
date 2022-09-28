@@ -134,7 +134,9 @@ impl Presentation {
                 let sig = credentials
                     .get(&r.signature_id)
                     .ok_or(Error::InvalidPresentationData)?;
-                if let PresentationBuilders::Commitment(commitment) = &builders[id_to_builder[id]] {
+                if let PresentationBuilders::Commitment(commitment) =
+                    &builders[id_to_builder[&r.reference_id]]
+                {
                     if let ClaimData::Number(n) = sig
                         .claims
                         .get(r.claim)
