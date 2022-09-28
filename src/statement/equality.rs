@@ -29,7 +29,7 @@ impl Statement for EqualityStatement {
     }
 
     fn reference_ids(&self) -> Vec<String> {
-        self.ref_id_claim_index.keys().map(|s| s.clone()).collect()
+        self.ref_id_claim_index.keys().cloned().collect()
     }
 
     fn add_challenge_contribution(&self, transcript: &mut Transcript) {
