@@ -1,12 +1,14 @@
 mod accumulator_set_membership;
 mod commitment;
 mod equality;
+mod range;
 mod signature;
 mod verifiable_encryption;
 
 pub use accumulator_set_membership::*;
 pub use commitment::*;
 pub use equality::*;
+pub use range::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
 
@@ -32,6 +34,7 @@ pub(crate) enum ProofVerifiers<'a, 'b, 'c> {
     Equality(EqualityVerifier<'a, 'b, 'c>),
     Commitment(CommitmentVerifier<'a, 'b>),
     VerifiableEncryption(VerifiableEncryptionVerifier<'a, 'b>),
+    Range(RangeProofVerifier<'a, 'b, 'c>),
 }
 
 impl<'a, 'b, 'c> ProofVerifiers<'a, 'b, 'c> {
@@ -43,6 +46,7 @@ impl<'a, 'b, 'c> ProofVerifiers<'a, 'b, 'c> {
             Self::Equality(e) => e.verify(challenge),
             Self::Commitment(c) => c.verify(challenge),
             Self::VerifiableEncryption(v) => v.verify(challenge),
+            Self::Range(r) => r.verify(challenge),
         }
     }
 }

@@ -1,12 +1,12 @@
 mod accumulator_set_membership;
 mod commitment;
+mod create;
 mod equality;
 mod proof;
 mod range;
 mod schema;
 mod signature;
 mod verifiable_encryption;
-mod create;
 mod verify;
 
 pub use accumulator_set_membership::*;

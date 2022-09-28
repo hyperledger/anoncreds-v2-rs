@@ -17,4 +17,6 @@ pub enum Error {
     InvalidSignatureProofData,
     /// Invalid data for creating a presentation
     InvalidPresentationData,
+    /// Invalid bulletproof range
+    InvalidBulletproofRange,
 }

@@ -28,6 +28,7 @@ impl Presentation {
             }
         }
 
+        let mut ranges = Vec::new();
         for (id, pred_statement) in &predicate_statements {
             match (pred_statement, self.proofs.get(id)) {
                 (
@@ -63,8 +64,36 @@ impl Presentation {
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }
+                (Statements::Range(statement), Some(PresentationProofs::Range(proof))) => {
+                    let cstmt = predicate_statements
+                        .get(&statement.reference_id)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    if let Statements::Commitment(commitment_statement) = cstmt {
+                        let cproof = self
+                            .proofs
+                            .get(&statement.reference_id)
+                            .ok_or(Error::InvalidPresentationData)?;
+                        if let PresentationProofs::Commitment(commitment_proof) = cproof {
+                            let verifier = RangeProofVerifier {
+                                statement,
+                                proof,
+                                commitment_statement,
+                                commitment: commitment_proof.commitment,
+                            };
+                            // Can't call add to transcript until all the others are complete
+                            ranges.push(verifier);
+                        } else {
+                            return Err(Error::InvalidPresentationData);
+                        }
+                    } else {
+                        return Err(Error::InvalidPresentationData);
+                    }
+                }
                 (_, _) => return Err(Error::InvalidPresentationData),
             }
+        }
+        for range in &ranges {
+            range.add_challenge_contribution(self.challenge, &mut transcript)?;
         }
 
         let mut okm = [0u8; 64];
@@ -76,6 +105,9 @@ impl Presentation {
         }
 
         for verifier in &verifiers {
+            verifier.verify(self.challenge)?;
+        }
+        for verifier in &ranges {
             verifier.verify(self.challenge)?;
         }
 

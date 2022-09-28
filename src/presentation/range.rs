@@ -9,7 +9,7 @@ use bulletproofs::RangeProof as RangeProofBulletproof;
 use group::Curve;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
-use yeti::knox::bls12_381_plus::{G1Projective, Scalar};
+use yeti::knox::bls12_381_plus::Scalar;
 
 pub(crate) struct RangeBuilder<'a> {
     statement: &'a RangeStatement,
@@ -25,7 +25,6 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
             B_blinding: self.commitment_builder.statement.blinder_generator,
         };
 
-        // negation zero centers in the positive range
         let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
         let mut transcript = Transcript::new(b"credx range proof");
         transcript.append_message(b"challenge", &challenge.to_bytes());
@@ -60,7 +59,6 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                 PresentationProofs::Range(RangeProof {
                     id: self.statement.id.clone(),
                     proof,
-                    commitment: self.commitment_builder.commitment,
                 })
             }
             (Some(upper), None) => {
@@ -84,7 +82,6 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                 PresentationProofs::Range(RangeProof {
                     id: self.statement.id.clone(),
                     proof,
-                    commitment: self.commitment_builder.commitment,
                 })
             }
             (None, Some(lower)) => {
@@ -106,7 +103,6 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                 PresentationProofs::Range(RangeProof {
                     id: self.statement.id.clone(),
                     proof,
-                    commitment: self.commitment_builder.commitment,
                 })
             }
             (None, None) => {
@@ -134,6 +130,7 @@ impl<'a> RangeBuilder<'a> {
             b"used commitment",
             &commitment_builder.commitment.to_affine().to_compressed(),
         );
+        transcript.append_u64(b"range proof bits", 64);
 
         let blind = commitment_builder.statement.blinder_generator * commitment_builder.b;
         let mut l = None;
@@ -207,6 +204,4 @@ pub struct RangeProof {
     pub id: String,
     /// The range proof
     pub proof: RangeProofBulletproof,
-    /// The commitment used
-    pub commitment: G1Projective,
 }
