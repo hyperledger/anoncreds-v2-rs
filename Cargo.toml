@@ -5,6 +5,7 @@ edition = "2021"
 
 
 [dependencies]
+bulletproofs = { version = "4.0.0", path = "../bulletproofs" }
 group = "0.10"
 hex = "0.4"
 maplit = "1"

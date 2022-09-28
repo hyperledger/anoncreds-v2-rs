@@ -1,6 +1,7 @@
 use super::SignatureProof;
 use crate::presentation::{
-    AccumulatorSetMembershipProof, CommitmentProof, EqualityProof, VerifiableEncryptionProof,
+    AccumulatorSetMembershipProof, CommitmentProof, EqualityProof, RangeProof,
+    VerifiableEncryptionProof,
 };
 use serde::{Deserialize, Serialize};
 
@@ -17,6 +18,8 @@ pub enum PresentationProofs {
     Commitment(CommitmentProof),
     /// Verifiable Encryption proof
     VerifiableEncryption(VerifiableEncryptionProof),
+    /// Range proof
+    Range(RangeProof),
 }
 
 impl PresentationProofs {
@@ -28,6 +31,7 @@ impl PresentationProofs {
             Self::Equality(e) => &e.id,
             Self::Commitment(c) => &c.id,
             Self::VerifiableEncryption(v) => &v.id,
+            Self::Range(r) => &r.id,
         }
     }
 }

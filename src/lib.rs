@@ -41,5 +41,6 @@ mod verifier;
 
 mod utils;
 
+extern crate core;
 /// Re-export yeti
 pub extern crate yeti;

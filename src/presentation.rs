@@ -2,6 +2,7 @@ mod accumulator_set_membership;
 mod commitment;
 mod equality;
 mod proof;
+mod range;
 mod schema;
 mod signature;
 mod verifiable_encryption;
@@ -10,6 +11,7 @@ pub use accumulator_set_membership::*;
 pub use commitment::*;
 pub use equality::*;
 pub use proof::*;
+pub use range::*;
 pub use schema::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
@@ -26,7 +28,7 @@ use group::ff::Field;
 use merlin::Transcript;
 use rand_core::{CryptoRng, OsRng, RngCore};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use uint_zigzag::Uint;
 use yeti::knox::bls12_381_plus::{G1Affine, G2Affine, Scalar};
 use yeti::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
@@ -44,6 +46,7 @@ pub(crate) enum PresentationBuilders<'a> {
     Equality(EqualityBuilder<'a>),
     Commitment(CommitmentBuilder<'a>),
     VerifiableEncryption(VerifiableEncryptionBuilder<'a>),
+    Range(RangeBuilder<'a>),
 }
 
 impl<'a> PresentationBuilders<'a> {
@@ -55,6 +58,7 @@ impl<'a> PresentationBuilders<'a> {
             Self::Commitment(c) => c.gen_proof(challenge),
             Self::AccumulatorSetMembership(a) => a.gen_proof(challenge),
             Self::VerifiableEncryption(v) => v.gen_proof(challenge),
+            Self::Range(r) => r.gen_proof(challenge),
         }
     }
 }
@@ -134,10 +138,13 @@ impl Presentation {
             }
         }
 
-        for pred_statement in predicate_statements.values() {
+        let mut id_to_builder = BTreeMap::new();
+        let mut range_id = BTreeSet::new();
+        for (id, pred_statement) in &predicate_statements {
             match pred_statement {
                 Statements::Equality(e) => {
                     let builder = EqualityBuilder::commit(e, credentials)?;
+                    id_to_builder.insert(id, builders.len());
                     builders.push(builder.into());
                 }
                 Statements::AccumulatorSetMembership(a) => {
@@ -153,6 +160,7 @@ impl Presentation {
                         nonce,
                         &mut transcript,
                     )?;
+                    id_to_builder.insert(id, builders.len());
                     builders.push(builder.into());
                 }
                 Statements::Commitment(c) => {
@@ -164,6 +172,7 @@ impl Presentation {
                     let blinder = proof_message.get_blinder(&mut rng).unwrap();
                     let builder =
                         CommitmentBuilder::commit(c, message, blinder, &mut rng, &mut transcript)?;
+                    id_to_builder.insert(id, builders.len());
                     builders.push(builder.into());
                 }
                 Statements::VerifiableEncryption(v) => {
@@ -180,9 +189,49 @@ impl Presentation {
                         &mut rng,
                         &mut transcript,
                     )?;
+                    id_to_builder.insert(id, builders.len());
                     builders.push(builder.into());
                 }
+                Statements::Range(_) => {
+                    // handle after these since they depend on commitment builders
+                    range_id.insert(id);
+                }
                 Statements::Signature(_) => {}
+            }
+        }
+        let mut range_builders = Vec::<PresentationBuilders>::with_capacity(range_id.len());
+        for id in range_id {
+            match predicate_statements
+                .get(id)
+                .ok_or(Error::InvalidPresentationData)?
+            {
+                Statements::Range(r) => {
+                    let sig = credentials
+                        .get(&r.signature_id)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    match &builders[id_to_builder[id]] {
+                        PresentationBuilders::Commitment(commitment) => {
+                            match sig
+                                .claims
+                                .get(r.claim)
+                                .ok_or(Error::InvalidPresentationData)?
+                            {
+                                ClaimData::Number(n) => {
+                                    let builder = RangeBuilder::commit(
+                                        r,
+                                        commitment,
+                                        n.value,
+                                        &mut transcript,
+                                    )?;
+                                    range_builders.push(builder.into());
+                                }
+                                _ => return Err(Error::InvalidPresentationData),
+                            }
+                        }
+                        _ => return Err(Error::InvalidPresentationData),
+                    }
+                }
+                _ => {}
             }
         }
         let mut okm = [0u8; 64];
@@ -191,6 +240,10 @@ impl Presentation {
 
         let mut proofs = BTreeMap::new();
 
+        for builder in range_builders.into_iter() {
+            let proof = builder.gen_proof(challenge);
+            proofs.insert(proof.id().clone(), proof);
+        }
         for builder in builders.into_iter() {
             let proof = builder.gen_proof(challenge);
             proofs.insert(proof.id().clone(), proof);

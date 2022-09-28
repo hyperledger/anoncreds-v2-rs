@@ -1,6 +1,7 @@
 mod accumulator_set_membership;
 mod commitment;
 mod equality;
+mod range;
 mod signature;
 mod r#type;
 mod verifiable_encryption;
@@ -9,6 +10,7 @@ pub use accumulator_set_membership::*;
 pub use commitment::*;
 pub use equality::*;
 pub use r#type::*;
+pub use range::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
 
@@ -42,6 +44,8 @@ pub enum Statements {
     Commitment(CommitmentStatement<G1Projective>),
     /// Verifiable Encryption statements
     VerifiableEncryption(VerifiableEncryptionStatement<G1Projective>),
+    /// Range statements
+    Range(RangeStatement),
 }
 
 impl Statements {
@@ -53,6 +57,7 @@ impl Statements {
             Self::AccumulatorSetMembership(a) => a.id(),
             Self::Commitment(c) => c.id(),
             Self::VerifiableEncryption(v) => v.id(),
+            Self::Range(r) => r.id(),
         }
     }
 
@@ -64,6 +69,7 @@ impl Statements {
             Self::Equality(e) => e.r#type(),
             Self::Commitment(c) => c.r#type(),
             Self::VerifiableEncryption(v) => v.r#type(),
+            Self::Range(r) => r.r#type(),
         }
     }
 
@@ -75,6 +81,7 @@ impl Statements {
             Self::AccumulatorSetMembership(a) => a.reference_ids(),
             Self::Commitment(c) => c.reference_ids(),
             Self::VerifiableEncryption(v) => v.reference_ids(),
+            Self::Range(r) => r.reference_ids(),
         }
     }
 
@@ -86,6 +93,7 @@ impl Statements {
             Self::AccumulatorSetMembership(a) => a.add_challenge_contribution(transcript),
             Self::Commitment(c) => c.add_challenge_contribution(transcript),
             Self::VerifiableEncryption(v) => v.add_challenge_contribution(transcript),
+            Self::Range(r) => r.add_challenge_contribution(transcript),
         }
     }
 
@@ -97,6 +105,7 @@ impl Statements {
             Self::AccumulatorSetMembership(a) => a.get_claim_index(reference_id),
             Self::Commitment(c) => c.get_claim_index(reference_id),
             Self::VerifiableEncryption(v) => v.get_claim_index(reference_id),
+            Self::Range(r) => r.get_claim_index(reference_id),
         }
     }
 }

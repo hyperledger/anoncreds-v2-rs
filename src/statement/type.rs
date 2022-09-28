@@ -18,4 +18,6 @@ pub enum StatementType {
     VbSetInclusion = 5,
     /// Verifiable Encryption
     ElGamalVerifiableEncryption = 6,
+    /// Range proofs with Bulletproofs
+    RangeProofBulletproof = 7,
 }

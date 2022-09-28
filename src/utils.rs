@@ -1,3 +1,4 @@
+use bls12_381_plus::Scalar;
 use group::{Group, GroupEncoding};
 use serde::{
     de::{DeserializeOwned, Error as DError, Unexpected, Visitor},
@@ -5,6 +6,17 @@ use serde::{
 };
 use std::fmt::{self, Formatter};
 use std::marker::PhantomData;
+use yeti::knox::bls12_381_plus;
+
+pub const TOP_BIT: u64 = i64::MIN as u64;
+
+pub fn get_num_scalar(num: isize) -> Scalar {
+    Scalar::from(zero_center(num))
+}
+
+pub fn zero_center(num: isize) -> u64 {
+    num as u64 ^ TOP_BIT
+}
 
 pub fn serialize_point<P: Group + GroupEncoding + Serialize + DeserializeOwned, S: Serializer>(
     point: &P,

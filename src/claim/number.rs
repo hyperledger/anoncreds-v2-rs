@@ -1,5 +1,6 @@
 use super::{Claim, ClaimType};
 use crate::claim::ClaimData;
+use crate::utils::get_num_scalar;
 use core::fmt::{self, Display, Formatter};
 use serde::{Deserialize, Serialize};
 use yeti::knox::bls12_381_plus::Scalar;
@@ -51,7 +52,7 @@ impl Claim for NumberClaim {
     }
 
     fn to_scalar(&self) -> Scalar {
-        Scalar::from(self.value as u64)
+        get_num_scalar(self.value)
     }
 
     fn get_value(&self) -> Self::Value {

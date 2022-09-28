@@ -10,11 +10,11 @@ use yeti::knox::bls12_381_plus::{G1Projective, Scalar};
 
 /// A commitment builder
 pub(crate) struct CommitmentBuilder<'a> {
-    commitment: G1Projective,
-    statement: &'a CommitmentStatement<G1Projective>,
-    message: Scalar,
-    b: Scalar,
-    r: Scalar,
+    pub(crate) commitment: G1Projective,
+    pub(crate) statement: &'a CommitmentStatement<G1Projective>,
+    pub(crate) message: Scalar,
+    pub(crate) b: Scalar,
+    pub(crate) r: Scalar,
 }
 
 impl<'a> PresentationBuilder for CommitmentBuilder<'a> {
