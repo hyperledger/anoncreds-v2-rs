@@ -21,12 +21,12 @@ impl<'a> PresentationBuilder for CommitmentBuilder<'a> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         let message_proof = self.b + challenge * self.message;
         let blinder_proof = self.r + challenge * self.b;
-        PresentationProofs::Commitment(CommitmentProof {
+        CommitmentProof {
             id: self.statement.id.clone(),
             commitment: self.commitment,
             message_proof,
             blinder_proof,
-        })
+        }.into()
     }
 }
 
@@ -74,10 +74,4 @@ pub struct CommitmentProof {
     pub message_proof: Scalar,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
-}
-
-impl Into<PresentationProofs> for CommitmentProof {
-    fn into(self) -> PresentationProofs {
-        PresentationProofs::Commitment(self)
-    }
 }

@@ -9,9 +9,9 @@ pub(crate) struct EqualityBuilder<'a> {
 
 impl<'a> PresentationBuilder for EqualityBuilder<'a> {
     fn gen_proof(self, _challenge: Scalar) -> PresentationProofs {
-        PresentationProofs::Equality(EqualityProof {
+        EqualityProof {
             id: self.reference_statement.id(),
-        })
+        }.into()
     }
 }
 
@@ -48,10 +48,4 @@ impl<'a> EqualityBuilder<'a> {
 pub struct EqualityProof {
     /// The statement identifier
     pub id: String,
-}
-
-impl Into<PresentationProofs> for EqualityProof {
-    fn into(self) -> PresentationProofs {
-        PresentationProofs::Equality(self)
-    }
 }

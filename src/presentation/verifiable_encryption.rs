@@ -22,13 +22,13 @@ impl<'a> PresentationBuilder for VerifiableEncryptionBuilder<'a> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         let message_proof = self.b + challenge * self.message;
         let blinder_proof = self.r + challenge * self.b;
-        PresentationProofs::VerifiableEncryption(VerifiableEncryptionProof {
+        VerifiableEncryptionProof {
             id: self.statement.id.clone(),
             c1: self.c1,
             c2: self.c2,
             message_proof,
             blinder_proof,
-        })
+        }.into()
     }
 }
 
@@ -79,10 +79,4 @@ pub struct VerifiableEncryptionProof {
     pub message_proof: Scalar,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
-}
-
-impl Into<PresentationProofs> for VerifiableEncryptionProof {
-    fn into(self) -> PresentationProofs {
-        PresentationProofs::VerifiableEncryption(self)
-    }
 }

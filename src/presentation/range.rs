@@ -55,10 +55,10 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                         - self.commitment_builder.statement.message_generator
                             * Scalar::from(zero_center(*self.statement.lower.as_ref().unwrap()))
                 );
-                PresentationProofs::Range(RangeProof {
+                RangeProof {
                     id: self.statement.id.clone(),
                     proof,
-                })
+                }.into()
             }
             (Some(upper), None) => {
                 let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
@@ -79,10 +79,10 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                                 u64::MAX - zero_center(*self.statement.upper.as_ref().unwrap())
                             )
                 );
-                PresentationProofs::Range(RangeProof {
+                RangeProof {
                     id: self.statement.id.clone(),
                     proof,
-                })
+                }.into()
             }
             (None, Some(lower)) => {
                 let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
@@ -101,10 +101,10 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                         - self.commitment_builder.statement.message_generator
                             * Scalar::from(zero_center(*self.statement.lower.as_ref().unwrap()))
                 );
-                PresentationProofs::Range(RangeProof {
+                RangeProof {
                     id: self.statement.id.clone(),
                     proof,
-                })
+                }.into()
             }
             (None, None) => {
                 panic!("How did this happen?")

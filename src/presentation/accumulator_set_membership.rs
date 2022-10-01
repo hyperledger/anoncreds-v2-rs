@@ -18,10 +18,10 @@ pub(crate) struct AccumulatorSetMembershipProofBuilder<'a> {
 impl<'a> PresentationBuilder for AccumulatorSetMembershipProofBuilder<'a> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         let proof = self.committing.gen_proof(Element(challenge));
-        PresentationProofs::AccumulatorSetMembership(AccumulatorSetMembershipProof {
+        AccumulatorSetMembershipProof {
             id: self.id.clone(),
             proof,
-        })
+        }.into()
     }
 }
 
@@ -57,10 +57,4 @@ pub struct AccumulatorSetMembershipProof {
     pub id: String,
     /// The membership proof
     pub proof: MembershipProof,
-}
-
-impl Into<PresentationProofs> for AccumulatorSetMembershipProof {
-    fn into(self) -> PresentationProofs {
-        PresentationProofs::AccumulatorSetMembership(self)
-    }
 }

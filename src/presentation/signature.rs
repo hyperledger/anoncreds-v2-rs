@@ -24,11 +24,11 @@ impl<'a> PresentationBuilder for SignatureBuilder<'a> {
     /// Finalize proofs
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         // PS signature generate_proof can't fail, okay to unwrap
-        PresentationProofs::Signature(SignatureProof {
+        SignatureProof {
             id: self.id.clone(),
             disclosed_messages: self.disclosed_messages,
             pok: self.pok_sig.generate_proof(challenge).unwrap(),
-        })
+        }.into()
     }
 }
 
@@ -72,10 +72,4 @@ pub struct SignatureProof {
     pub disclosed_messages: BTreeMap<usize, Scalar>,
     /// The proof
     pub pok: PokSignatureProof,
-}
-
-impl Into<PresentationProofs> for SignatureProof {
-    fn into(self) -> PresentationProofs {
-        PresentationProofs::Signature(self)
-    }
 }
