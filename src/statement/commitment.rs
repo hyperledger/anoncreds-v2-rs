@@ -1,4 +1,4 @@
-use crate::statement::{Statement, StatementType};
+use crate::statement::Statement;
 use crate::utils::*;
 use group::{Group, GroupEncoding};
 use merlin::Transcript;
@@ -31,10 +31,6 @@ pub struct CommitmentStatement<P: Group + GroupEncoding + DeserializeOwned + Ser
 impl<P: Group + GroupEncoding + DeserializeOwned + Serialize> Statement for CommitmentStatement<P> {
     fn id(&self) -> String {
         self.id.clone()
-    }
-
-    fn r#type(&self) -> StatementType {
-        StatementType::Commitment
     }
 
     fn reference_ids(&self) -> Vec<String> {

@@ -3,13 +3,11 @@ mod commitment;
 mod equality;
 mod range;
 mod signature;
-mod r#type;
 mod verifiable_encryption;
 
 pub use accumulator_set_membership::*;
 pub use commitment::*;
 pub use equality::*;
-pub use r#type::*;
 pub use range::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
@@ -21,8 +19,6 @@ use yeti::knox::bls12_381_plus::G1Projective;
 pub trait Statement {
     /// Return this statement unique identifier
     fn id(&self) -> String;
-    /// Get the statement type
-    fn r#type(&self) -> StatementType;
     /// Any statements that this statement references
     fn reference_ids(&self) -> Vec<String>;
     /// Add the public statement data to the transcript
@@ -94,18 +90,6 @@ impl Statements {
             Self::Commitment(c) => c.id(),
             Self::VerifiableEncryption(v) => v.id(),
             Self::Range(r) => r.id(),
-        }
-    }
-
-    /// Return the statement type
-    pub fn r#type(&self) -> StatementType {
-        match self {
-            Self::Signature(s) => s.r#type(),
-            Self::AccumulatorSetMembership(a) => a.r#type(),
-            Self::Equality(e) => e.r#type(),
-            Self::Commitment(c) => c.r#type(),
-            Self::VerifiableEncryption(v) => v.r#type(),
-            Self::Range(r) => r.r#type(),
         }
     }
 

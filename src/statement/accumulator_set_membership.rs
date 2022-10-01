@@ -1,4 +1,4 @@
-use crate::statement::{Statement, StatementType};
+use crate::statement::Statement;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
@@ -22,10 +22,6 @@ pub struct AccumulatorSetMembershipStatement {
 impl Statement for AccumulatorSetMembershipStatement {
     fn id(&self) -> String {
         self.id.clone()
-    }
-
-    fn r#type(&self) -> StatementType {
-        StatementType::VbSetInclusion
     }
 
     fn reference_ids(&self) -> Vec<String> {

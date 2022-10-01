@@ -1,4 +1,4 @@
-use crate::statement::{Statement, StatementType};
+use crate::statement::Statement;
 use crate::utils::*;
 use group::{Group, GroupEncoding};
 use merlin::Transcript;
@@ -29,10 +29,6 @@ impl<P: Group + GroupEncoding + DeserializeOwned + Serialize> Statement
 {
     fn id(&self) -> String {
         self.id.clone()
-    }
-
-    fn r#type(&self) -> StatementType {
-        StatementType::ElGamalVerifiableEncryption
     }
 
     fn reference_ids(&self) -> Vec<String> {

@@ -25,10 +25,6 @@ impl Statement for RangeStatement {
         self.id.clone()
     }
 
-    fn r#type(&self) -> StatementType {
-        StatementType::RangeProofBulletproof
-    }
-
     fn reference_ids(&self) -> Vec<String> {
         vec![self.reference_id.clone()]
     }

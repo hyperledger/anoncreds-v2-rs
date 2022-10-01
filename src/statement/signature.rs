@@ -1,4 +1,4 @@
-use super::{Statement, StatementType};
+use super::Statement;
 use crate::issuer::IssuerPublic;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
@@ -20,11 +20,6 @@ impl Statement for SignatureStatement {
     /// Return this statement unique identifier
     fn id(&self) -> String {
         self.id.clone()
-    }
-
-    /// Get the statement type
-    fn r#type(&self) -> StatementType {
-        StatementType::PS
     }
 
     /// Any statements that this statement references

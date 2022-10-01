@@ -1,4 +1,4 @@
-use crate::statement::{Statement, StatementType};
+use crate::statement::Statement;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -16,10 +16,6 @@ pub struct EqualityStatement {
 impl Statement for EqualityStatement {
     fn id(&self) -> String {
         self.id.clone()
-    }
-
-    fn r#type(&self) -> StatementType {
-        StatementType::Equality
     }
 
     fn reference_ids(&self) -> Vec<String> {
