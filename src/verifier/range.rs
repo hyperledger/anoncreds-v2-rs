@@ -70,7 +70,7 @@ impl<'a, 'b, 'c> ProofVerifier for RangeProofVerifier<'a, 'b, 'c> {
                 Ok(())
             }
             (None, None) => {
-                return Err(Error::InvalidPresentationData);
+                Err(Error::InvalidPresentationData)
             }
         }
     }
@@ -137,7 +137,7 @@ impl<'a, 'b, 'c> ProofVerifier for RangeProofVerifier<'a, 'b, 'c> {
                     .map_err(|_| Error::InvalidBulletproofRange)
             }
             (None, None) => {
-                return Err(Error::InvalidPresentationData);
+                Err(Error::InvalidPresentationData)
             }
         }
     }
