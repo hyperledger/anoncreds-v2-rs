@@ -2,7 +2,7 @@ use crate::error::Error;
 use crate::presentation::RangeProof;
 use crate::statement::{CommitmentStatement, RangeStatement};
 use crate::utils::{get_num_scalar, zero_center};
-use crate::verifier::{ProofVerifier, ProofVerifiers};
+use crate::verifier::ProofVerifier;
 use crate::CredxResult;
 use group::Curve;
 use merlin::Transcript;
@@ -140,11 +140,5 @@ impl<'a, 'b, 'c> ProofVerifier for RangeProofVerifier<'a, 'b, 'c> {
                 return Err(Error::InvalidPresentationData);
             }
         }
-    }
-}
-
-impl<'a, 'b, 'c> Into<ProofVerifiers<'a, 'b, 'c>> for RangeProofVerifier<'a, 'b, 'c> {
-    fn into(self) -> ProofVerifiers<'a, 'b, 'c> {
-        ProofVerifiers::Range(self)
     }
 }

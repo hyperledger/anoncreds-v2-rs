@@ -29,12 +29,48 @@ pub(crate) trait ProofVerifier {
 }
 
 pub(crate) enum ProofVerifiers<'a, 'b, 'c> {
-    Signature(SignatureVerifier<'a, 'b>),
-    AccumulatorSetMembership(AccumulatorSetMembershipVerifier<'a, 'b>),
-    Equality(EqualityVerifier<'a, 'b, 'c>),
-    Commitment(CommitmentVerifier<'a, 'b>),
-    VerifiableEncryption(VerifiableEncryptionVerifier<'a, 'b>),
-    Range(RangeProofVerifier<'a, 'b, 'c>),
+    Signature(Box<SignatureVerifier<'a, 'b>>),
+    AccumulatorSetMembership(Box<AccumulatorSetMembershipVerifier<'a, 'b>>),
+    Equality(Box<EqualityVerifier<'a, 'b, 'c>>),
+    Commitment(Box<CommitmentVerifier<'a, 'b>>),
+    VerifiableEncryption(Box<VerifiableEncryptionVerifier<'a, 'b>>),
+    Range(Box<RangeProofVerifier<'a, 'b, 'c>>),
+}
+
+impl<'a, 'b, 'c> From<SignatureVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+    fn from(s: SignatureVerifier<'a, 'b>) -> Self {
+        Self::Signature(Box::new(s))
+    }
+}
+
+impl<'a, 'b, 'c> From<AccumulatorSetMembershipVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+    fn from(a: AccumulatorSetMembershipVerifier<'a, 'b>) -> Self {
+        Self::AccumulatorSetMembership(Box::new(a))
+    }
+}
+
+impl<'a, 'b, 'c> From<EqualityVerifier<'a, 'b, 'c>> for ProofVerifiers<'a, 'b, 'c> {
+    fn from(e: EqualityVerifier<'a, 'b, 'c>) -> Self {
+        Self::Equality(Box::new(e))
+    }
+}
+
+impl<'a, 'b, 'c> From<CommitmentVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+    fn from(a: CommitmentVerifier<'a, 'b>) -> Self {
+        Self::Commitment(Box::new(a))
+    }
+}
+
+impl<'a, 'b, 'c> From<VerifiableEncryptionVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+    fn from(a: VerifiableEncryptionVerifier<'a, 'b>) -> Self {
+        Self::VerifiableEncryption(Box::new(a))
+    }
+}
+
+impl<'a, 'b, 'c> From<RangeProofVerifier<'a, 'b, 'c>> for ProofVerifiers<'a, 'b, 'c> {
+    fn from(a: RangeProofVerifier<'a, 'b, 'c>) -> Self {
+        Self::Range(Box::new(a))
+    }
 }
 
 impl<'a, 'b, 'c> ProofVerifiers<'a, 'b, 'c> {

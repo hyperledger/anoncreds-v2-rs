@@ -1,7 +1,5 @@
 use crate::error::Error;
-use crate::presentation::{
-    CommitmentBuilder, PresentationBuilder, PresentationProofs,
-};
+use crate::presentation::{CommitmentBuilder, PresentationBuilder, PresentationProofs};
 use crate::statement::RangeStatement;
 use crate::utils::*;
 use crate::CredxResult;

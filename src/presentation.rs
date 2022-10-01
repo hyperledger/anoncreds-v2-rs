@@ -20,11 +20,7 @@ pub use verifiable_encryption::*;
 
 use crate::verifier::*;
 use crate::{
-    claim::ClaimData,
-    credential::Credential,
-    error::Error,
-    statement::Statements,
-    CredxResult,
+    claim::ClaimData, credential::Credential, error::Error, statement::Statements, CredxResult,
 };
 use group::ff::Field;
 use merlin::Transcript;

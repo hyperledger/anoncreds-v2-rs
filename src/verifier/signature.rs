@@ -1,7 +1,7 @@
 use crate::error::Error;
 use crate::presentation::SignatureProof;
 use crate::statement::SignatureStatement;
-use crate::verifier::{ProofVerifier, ProofVerifiers};
+use crate::verifier::ProofVerifier;
 use crate::CredxResult;
 use merlin::Transcript;
 use yeti::knox::bls12_381_plus::Scalar;
@@ -51,11 +51,5 @@ impl<'a, 'b> ProofVerifier for SignatureVerifier<'a, 'b> {
         } else {
             Err(Error::InvalidSignatureProofData)
         }
-    }
-}
-
-impl<'a, 'b, 'c> Into<ProofVerifiers<'a, 'b, 'c>> for SignatureVerifier<'a, 'b> {
-    fn into(self) -> ProofVerifiers<'a, 'b, 'c> {
-        ProofVerifiers::Signature(self)
     }
 }
