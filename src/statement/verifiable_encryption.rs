@@ -1,10 +1,9 @@
-use crate::statement::{Statement, StatementType, Statements};
+use crate::statement::{Statement, StatementType};
 use crate::utils::*;
 use group::{Group, GroupEncoding};
 use merlin::Transcript;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uint_zigzag::Uint;
-use yeti::knox::bls12_381_plus::G1Projective;
 
 /// Verifiable encryption
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -23,12 +22,6 @@ pub struct VerifiableEncryptionStatement<P: Group + GroupEncoding + Serialize + 
     pub reference_id: String,
     /// The claim index in the other statement
     pub claim: usize,
-}
-
-impl Into<Statements> for VerifiableEncryptionStatement<G1Projective> {
-    fn into(self) -> Statements {
-        Statements::VerifiableEncryption(self)
-    }
 }
 
 impl<P: Group + GroupEncoding + DeserializeOwned + Serialize> Statement

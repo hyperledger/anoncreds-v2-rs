@@ -63,12 +63,6 @@ impl<'a> SignatureBuilder<'a> {
     }
 }
 
-impl<'a> Into<PresentationBuilders<'a>> for SignatureBuilder<'a> {
-    fn into(self) -> PresentationBuilders<'a> {
-        PresentationBuilders::Signature(self)
-    }
-}
-
 /// A signature proof that can be presented
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SignatureProof {

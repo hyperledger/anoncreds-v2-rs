@@ -35,17 +35,53 @@ pub trait Statement {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum Statements {
     /// Signature statements
-    Signature(SignatureStatement),
+    Signature(Box<SignatureStatement>),
     /// Equality statements
-    Equality(EqualityStatement),
+    Equality(Box<EqualityStatement>),
     /// Accumulator set membership statements
-    AccumulatorSetMembership(AccumulatorSetMembershipStatement),
+    AccumulatorSetMembership(Box<AccumulatorSetMembershipStatement>),
     /// Commitment statements
-    Commitment(CommitmentStatement<G1Projective>),
+    Commitment(Box<CommitmentStatement<G1Projective>>),
     /// Verifiable Encryption statements
-    VerifiableEncryption(VerifiableEncryptionStatement<G1Projective>),
+    VerifiableEncryption(Box<VerifiableEncryptionStatement<G1Projective>>),
     /// Range statements
-    Range(RangeStatement),
+    Range(Box<RangeStatement>),
+}
+
+impl From<SignatureStatement> for Statements {
+    fn from(s: SignatureStatement) -> Self {
+        Self::Signature(Box::new(s))
+    }
+}
+
+impl From<EqualityStatement> for Statements {
+    fn from(e: EqualityStatement) -> Self {
+        Self::Equality(Box::new(e))
+    }
+}
+
+impl From<AccumulatorSetMembershipStatement> for Statements {
+    fn from(a: AccumulatorSetMembershipStatement) -> Self {
+        Self::AccumulatorSetMembership(Box::new(a))
+    }
+}
+
+impl From<CommitmentStatement<G1Projective>> for Statements {
+    fn from(c: CommitmentStatement<G1Projective>) -> Self {
+        Self::Commitment(Box::new(c))
+    }
+}
+
+impl From<VerifiableEncryptionStatement<G1Projective>> for Statements {
+    fn from(c: VerifiableEncryptionStatement<G1Projective>) -> Self {
+        Self::VerifiableEncryption(Box::new(c))
+    }
+}
+
+impl From<RangeStatement> for Statements {
+    fn from(c: RangeStatement) -> Self {
+        Self::Range(Box::new(c))
+    }
 }
 
 impl Statements {

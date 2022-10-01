@@ -1,10 +1,9 @@
-use crate::statement::{Statement, StatementType, Statements};
+use crate::statement::{Statement, StatementType};
 use crate::utils::*;
 use group::{Group, GroupEncoding};
 use merlin::Transcript;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uint_zigzag::Uint;
-use yeti::knox::bls12_381_plus::G1Projective;
 
 /// A commitment statement
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -27,12 +26,6 @@ pub struct CommitmentStatement<P: Group + GroupEncoding + DeserializeOwned + Ser
     pub reference_id: String,
     /// The claim index in the other statement
     pub claim: usize,
-}
-
-impl Into<Statements> for CommitmentStatement<G1Projective> {
-    fn into(self) -> Statements {
-        Statements::Commitment(self)
-    }
 }
 
 impl<P: Group + GroupEncoding + DeserializeOwned + Serialize> Statement for CommitmentStatement<P> {

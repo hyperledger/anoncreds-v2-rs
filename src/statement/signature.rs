@@ -1,6 +1,5 @@
 use super::{Statement, StatementType};
 use crate::issuer::IssuerPublic;
-use crate::statement::Statements;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -15,12 +14,6 @@ pub struct SignatureStatement {
     pub id: String,
     /// The issuer information
     pub issuer: IssuerPublic,
-}
-
-impl Into<Statements> for SignatureStatement {
-    fn into(self) -> Statements {
-        Statements::Signature(self)
-    }
 }
 
 impl Statement for SignatureStatement {

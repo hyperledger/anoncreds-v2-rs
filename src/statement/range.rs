@@ -20,12 +20,6 @@ pub struct RangeStatement {
     pub upper: Option<isize>,
 }
 
-impl Into<Statements> for RangeStatement {
-    fn into(self) -> Statements {
-        Statements::Range(self)
-    }
-}
-
 impl Statement for RangeStatement {
     fn id(&self) -> String {
         self.id.clone()

@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::presentation::{
-    CommitmentBuilder, PresentationBuilder, PresentationBuilders, PresentationProofs,
+    CommitmentBuilder, PresentationBuilder, PresentationProofs,
 };
 use crate::statement::RangeStatement;
 use crate::utils::*;
@@ -112,12 +112,6 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                 panic!("How did this happen?")
             }
         }
-    }
-}
-
-impl<'a> Into<PresentationBuilders<'a>> for RangeBuilder<'a> {
-    fn into(self) -> PresentationBuilders<'a> {
-        PresentationBuilders::Range(self)
     }
 }
 

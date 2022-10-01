@@ -1,5 +1,5 @@
 use crate::credential::Credential;
-use crate::presentation::{PresentationBuilder, PresentationBuilders, PresentationProofs};
+use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::AccumulatorSetMembershipStatement;
 use crate::CredxResult;
 use merlin::Transcript;
@@ -47,12 +47,6 @@ impl<'a> AccumulatorSetMembershipProofBuilder<'a> {
             id: &statement.id,
             committing,
         })
-    }
-}
-
-impl<'a> Into<PresentationBuilders<'a>> for AccumulatorSetMembershipProofBuilder<'a> {
-    fn into(self) -> PresentationBuilders<'a> {
-        PresentationBuilders::AccumulatorSetMembership(self)
     }
 }
 

@@ -23,7 +23,7 @@ use crate::{
     claim::ClaimData,
     credential::Credential,
     error::Error,
-    statement::{StatementType, Statements},
+    statement::Statements,
     CredxResult,
 };
 use group::ff::Field;
@@ -43,12 +43,12 @@ pub trait PresentationBuilder {
 
 /// Encapsulates the builders for later conversion to proofs
 pub(crate) enum PresentationBuilders<'a> {
-    Signature(SignatureBuilder<'a>),
-    AccumulatorSetMembership(AccumulatorSetMembershipProofBuilder<'a>),
-    Equality(EqualityBuilder<'a>),
-    Commitment(CommitmentBuilder<'a>),
-    VerifiableEncryption(VerifiableEncryptionBuilder<'a>),
-    Range(RangeBuilder<'a>),
+    Signature(Box<SignatureBuilder<'a>>),
+    AccumulatorSetMembership(Box<AccumulatorSetMembershipProofBuilder<'a>>),
+    Equality(Box<EqualityBuilder<'a>>),
+    Commitment(Box<CommitmentBuilder<'a>>),
+    VerifiableEncryption(Box<VerifiableEncryptionBuilder<'a>>),
+    Range(Box<RangeBuilder<'a>>),
 }
 
 impl<'a> PresentationBuilders<'a> {
@@ -62,6 +62,42 @@ impl<'a> PresentationBuilders<'a> {
             Self::VerifiableEncryption(v) => v.gen_proof(challenge),
             Self::Range(r) => r.gen_proof(challenge),
         }
+    }
+}
+
+impl<'a> From<SignatureBuilder<'a>> for PresentationBuilders<'a> {
+    fn from(sig: SignatureBuilder<'a>) -> Self {
+        Self::Signature(Box::new(sig))
+    }
+}
+
+impl<'a> From<AccumulatorSetMembershipProofBuilder<'a>> for PresentationBuilders<'a> {
+    fn from(acc: AccumulatorSetMembershipProofBuilder<'a>) -> Self {
+        Self::AccumulatorSetMembership(Box::new(acc))
+    }
+}
+
+impl<'a> From<EqualityBuilder<'a>> for PresentationBuilders<'a> {
+    fn from(eq: EqualityBuilder<'a>) -> Self {
+        Self::Equality(Box::new(eq))
+    }
+}
+
+impl<'a> From<CommitmentBuilder<'a>> for PresentationBuilders<'a> {
+    fn from(com: CommitmentBuilder<'a>) -> Self {
+        Self::Commitment(Box::new(com))
+    }
+}
+
+impl<'a> From<VerifiableEncryptionBuilder<'a>> for PresentationBuilders<'a> {
+    fn from(ve: VerifiableEncryptionBuilder<'a>) -> Self {
+        Self::VerifiableEncryption(Box::new(ve))
+    }
+}
+
+impl<'a> From<RangeBuilder<'a>> for PresentationBuilders<'a> {
+    fn from(rg: RangeBuilder<'a>) -> Self {
+        Self::Range(Box::new(rg))
     }
 }
 
@@ -84,12 +120,11 @@ impl Presentation {
         let mut predicate_statements: BTreeMap<String, &Statements> = BTreeMap::new();
 
         for (id, statement) in &schema.statements {
-            match statement.r#type() {
-                StatementType::PS | StatementType::BBS => {
-                    signature_statements.insert(id.clone(), statement)
-                }
-                _ => predicate_statements.insert(id.clone(), statement),
-            };
+            if let Statements::Signature(_) = statement {
+                signature_statements.insert(id.clone(), statement);
+            } else {
+                predicate_statements.insert(id.clone(), statement);
+            }
         }
         (signature_statements, predicate_statements)
     }

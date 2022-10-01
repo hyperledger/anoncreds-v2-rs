@@ -1,4 +1,4 @@
-use crate::statement::{Statement, StatementType, Statements};
+use crate::statement::{Statement, StatementType};
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
@@ -17,12 +17,6 @@ pub struct AccumulatorSetMembershipStatement {
     pub verification_key: vb20::PublicKey,
     /// The claim index in the other statement
     pub claim: usize,
-}
-
-impl Into<Statements> for AccumulatorSetMembershipStatement {
-    fn into(self) -> Statements {
-        Statements::AccumulatorSetMembership(self)
-    }
 }
 
 impl Statement for AccumulatorSetMembershipStatement {

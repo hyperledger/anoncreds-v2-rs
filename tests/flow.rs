@@ -121,7 +121,10 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
         range_st.into(),
     ]);
     let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
-
+    presentation.verify(&presentation_schema, &nonce)?;
+    let proof_data = serde_bare::to_vec(&presentation).unwrap();
+    let presentation: Presentation = serde_bare::from_slice(&proof_data).unwrap();
+    println!("proof size = {}", proof_data.len());
     presentation.verify(&presentation_schema, &nonce)
 }
 

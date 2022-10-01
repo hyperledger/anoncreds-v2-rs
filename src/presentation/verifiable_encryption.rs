@@ -1,4 +1,4 @@
-use crate::presentation::{PresentationBuilder, PresentationBuilders, PresentationProofs};
+use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::VerifiableEncryptionStatement;
 use crate::CredxResult;
 use group::ff::Field;
@@ -63,12 +63,6 @@ impl<'a> VerifiableEncryptionBuilder<'a> {
             b,
             r,
         })
-    }
-}
-
-impl<'a> Into<PresentationBuilders<'a>> for VerifiableEncryptionBuilder<'a> {
-    fn into(self) -> PresentationBuilders<'a> {
-        PresentationBuilders::VerifiableEncryption(self)
     }
 }
 

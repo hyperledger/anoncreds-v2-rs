@@ -1,4 +1,4 @@
-use crate::statement::{Statement, StatementType, Statements};
+use crate::statement::{Statement, StatementType};
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -11,12 +11,6 @@ pub struct EqualityStatement {
     pub id: String,
     /// The reference statement id to claim index
     pub ref_id_claim_index: BTreeMap<String, usize>,
-}
-
-impl Into<Statements> for EqualityStatement {
-    fn into(self) -> Statements {
-        Statements::Equality(self)
-    }
 }
 
 impl Statement for EqualityStatement {
