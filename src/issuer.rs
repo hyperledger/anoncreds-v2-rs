@@ -1,5 +1,5 @@
 use super::{credential::CredentialSchema, error::Error, revocation_registry::RevocationRegistry};
-use crate::claim::{Claim, ClaimData, ClaimType, RevocationClaim};
+use crate::claim::{Claim, ClaimData, RevocationClaim};
 use crate::credential::{Credential, CredentialBundle};
 use crate::{random_string, CredxResult};
 use group::Curve;
@@ -64,17 +64,13 @@ pub struct IssuerPublicText {
 
 impl From<&Issuer> for IssuerPublic {
     fn from(i: &Issuer) -> Self {
-        let verifying_key = ps::PublicKey::from(&i.signing_key);
-        let revocation_verifying_key = vb20::PublicKey::from(&i.revocation_key);
-        let verifiable_encryption_key = bls::PublicKeyVt::from(&i.verifiable_decryption_key);
-        Self {
-            id: i.id.clone(),
-            schema: i.schema.clone(),
-            verifying_key,
-            revocation_verifying_key,
-            verifiable_encryption_key,
-            revocation_registry: i.revocation_registry.value,
-        }
+        i.get_public()
+    }
+}
+
+impl From<&mut Issuer> for IssuerPublic {
+    fn from(i: &mut Issuer) -> Self {
+        i.get_public()
     }
 }
 
@@ -130,7 +126,7 @@ impl Issuer {
                 }
                 None => return Err(Error::InvalidClaimData),
             };
-            if let ClaimData::Revocation(rc) = t {
+            if let ClaimData::Revocation(rc) = c {
                 revocation_element_index = Some(i);
                 revocation_claim = Some(rc);
             }
@@ -179,8 +175,22 @@ impl Issuer {
     /// Revoke a credential and update this issue's revocation registry
     /// A list of all revoked claims should be kept externally.
     pub fn revoke_credentials(&mut self, claims: &[RevocationClaim]) -> CredxResult<()> {
-        let c: Vec<_>  = claims.iter().map(|c| c.value).collect();
+        let c: Vec<_>  = claims.iter().map(|c| c.value.clone()).collect();
         self.revocation_registry.revoke(&self.revocation_key, &c)
+    }
+
+    fn get_public(&self) -> IssuerPublic {
+        let verifying_key = ps::PublicKey::from(&self.signing_key);
+        let revocation_verifying_key = vb20::PublicKey::from(&self.revocation_key);
+        let verifiable_encryption_key = bls::PublicKeyVt::from(&self.verifiable_decryption_key);
+        IssuerPublic {
+            id: self.id.clone(),
+            schema: self.schema.clone(),
+            verifying_key,
+            revocation_verifying_key,
+            verifiable_encryption_key,
+            revocation_registry: self.revocation_registry.value,
+        }
     }
 }
 

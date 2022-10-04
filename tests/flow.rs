@@ -60,7 +60,7 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
     ];
     let cred_schema = CredentialSchema::new(Some(LABEL), Some(DESCRIPTION), &[], &schema_claims)?;
 
-    let (issuer_public, issuer) = Issuer::new(&cred_schema);
+    let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
 
     let credential = issuer.sign_credential(&[
         RevocationClaim::from(CRED_ID).into(),
@@ -175,7 +175,7 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
     ];
     let cred_schema = CredentialSchema::new(Some(LABEL), Some(DESCRIPTION), &[], &schema_claims)?;
 
-    let (issuer_public, issuer) = Issuer::new(&cred_schema);
+    let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
 
     let credential = issuer.sign_credential(&[
         RevocationClaim::from(CRED_ID).into(),
