@@ -1,10 +1,10 @@
 use super::{credential::CredentialSchema, error::Error, revocation_registry::RevocationRegistry};
-use crate::claim::{ClaimData, ClaimType};
+use crate::claim::{Claim, ClaimData, ClaimType, RevocationClaim};
 use crate::credential::{Credential, CredentialBundle};
 use crate::{random_string, CredxResult};
 use group::Curve;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use yeti::knox::bls12_381_plus::{G1Affine, G1Projective, G2Affine, G2Projective, Scalar};
 use yeti::knox::{
     accumulator::vb20::{self, Accumulator, Element, MembershipWitness},
@@ -111,12 +111,13 @@ impl Issuer {
     }
 
     /// Sign the claims into a credential
-    pub fn sign_credential(&self, claims: &[ClaimData]) -> CredxResult<CredentialBundle> {
+    pub fn sign_credential(&mut self, claims: &[ClaimData]) -> CredxResult<CredentialBundle> {
         // Check if claim data matches schema and validators
         if claims.len() != self.schema.claims.len() {
             return Err(Error::InvalidClaimData);
         }
         let mut revocation_element_index = None;
+        let mut revocation_claim = None;
         for (i, (c, t)) in claims.iter().zip(&self.schema.claims).enumerate() {
             if !c.is_type(t.claim_type) {
                 return Err(Error::InvalidClaimData);
@@ -129,11 +130,20 @@ impl Issuer {
                 }
                 None => return Err(Error::InvalidClaimData),
             };
-            if matches!(t.claim_type, ClaimType::Revocation) {
+            if let ClaimData::Revocation(rc) = t {
                 revocation_element_index = Some(i);
+                revocation_claim = Some(rc);
             }
         }
         let revocation_element_index = revocation_element_index.ok_or(Error::InvalidClaimData)?;
+        let revocation_claim = revocation_claim.ok_or(Error::InvalidClaimData)?;
+        let registry_elements: BTreeSet<_> = self.revocation_registry.elements.values().collect();
+
+        // This data has already been revoked
+        if !self.revocation_registry.active.contains(&revocation_claim.value) &&
+            registry_elements.contains(&revocation_claim.value) {
+            return Err(Error::InvalidClaimData);
+        }
 
         let attributes: Vec<Scalar> = claims.iter().map(|c| c.to_scalar()).collect();
         let revocation_id = Element(attributes[revocation_element_index]);
@@ -142,6 +152,8 @@ impl Issuer {
             self.revocation_registry.value,
             &self.revocation_key,
         );
+        self.revocation_registry.active.insert(revocation_claim.value.clone());
+        self.revocation_registry.elements.insert(self.revocation_registry.elements.len(), revocation_claim.value.clone());
         let signature = ps::Signature::new(&self.signing_key, &attributes)
             .map_err(|_| Error::InvalidSigningOperation)?;
         Ok(CredentialBundle {
@@ -153,6 +165,22 @@ impl Issuer {
                 revocation_index: revocation_element_index,
             },
         })
+    }
+
+    /// Update a revocation handle
+    pub fn update_revocation_handle(&self, claim: RevocationClaim) -> CredxResult<MembershipWitness> {
+        if !self.revocation_registry.active.contains(&claim.value) {
+            return Err(Error::InvalidRevocationRegistryRevokeOperation)
+        }
+
+        Ok(MembershipWitness::new(Element(claim.to_scalar()), self.revocation_registry.value, &self.revocation_key))
+    }
+
+    /// Revoke a credential and update this issue's revocation registry
+    /// A list of all revoked claims should be kept externally.
+    pub fn revoke_credentials(&mut self, claims: &[RevocationClaim]) -> CredxResult<()> {
+        let c: Vec<_>  = claims.iter().map(|c| c.value).collect();
+        self.revocation_registry.revoke(&self.revocation_key, &c)
     }
 }
 

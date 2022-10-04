@@ -7,6 +7,8 @@ pub enum Error {
     InvalidBlindingIndices,
     /// Invalid revocation registry elements
     InvalidRevocationRegistryRevokeOperation,
+    /// Attempted to update a handle for a value that's already revoked or not included
+    InvalidRevocationHandleUpdate,
     /// Invalid signing operation
     InvalidSigningOperation,
     /// Invalid claim data
