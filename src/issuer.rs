@@ -136,8 +136,12 @@ impl Issuer {
         let registry_elements: BTreeSet<_> = self.revocation_registry.elements.values().collect();
 
         // This data has already been revoked
-        if !self.revocation_registry.active.contains(&revocation_claim.value) &&
-            registry_elements.contains(&revocation_claim.value) {
+        if !self
+            .revocation_registry
+            .active
+            .contains(&revocation_claim.value)
+            && registry_elements.contains(&revocation_claim.value)
+        {
             return Err(Error::InvalidClaimData);
         }
 
@@ -148,8 +152,13 @@ impl Issuer {
             self.revocation_registry.value,
             &self.revocation_key,
         );
-        self.revocation_registry.active.insert(revocation_claim.value.clone());
-        self.revocation_registry.elements.insert(self.revocation_registry.elements.len(), revocation_claim.value.clone());
+        self.revocation_registry
+            .active
+            .insert(revocation_claim.value.clone());
+        self.revocation_registry.elements.insert(
+            self.revocation_registry.elements.len(),
+            revocation_claim.value.clone(),
+        );
         let signature = ps::Signature::new(&self.signing_key, &attributes)
             .map_err(|_| Error::InvalidSigningOperation)?;
         Ok(CredentialBundle {
@@ -164,18 +173,25 @@ impl Issuer {
     }
 
     /// Update a revocation handle
-    pub fn update_revocation_handle(&self, claim: RevocationClaim) -> CredxResult<MembershipWitness> {
+    pub fn update_revocation_handle(
+        &self,
+        claim: RevocationClaim,
+    ) -> CredxResult<MembershipWitness> {
         if !self.revocation_registry.active.contains(&claim.value) {
-            return Err(Error::InvalidRevocationRegistryRevokeOperation)
+            return Err(Error::InvalidRevocationRegistryRevokeOperation);
         }
 
-        Ok(MembershipWitness::new(Element(claim.to_scalar()), self.revocation_registry.value, &self.revocation_key))
+        Ok(MembershipWitness::new(
+            Element(claim.to_scalar()),
+            self.revocation_registry.value,
+            &self.revocation_key,
+        ))
     }
 
     /// Revoke a credential and update this issue's revocation registry
     /// A list of all revoked claims should be kept externally.
     pub fn revoke_credentials(&mut self, claims: &[RevocationClaim]) -> CredxResult<()> {
-        let c: Vec<_>  = claims.iter().map(|c| c.value.clone()).collect();
+        let c: Vec<_> = claims.iter().map(|c| c.value.clone()).collect();
         self.revocation_registry.revoke(&self.revocation_key, &c)
     }
 

@@ -11,7 +11,8 @@ impl<'a> PresentationBuilder for EqualityBuilder<'a> {
     fn gen_proof(self, _challenge: Scalar) -> PresentationProofs {
         EqualityProof {
             id: self.reference_statement.id(),
-        }.into()
+        }
+        .into()
     }
 }
 

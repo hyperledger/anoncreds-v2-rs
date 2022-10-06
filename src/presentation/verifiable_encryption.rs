@@ -28,7 +28,8 @@ impl<'a> PresentationBuilder for VerifiableEncryptionBuilder<'a> {
             c2: self.c2,
             message_proof,
             blinder_proof,
-        }.into()
+        }
+        .into()
     }
 }
 

@@ -1,5 +1,4 @@
 use super::{Claim, ClaimType};
-use crate::claim::ClaimData;
 use core::fmt::{self, Display, Formatter};
 use serde::{Deserialize, Serialize};
 use yeti::{
@@ -31,12 +30,6 @@ impl Display for HashedClaim {
             }
             write!(f, "] }}")
         }
-    }
-}
-
-impl Into<ClaimData> for HashedClaim {
-    fn into(self) -> ClaimData {
-        ClaimData::Hashed(self)
     }
 }
 

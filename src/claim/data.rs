@@ -17,6 +17,36 @@ pub enum ClaimData {
     Enumeration(EnumerationClaim),
 }
 
+impl From<HashedClaim> for ClaimData {
+    fn from(c: HashedClaim) -> Self {
+        Self::Hashed(c)
+    }
+}
+
+impl From<NumberClaim> for ClaimData {
+    fn from(c: NumberClaim) -> Self {
+        Self::Number(c)
+    }
+}
+
+impl From<ScalarClaim> for ClaimData {
+    fn from(c: ScalarClaim) -> Self {
+        Self::Scalar(c)
+    }
+}
+
+impl From<RevocationClaim> for ClaimData {
+    fn from(c: RevocationClaim) -> Self {
+        Self::Revocation(c)
+    }
+}
+
+impl From<EnumerationClaim> for ClaimData {
+    fn from(c: EnumerationClaim) -> Self {
+        Self::Enumeration(c)
+    }
+}
+
 impl ClaimData {
     /// Get the scalar to be signed
     pub fn to_scalar(&self) -> Scalar {

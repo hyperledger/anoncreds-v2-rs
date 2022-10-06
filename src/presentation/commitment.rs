@@ -26,7 +26,8 @@ impl<'a> PresentationBuilder for CommitmentBuilder<'a> {
             commitment: self.commitment,
             message_proof,
             blinder_proof,
-        }.into()
+        }
+        .into()
     }
 }
 

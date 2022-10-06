@@ -58,7 +58,8 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                 RangeProof {
                     id: self.statement.id.clone(),
                     proof,
-                }.into()
+                }
+                .into()
             }
             (Some(upper), None) => {
                 let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
@@ -82,7 +83,8 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                 RangeProof {
                     id: self.statement.id.clone(),
                     proof,
-                }.into()
+                }
+                .into()
             }
             (None, Some(lower)) => {
                 let bulletproof_gens = bulletproofs::BulletproofGens::new(64, 1);
@@ -104,7 +106,8 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
                 RangeProof {
                     id: self.statement.id.clone(),
                     proof,
-                }.into()
+                }
+                .into()
             }
             (None, None) => {
                 panic!("How did this happen?")

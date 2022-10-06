@@ -62,12 +62,15 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
 
     let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
 
+    let before = std::time::Instant::now();
     let credential = issuer.sign_credential(&[
         RevocationClaim::from(CRED_ID).into(),
         HashedClaim::from("John Doe").into(),
         HashedClaim::from("P Sherman 42 Wallaby Way Sydney").into(),
         NumberClaim::from(30303).into(),
     ])?;
+    let after = std::time::Instant::now();
+    println!("{:?}", after - before);
 
     let sig_st = SignatureStatement {
         disclosed: btreeset! {"name".to_string()},

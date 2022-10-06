@@ -16,7 +16,7 @@ use rand_core::{CryptoRng, RngCore};
 pub type CredxResult<T> = Result<T, error::Error>;
 
 /// Generate a hex random string with `length` bytes.
-pub(crate) fn random_string(length: usize, mut rng: impl RngCore + CryptoRng) -> String {
+pub fn random_string(length: usize, mut rng: impl RngCore + CryptoRng) -> String {
     let mut buffer = vec![0u8; length];
     rng.fill_bytes(&mut buffer);
     hex::encode(&buffer)

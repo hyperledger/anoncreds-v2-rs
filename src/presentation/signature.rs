@@ -28,7 +28,8 @@ impl<'a> PresentationBuilder for SignatureBuilder<'a> {
             id: self.id.clone(),
             disclosed_messages: self.disclosed_messages,
             pok: self.pok_sig.generate_proof(challenge).unwrap(),
-        }.into()
+        }
+        .into()
     }
 }
 

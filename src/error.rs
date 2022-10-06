@@ -21,4 +21,6 @@ pub enum Error {
     InvalidPresentationData,
     /// Invalid bulletproof range
     InvalidBulletproofRange,
+    /// Invalid binary or text data
+    DeserializationError,
 }

@@ -1,5 +1,4 @@
 use super::{Claim, ClaimType};
-use crate::claim::ClaimData;
 use core::fmt::{self, Display, Formatter};
 use serde::{Deserialize, Serialize};
 use yeti::knox::{accumulator::vb20::Element, bls12_381_plus::Scalar};
@@ -14,12 +13,6 @@ pub struct RevocationClaim {
 impl Display for RevocationClaim {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "RevocationClaim {{ {} }}", self.value)
-    }
-}
-
-impl Into<ClaimData> for RevocationClaim {
-    fn into(self) -> ClaimData {
-        ClaimData::Revocation(self)
     }
 }
 
