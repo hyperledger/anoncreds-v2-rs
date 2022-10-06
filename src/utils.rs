@@ -1,4 +1,5 @@
-use bls12_381_plus::Scalar;
+use crate::error::Error;
+use crate::CredxResult;
 use group::{Group, GroupEncoding};
 use serde::{
     de::{DeserializeOwned, Error as DError, Unexpected, Visitor},
@@ -6,7 +7,7 @@ use serde::{
 };
 use std::fmt::{self, Formatter};
 use std::marker::PhantomData;
-use yeti::knox::bls12_381_plus;
+use yeti::knox::bls12_381_plus::{G1Affine, G1Projective, Scalar};
 
 pub const TOP_BIT: u64 = i64::MIN as u64;
 
@@ -66,4 +67,27 @@ pub fn deserialize_point<
     d.deserialize_bytes(PointVisitor::<P> {
         _marker: PhantomData,
     })
+}
+
+pub fn scalar_from_hex_str(sc: &str, e: Error) -> CredxResult<Scalar> {
+    let bytes = hex::decode(sc).map_err(|_| e)?;
+    let buf = <[u8; 32]>::try_from(bytes.as_slice()).map_err(|_| e)?;
+    let sr = Scalar::from_bytes(&buf);
+    if sr.is_some().unwrap_u8() == 1 {
+        Ok(sr.unwrap())
+    } else {
+        Err(Error::DeserializationError)
+    }
+}
+
+pub fn g1_from_hex_str(g1: &str, e: Error) -> CredxResult<G1Projective> {
+    let bytes = hex::decode(g1).map_err(|_| e)?;
+
+    let buf = <[u8; 48]>::try_from(bytes.as_slice()).map_err(|_| Error::InvalidClaimData)?;
+    let pt = G1Affine::from_compressed(&buf).map(G1Projective::from);
+    if pt.is_some().unwrap_u8() == 1 {
+        Ok(pt.unwrap())
+    } else {
+        Err(Error::DeserializationError)
+    }
 }

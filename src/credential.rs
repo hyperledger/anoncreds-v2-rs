@@ -9,8 +9,8 @@ pub use schema::*;
 use super::claim::*;
 use super::error::Error;
 use super::CredxResult;
+use crate::utils::{g1_from_hex_str, scalar_from_hex_str};
 use serde::{Deserialize, Serialize};
-use yeti::knox::bls12_381_plus::{G1Affine, G1Projective, Scalar};
 use yeti::knox::{accumulator::vb20::MembershipWitness, ps::Signature};
 
 /// Hashed utf8 string
@@ -109,32 +109,6 @@ impl TryFrom<&CredentialText> for Credential {
     type Error = Error;
 
     fn try_from(credential: &CredentialText) -> CredxResult<Self> {
-        let dehex = |s: &str| -> CredxResult<Vec<u8>> {
-            hex::decode(s).map_err(|_| Error::InvalidClaimData)
-        };
-        let g1 = |s: &str| -> CredxResult<G1Projective> {
-            let bytes = dehex(s)?;
-            let buf =
-                <[u8; 48]>::try_from(bytes.as_slice()).map_err(|_| Error::InvalidClaimData)?;
-            let pt = G1Affine::from_compressed(&buf).map(G1Projective::from);
-            if pt.is_some().unwrap_u8() == 1 {
-                Ok(pt.unwrap())
-            } else {
-                Err(Error::InvalidClaimData)
-            }
-        };
-        let sc = |s: &str| -> CredxResult<Scalar> {
-            let bytes = dehex(s)?;
-            let buf =
-                <[u8; 32]>::try_from(bytes.as_slice()).map_err(|_| Error::InvalidClaimData)?;
-            let sr = Scalar::from_bytes(&buf);
-            if sr.is_some().unwrap_u8() == 1 {
-                Ok(sr.unwrap())
-            } else {
-                Err(Error::InvalidClaimData)
-            }
-        };
-
         let mut claims = Vec::new();
         for s in &credential.claims {
             match &s[0..4] {
@@ -159,7 +133,7 @@ impl TryFrom<&CredentialText> for Credential {
                     claims.push(ClaimData::Number(NumberClaim { value }));
                 }
                 SCALAR => {
-                    let value = sc(&s[4..])?;
+                    let value = scalar_from_hex_str(&s[4..], Error::InvalidClaimData)?;
                     claims.push(ClaimData::Scalar(ScalarClaim { value }));
                 }
                 REVOCATION => {
@@ -167,7 +141,7 @@ impl TryFrom<&CredentialText> for Credential {
                     claims.push(ClaimData::Revocation(RevocationClaim { value }));
                 }
                 ENUMERATION => {
-                    let value = dehex(&s[4..])?;
+                    let value = hex::decode(&s[4..]).map_err(|_| Error::InvalidClaimData)?;
                     let e = serde_bare::from_slice::<EnumerationClaim>(value.as_slice())
                         .map_err(|_| Error::InvalidClaimData)?;
                     claims.push(ClaimData::Enumeration(e));
@@ -178,7 +152,7 @@ impl TryFrom<&CredentialText> for Credential {
             }
         }
 
-        let sig_bytes = dehex(&credential.signature)?;
+        let sig_bytes = hex::decode(&credential.signature).map_err(|_| Error::InvalidClaimData)?;
         let sig_buf =
             <[u8; 128]>::try_from(sig_bytes.as_slice()).map_err(|_| Error::InvalidClaimData)?;
         let sig = Signature::from_bytes(&sig_buf);
@@ -188,7 +162,10 @@ impl TryFrom<&CredentialText> for Credential {
         Ok(Self {
             claims,
             signature: sig.unwrap(),
-            revocation_handle: MembershipWitness(g1(&credential.revocation_handle)?),
+            revocation_handle: MembershipWitness(g1_from_hex_str(
+                &credential.revocation_handle,
+                Error::InvalidClaimData,
+            )?),
             revocation_index: credential.revocation_index,
         })
     }

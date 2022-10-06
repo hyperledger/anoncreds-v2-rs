@@ -1,5 +1,7 @@
+use crate::error::Error;
 use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::CommitmentStatement;
+use crate::utils::{g1_from_hex_str, scalar_from_hex_str};
 use crate::CredxResult;
 use group::ff::Field;
 use group::Curve;
@@ -75,4 +77,58 @@ pub struct CommitmentProof {
     pub message_proof: Scalar,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
+}
+
+impl From<CommitmentProof> for CommitmentProofText {
+    fn from(p: CommitmentProof) -> Self {
+        Self::from(&p)
+    }
+}
+
+impl From<&CommitmentProof> for CommitmentProofText {
+    fn from(p: &CommitmentProof) -> Self {
+        Self {
+            id: p.id.clone(),
+            commitment: hex::encode(p.commitment.to_affine().to_compressed()),
+            message_proof: hex::encode(p.message_proof.to_bytes()),
+            blinder_proof: hex::encode(p.blinder_proof.to_bytes()),
+        }
+    }
+}
+
+/// A commitment proof in text friendly format
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CommitmentProofText {
+    /// The statement identifier
+    pub id: String,
+    /// The commitment
+    pub commitment: String,
+    /// The schnorr message proof
+    pub message_proof: String,
+    /// The schnorr blinder proof
+    pub blinder_proof: String,
+}
+
+impl TryFrom<&CommitmentProofText> for CommitmentProof {
+    type Error = Error;
+
+    fn try_from(value: &CommitmentProofText) -> Result<Self, Self::Error> {
+        let commitment = g1_from_hex_str(&value.commitment, Error::DeserializationError)?;
+        let message_proof = scalar_from_hex_str(&value.message_proof, Error::DeserializationError)?;
+        let blinder_proof = scalar_from_hex_str(&value.blinder_proof, Error::DeserializationError)?;
+        Ok(Self {
+            id: value.id.clone(),
+            commitment,
+            message_proof,
+            blinder_proof,
+        })
+    }
+}
+
+impl TryFrom<CommitmentProofText> for CommitmentProof {
+    type Error = Error;
+
+    fn try_from(value: CommitmentProofText) -> Result<Self, Self::Error> {
+        Self::try_from(&value)
+    }
 }

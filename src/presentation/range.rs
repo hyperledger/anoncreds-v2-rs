@@ -210,3 +210,49 @@ pub struct RangeProof {
     /// The range proof
     pub proof: RangeProofBulletproof,
 }
+
+impl From<&RangeProof> for RangeProofText {
+    fn from(p: &RangeProof) -> Self {
+        Self {
+            id: p.id.clone(),
+            proof: hex::encode(p.proof.to_bytes()),
+        }
+    }
+}
+
+impl From<RangeProof> for RangeProofText {
+    fn from(p: RangeProof) -> Self {
+        Self::from(&p)
+    }
+}
+
+/// A Range proof in a text friendly format
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct RangeProofText {
+    /// The statement identifier
+    pub id: String,
+    /// The range proof
+    pub proof: String,
+}
+
+impl TryFrom<&RangeProofText> for RangeProof {
+    type Error = Error;
+
+    fn try_from(value: &RangeProofText) -> Result<Self, Self::Error> {
+        let proof_bytes = hex::decode(&value.proof).map_err(|_| Error::DeserializationError)?;
+        let proof = RangeProofBulletproof::from_bytes(&proof_bytes)
+            .map_err(|_| Error::DeserializationError)?;
+        Ok(Self {
+            id: value.id.clone(),
+            proof,
+        })
+    }
+}
+
+impl TryFrom<RangeProofText> for RangeProof {
+    type Error = Error;
+
+    fn try_from(value: RangeProofText) -> Result<Self, Self::Error> {
+        Self::try_from(&value)
+    }
+}
