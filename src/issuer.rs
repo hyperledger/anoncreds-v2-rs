@@ -1,7 +1,7 @@
 use super::{credential::CredentialSchema, error::Error, revocation_registry::RevocationRegistry};
 use crate::claim::{Claim, ClaimData, RevocationClaim};
 use crate::credential::{Credential, CredentialBundle};
-use crate::{random_string, CredxResult, utils::*};
+use crate::{random_string, utils::*, CredxResult};
 use group::Curve;
 use indexmap::{indexmap, IndexMap};
 use serde::{Deserialize, Serialize};
@@ -150,7 +150,10 @@ impl Issuer {
             .revocation_registry
             .active
             .contains(&revocation_claim.value)
-            && self.revocation_registry.elements.contains(&revocation_claim.value)
+            && self
+                .revocation_registry
+                .elements
+                .contains(&revocation_claim.value)
         {
             return Err(Error::InvalidClaimData("This claim is already revoked"));
         }
@@ -165,7 +168,9 @@ impl Issuer {
         self.revocation_registry
             .active
             .insert(revocation_claim.value.clone());
-        self.revocation_registry.elements.insert(revocation_claim.value.clone());
+        self.revocation_registry
+            .elements
+            .insert(revocation_claim.value.clone());
         let signature = ps::Signature::new(&self.signing_key, &attributes)
             .map_err(|_| Error::InvalidSigningOperation)?;
         Ok(CredentialBundle {

@@ -1,7 +1,5 @@
 use crate::error::Error;
-use crate::{
-    CredxResult, utils::*,
-};
+use crate::{utils::*, CredxResult};
 use indexmap::IndexSet;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
@@ -56,8 +54,7 @@ impl RevocationRegistry {
     /// Add the elements to the registry
     pub fn add(&mut self, elements: &[String]) {
         for e in elements {
-            if self.elements.insert(e.clone())
-            {
+            if self.elements.insert(e.clone()) {
                 self.active.insert(e.clone());
             }
         }

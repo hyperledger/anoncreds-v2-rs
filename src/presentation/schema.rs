@@ -1,7 +1,7 @@
 use crate::random_string;
-use crate::statement::Statements;
+use crate::{statement::Statements, utils::*};
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use uint_zigzag::Uint;
 
 /// A description of the proofs to be created by the verifier
@@ -10,7 +10,11 @@ pub struct PresentationSchema {
     /// The unique presentation context id
     pub id: String,
     /// The statements associated with this presentation
-    pub statements: BTreeMap<String, Statements>,
+    #[serde(
+        serialize_with = "serialize_indexmap",
+        deserialize_with = "deserialize_indexmap"
+    )]
+    pub statements: IndexMap<String, Statements>,
 }
 
 impl PresentationSchema {

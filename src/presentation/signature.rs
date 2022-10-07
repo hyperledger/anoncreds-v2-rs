@@ -1,9 +1,9 @@
 use super::*;
 use crate::statement::SignatureStatement;
-use crate::{error::Error, CredxResult};
+use crate::{error::Error, utils::*, CredxResult};
+use indexmap::IndexMap;
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use yeti::knox::{
     bls12_381_plus::Scalar,
     ps::{PokSignature, PokSignatureProof, Signature as PsSignature},
@@ -15,7 +15,7 @@ pub(crate) struct SignatureBuilder<'a> {
     /// The statement identifier
     id: &'a String,
     /// The messages that belong to this signature
-    disclosed_messages: BTreeMap<usize, Scalar>,
+    disclosed_messages: IndexMap<usize, Scalar>,
     /// The signature proof of knowledge builder
     pok_sig: PokSignature,
 }
@@ -50,7 +50,7 @@ impl<'a> SignatureBuilder<'a> {
                     .enumerate()
                     .filter(|(_i, m)| matches!(m, ProofMessage::Revealed(_)))
                     .map(|(i, m)| (i, m.get_message()))
-                    .collect::<BTreeMap<usize, Scalar>>();
+                    .collect::<IndexMap<usize, Scalar>>();
 
                 poksig.add_proof_contribution(transcript);
 
@@ -70,7 +70,11 @@ pub struct SignatureProof {
     /// The statement identifier
     pub id: String,
     /// The disclosed message scalars
-    pub disclosed_messages: BTreeMap<usize, Scalar>,
+    #[serde(
+        serialize_with = "serialize_indexmap",
+        deserialize_with = "deserialize_indexmap"
+    )]
+    pub disclosed_messages: IndexMap<usize, Scalar>,
     /// The proof
     pub pok: PokSignatureProof,
 }
