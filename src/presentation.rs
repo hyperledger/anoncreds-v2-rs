@@ -111,15 +111,18 @@ pub struct Presentation {
 impl Presentation {
     fn split_statements(
         schema: &PresentationSchema,
-    ) -> (BTreeMap<String, &Statements>, BTreeMap<String, &Statements>) {
-        let mut signature_statements: BTreeMap<String, &Statements> = BTreeMap::new();
-        let mut predicate_statements: BTreeMap<String, &Statements> = BTreeMap::new();
+    ) -> (
+        BTreeMap<&String, &Statements>,
+        BTreeMap<&String, &Statements>,
+    ) {
+        let mut signature_statements: BTreeMap<&String, &Statements> = BTreeMap::new();
+        let mut predicate_statements: BTreeMap<&String, &Statements> = BTreeMap::new();
 
         for (id, statement) in &schema.statements {
             if let Statements::Signature(_) = statement {
-                signature_statements.insert(id.clone(), statement);
+                signature_statements.insert(id, statement);
             } else {
-                predicate_statements.insert(id.clone(), statement);
+                predicate_statements.insert(id, statement);
             }
         }
         (signature_statements, predicate_statements)
@@ -170,25 +173,26 @@ impl Presentation {
     }
 
     /// Map the claims to the respective types
-    fn get_message_types(
+    fn get_message_types<'a>(
         credentials: &BTreeMap<String, Credential>,
-        signature_statements: &BTreeMap<String, &Statements>,
-        predicate_statements: &BTreeMap<String, &Statements>,
+        signature_statements: &'a BTreeMap<&String, &Statements>,
+        predicate_statements: &'a BTreeMap<&String, &Statements>,
         mut rng: impl RngCore + CryptoRng,
-    ) -> CredxResult<BTreeMap<String, Vec<ProofMessage<Scalar>>>> {
-        let mut shared_proof_msg_indices: BTreeMap<String, BTreeMap<usize, bool>> = BTreeMap::new();
+    ) -> CredxResult<BTreeMap<&'a String, Vec<ProofMessage<Scalar>>>> {
+        let mut shared_proof_msg_indices: BTreeMap<&String, BTreeMap<usize, bool>> =
+            BTreeMap::new();
 
         for (id, cred) in credentials {
             let mut indexer = BTreeMap::new();
             for i in 0..cred.claims.len() {
                 indexer.insert(i, false);
             }
-            shared_proof_msg_indices.insert(id.clone(), indexer);
+            shared_proof_msg_indices.insert(id, indexer);
         }
 
         let mut same_proof_messages = Vec::new();
 
-        let mut proof_messages: BTreeMap<String, Vec<ProofMessage<Scalar>>> = BTreeMap::new();
+        let mut proof_messages: BTreeMap<&String, Vec<ProofMessage<Scalar>>> = BTreeMap::new();
 
         // If a claim is used in a statement, it is a shared message between the signature
         // and the statement. Equality statements are shared across signatures
@@ -220,7 +224,7 @@ impl Presentation {
         }
 
         for (id, sig) in signature_statements {
-            let signature = &credentials[id];
+            let signature = &credentials[*id];
             let mut proof_claims = Vec::with_capacity(signature.claims.len());
 
             for (index, claim) in signature.claims.iter().enumerate() {
@@ -245,7 +249,7 @@ impl Presentation {
                     }
                 }
             }
-            proof_messages.insert(id.clone(), proof_claims);
+            proof_messages.insert(*id, proof_claims);
         }
 
         for statement in &same_proof_messages {

@@ -21,7 +21,7 @@ impl Presentation {
 
         if signature_statements
             .iter()
-            .any(|(k, _)| !credentials.contains_key(k))
+            .any(|(k, _)| !credentials.contains_key(*k))
         {
             return Err(Error::InvalidPresentationData);
         }
@@ -39,22 +39,22 @@ impl Presentation {
         for (id, sig_statement) in &signature_statements {
             if let Statements::Signature(ss) = sig_statement {
                 let mut dm = BTreeMap::new();
-                for (index, claim) in credentials[id].claims.iter().enumerate() {
+                for (index, claim) in credentials[*id].claims.iter().enumerate() {
                     if matches!(messages[id][index], ProofMessage::Revealed(_)) {
                         let label = ss.issuer.schema.claim_indices.get_index(index).unwrap();
-                        dm.insert(label.clone(), claim.clone());
+                        dm.insert((*label).clone(), claim.clone());
                     }
                 }
-                Self::add_disclosed_messages_challenge_contribution(id, &dm, &mut transcript);
+                Self::add_disclosed_messages_challenge_contribution(*id, &dm, &mut transcript);
                 let builder = SignatureBuilder::commit(
                     ss,
-                    credentials[id].signature,
-                    &messages[id],
+                    credentials[*id].signature,
+                    &messages[*id],
                     &mut rng,
                     &mut transcript,
                 )?;
                 builders.push(builder.into());
-                disclosed_messages.insert(id.clone(), dm);
+                disclosed_messages.insert((*id).clone(), dm);
             }
         }
 
@@ -64,7 +64,7 @@ impl Presentation {
             match pred_statement {
                 Statements::Equality(e) => {
                     let builder = EqualityBuilder::commit(e, credentials)?;
-                    id_to_builder.insert(id, builders.len());
+                    id_to_builder.insert(*id, builders.len());
                     builders.push(builder.into());
                 }
                 Statements::AccumulatorSetMembership(a) => {
@@ -82,7 +82,7 @@ impl Presentation {
                         nonce,
                         &mut transcript,
                     )?;
-                    id_to_builder.insert(id, builders.len());
+                    id_to_builder.insert(*id, builders.len());
                     builders.push(builder.into());
                 }
                 Statements::Commitment(c) => {
@@ -96,7 +96,7 @@ impl Presentation {
                     let blinder = proof_message.get_blinder(&mut rng).unwrap();
                     let builder =
                         CommitmentBuilder::commit(c, message, blinder, &mut rng, &mut transcript)?;
-                    id_to_builder.insert(id, builders.len());
+                    id_to_builder.insert(*id, builders.len());
                     builders.push(builder.into());
                 }
                 Statements::VerifiableEncryption(v) => {
@@ -115,12 +115,12 @@ impl Presentation {
                         &mut rng,
                         &mut transcript,
                     )?;
-                    id_to_builder.insert(id, builders.len());
+                    id_to_builder.insert(*id, builders.len());
                     builders.push(builder.into());
                 }
                 Statements::Range(_) => {
                     // handle after these since they depend on commitment builders
-                    range_id.insert(id);
+                    range_id.insert(*id);
                 }
                 Statements::Signature(_) => {}
             }
@@ -134,9 +134,8 @@ impl Presentation {
                 let sig = credentials
                     .get(&r.signature_id)
                     .ok_or(Error::InvalidPresentationData)?;
-                if let PresentationBuilders::Commitment(commitment) =
-                    &builders[id_to_builder[&r.reference_id]]
-                {
+                let builder_index = id_to_builder[&r.reference_id];
+                if let PresentationBuilders::Commitment(commitment) = &builders[builder_index] {
                     if let ClaimData::Number(n) = sig
                         .claims
                         .get(r.claim)

@@ -12,7 +12,7 @@ impl Presentation {
 
         let mut verifiers = Vec::<ProofVerifiers>::with_capacity(schema.statements.len());
         for (id, sig_statement) in &signature_statements {
-            match (sig_statement, self.proofs.get(id)) {
+            match (sig_statement, self.proofs.get(*id)) {
                 (Statements::Signature(ss), Some(PresentationProofs::Signature(proof))) => {
                     Self::add_disclosed_messages_challenge_contribution(
                         &ss.id,
@@ -30,7 +30,7 @@ impl Presentation {
 
         let mut ranges = Vec::new();
         for (id, pred_statement) in &predicate_statements {
-            match (pred_statement, self.proofs.get(id)) {
+            match (pred_statement, self.proofs.get(*id)) {
                 (
                     Statements::AccumulatorSetMembership(aa),
                     Some(PresentationProofs::AccumulatorSetMembership(proof)),
