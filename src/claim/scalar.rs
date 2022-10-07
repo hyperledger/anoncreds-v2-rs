@@ -1,13 +1,28 @@
 use super::{Claim, ClaimType};
-use core::fmt::{self, Display, Formatter};
+use core::{
+    fmt::{self, Display, Formatter},
+    hash::{Hash, Hasher},
+};
 use serde::{Deserialize, Serialize};
 use yeti::knox::bls12_381_plus::Scalar;
 
 /// A claim that is already a scalar
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Copy, Clone, Debug, Eq, Deserialize, Serialize)]
 pub struct ScalarClaim {
     /// The scalar value
     pub value: Scalar,
+}
+
+impl PartialEq for ScalarClaim {
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value
+    }
+}
+
+impl Hash for ScalarClaim {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.value.to_bytes().hash(state)
+    }
 }
 
 impl Display for ScalarClaim {

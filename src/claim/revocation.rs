@@ -1,13 +1,28 @@
 use super::{Claim, ClaimType};
-use core::fmt::{self, Display, Formatter};
+use core::{
+    fmt::{self, Display, Formatter},
+    hash::{Hash, Hasher},
+};
 use serde::{Deserialize, Serialize};
 use yeti::knox::{accumulator::vb20::Element, bls12_381_plus::Scalar};
 
 /// A claim used for revocation
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, Deserialize, Serialize)]
 pub struct RevocationClaim {
     /// The revocation id
     pub value: String,
+}
+
+impl PartialEq for RevocationClaim {
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value
+    }
+}
+
+impl Hash for RevocationClaim {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.value.hash(state);
+    }
 }
 
 impl Display for RevocationClaim {

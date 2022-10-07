@@ -1,5 +1,8 @@
 use super::{Claim, ClaimType};
-use core::fmt::{self, Display, Formatter};
+use core::{
+    fmt::{self, Display, Formatter},
+    hash::{Hash, Hasher},
+};
 use serde::{Deserialize, Serialize};
 use yeti::{
     knox::{bls12_381_plus::Scalar, Knox},
@@ -7,12 +10,25 @@ use yeti::{
 };
 
 /// Claims that are hashed to a scalar
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, Deserialize, Serialize)]
 pub struct HashedClaim {
     /// The value to be hashed
     pub value: Vec<u8>,
     /// Whether the claim can be printed
     pub print_friendly: bool,
+}
+
+impl PartialEq for HashedClaim {
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value && self.print_friendly == other.print_friendly
+    }
+}
+
+impl Hash for HashedClaim {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.value.hash(state);
+        self.print_friendly.hash(state);
+    }
 }
 
 impl Display for HashedClaim {

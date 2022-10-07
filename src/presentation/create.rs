@@ -41,13 +41,7 @@ impl Presentation {
                 let mut dm = BTreeMap::new();
                 for (index, claim) in credentials[id].claims.iter().enumerate() {
                     if matches!(messages[id][index], ProofMessage::Revealed(_)) {
-                        let (label, _) = ss
-                            .issuer
-                            .schema
-                            .claim_indices
-                            .iter()
-                            .find(|(_, v)| **v == index)
-                            .unwrap();
+                        let label = ss.issuer.schema.claim_indices.get_index(index).unwrap();
                         dm.insert(label.clone(), claim.clone());
                     }
                 }
@@ -76,7 +70,9 @@ impl Presentation {
                 Statements::AccumulatorSetMembership(a) => {
                     let proof_message = messages[&a.reference_id][a.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
-                        return Err(Error::InvalidClaimData);
+                        return Err(Error::InvalidClaimData(
+                            "revealed claim cannot be used for set membership proofs",
+                        ));
                     }
                     let credential = &credentials[&a.reference_id];
                     let builder = AccumulatorSetMembershipProofBuilder::commit(
@@ -92,7 +88,9 @@ impl Presentation {
                 Statements::Commitment(c) => {
                     let proof_message = messages[&c.reference_id][c.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
-                        return Err(Error::InvalidClaimData);
+                        return Err(Error::InvalidClaimData(
+                            "revealed claim cannot be used for commitment",
+                        ));
                     }
                     let message = proof_message.get_message();
                     let blinder = proof_message.get_blinder(&mut rng).unwrap();
@@ -104,7 +102,9 @@ impl Presentation {
                 Statements::VerifiableEncryption(v) => {
                     let proof_message = messages[&v.reference_id][v.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
-                        return Err(Error::InvalidClaimData);
+                        return Err(Error::InvalidClaimData(
+                            "revealed claim cannot be used for verifiable encryption",
+                        ));
                     }
                     let message = proof_message.get_message();
                     let blinder = proof_message.get_blinder(&mut rng).unwrap();

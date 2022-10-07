@@ -110,29 +110,36 @@ impl Issuer {
     pub fn sign_credential(&mut self, claims: &[ClaimData]) -> CredxResult<CredentialBundle> {
         // Check if claim data matches schema and validators
         if claims.len() != self.schema.claims.len() {
-            return Err(Error::InvalidClaimData);
+            return Err(Error::InvalidClaimData("claims.len != schema.claims.len"));
         }
         let mut revocation_element_index = None;
         let mut revocation_claim = None;
         for (i, (c, t)) in claims.iter().zip(&self.schema.claims).enumerate() {
             if !c.is_type(t.claim_type) {
-                return Err(Error::InvalidClaimData);
+                return Err(Error::InvalidClaimData("claim is not the correct type"));
             }
             match t.is_valid(c) {
                 Some(b) => {
                     if !b {
-                        return Err(Error::InvalidClaimData);
+                        return Err(Error::InvalidClaimData("claim is not valid"));
                     }
                 }
-                None => return Err(Error::InvalidClaimData),
+                None => {
+                    return Err(Error::InvalidClaimData(
+                        "claim is not correct type to validate",
+                    ))
+                }
             };
             if let ClaimData::Revocation(rc) = c {
                 revocation_element_index = Some(i);
                 revocation_claim = Some(rc);
             }
         }
-        let revocation_element_index = revocation_element_index.ok_or(Error::InvalidClaimData)?;
-        let revocation_claim = revocation_claim.ok_or(Error::InvalidClaimData)?;
+        let revocation_element_index = revocation_element_index.ok_or(Error::InvalidClaimData(
+            "revocation element index not found",
+        ))?;
+        let revocation_claim =
+            revocation_claim.ok_or(Error::InvalidClaimData("revocation claim not found"))?;
         let registry_elements: BTreeSet<_> = self.revocation_registry.elements.values().collect();
 
         // This data has already been revoked
@@ -142,7 +149,7 @@ impl Issuer {
             .contains(&revocation_claim.value)
             && registry_elements.contains(&revocation_claim.value)
         {
-            return Err(Error::InvalidClaimData);
+            return Err(Error::InvalidClaimData("This claim is already revoked"));
         }
 
         let attributes: Vec<Scalar> = claims.iter().map(|c| c.to_scalar()).collect();

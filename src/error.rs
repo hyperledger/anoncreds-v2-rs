@@ -12,7 +12,7 @@ pub enum Error {
     /// Invalid signing operation
     InvalidSigningOperation,
     /// Invalid claim data
-    InvalidClaimData,
+    InvalidClaimData(&'static str),
     /// Invalid public key
     InvalidPublicKey,
     /// Invalid data for creating a signature proof
@@ -23,4 +23,6 @@ pub enum Error {
     InvalidBulletproofRange,
     /// Invalid binary or text data
     DeserializationError,
+    /// A generic error message
+    General(&'static str),
 }

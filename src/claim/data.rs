@@ -3,7 +3,7 @@ use crate::{error::Error, CredxResult};
 use serde::{Deserialize, Serialize};
 
 /// The type of claim data that can be signed
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize, Hash)]
 pub enum ClaimData {
     /// Data is hashed before signing
     Hashed(HashedClaim),
@@ -92,25 +92,35 @@ impl ClaimData {
                         let i = u64::from_le_bytes(<[u8; 8]>::try_from(data).unwrap());
                         NumberClaim::from(i)
                     }
-                    _ => return Err(Error::InvalidClaimData),
+                    _ => {
+                        return Err(Error::InvalidClaimData(
+                            "number claim size must be 1, 2, 4, 8, found unknown",
+                        ))
+                    }
                 };
                 Ok(Self::Number(n))
             }
             ClaimType::Scalar => {
                 let s = Scalar::from_bytes(&<[u8; 32]>::try_from(data).unwrap());
                 if s.is_none().unwrap_u8() == 1 {
-                    return Err(Error::InvalidClaimData);
+                    return Err(Error::InvalidClaimData(
+                        "scalar claim could not be deserialized",
+                    ));
                 }
                 Ok(Self::Scalar(ScalarClaim { value: s.unwrap() }))
             }
             ClaimType::Revocation => {
                 if data.len() != 16 {
-                    return Err(Error::InvalidClaimData);
+                    return Err(Error::InvalidClaimData(
+                        "revocation claim could not be deserialized",
+                    ));
                 }
-                let s = String::from_utf8(data.to_vec()).map_err(|_| Error::InvalidClaimData)?;
+                let s = String::from_utf8(data.to_vec()).map_err(|_| {
+                    Error::InvalidClaimData("cannot convert revocation claim to UTF8")
+                })?;
                 Ok(Self::Revocation(RevocationClaim { value: s }))
             }
-            _ => Err(Error::InvalidClaimData),
+            _ => Err(Error::InvalidClaimData("unknown claim type")),
         }
     }
 

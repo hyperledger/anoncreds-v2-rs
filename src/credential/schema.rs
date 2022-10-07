@@ -1,8 +1,8 @@
 use crate::claim::*;
 use crate::error::Error;
-use crate::{random_string, CredxResult};
+use crate::{random_string, utils::*, CredxResult};
+use indexmap::IndexSet;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
 use uint_zigzag::Uint;
 
 /// A credential schema
@@ -17,9 +17,17 @@ pub struct CredentialSchema {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub description: Option<String>,
     /// The list of claims allowed to be blindly signed
-    pub blind_claims: BTreeSet<String>,
+    #[serde(
+        serialize_with = "serialize_indexset",
+        deserialize_with = "deserialize_indexset"
+    )]
+    pub blind_claims: IndexSet<String>,
     /// The claim labels to indices
-    pub claim_indices: BTreeMap<String, usize>,
+    #[serde(
+        serialize_with = "serialize_indexset",
+        deserialize_with = "deserialize_indexset"
+    )]
+    pub claim_indices: IndexSet<String>,
     /// The claims that can be signed
     pub claims: Vec<ClaimSchema>,
 }
@@ -34,22 +42,23 @@ impl CredentialSchema {
     ) -> CredxResult<Self> {
         let claims = claims.to_vec();
         if claims.is_empty() {
-            return Err(Error::InvalidClaimData);
+            return Err(Error::InvalidClaimData(
+                "cannot create a schema with an empty claims list",
+            ));
         }
 
         let id = random_string(16, rand::thread_rng());
-        let mut claim_indices = BTreeMap::new();
-        for (index, claim) in claims.iter().enumerate() {
-            if claim_indices
-                .insert(claim.label.to_string(), index)
-                .is_some()
-            {
-                return Err(Error::InvalidClaimData);
+        let mut claim_indices = IndexSet::new();
+        for claim in &claims {
+            if !claim_indices.insert(claim.label.to_string()) {
+                return Err(Error::InvalidClaimData("duplicate claim detected"));
             }
         }
         for blind_claim in blind_claims {
-            if !claim_indices.contains_key(&blind_claim.to_string()) {
-                return Err(Error::InvalidClaimData);
+            if !claim_indices.contains(&blind_claim.to_string()) {
+                return Err(Error::InvalidClaimData(
+                    "blind claim not found in claims list",
+                ));
             }
         }
         let blind_claims = blind_claims.iter().map(|b| b.to_string()).collect();
@@ -94,13 +103,13 @@ impl CredentialSchema {
             b"claim indices length",
             &Uint::from(self.claim_indices.len()).to_vec(),
         );
-        for (label, index) in &self.claim_indices {
+        for (index, label) in self.claim_indices.iter().enumerate() {
             transcript.append_message(
                 b"claim indices label length",
                 &Uint::from(label.len()).to_vec(),
             );
             transcript.append_message(b"claim indices label", label.as_bytes());
-            transcript.append_message(b"claim indices index", &Uint::from(*index).to_vec());
+            transcript.append_message(b"claim indices index", &Uint::from(index).to_vec());
         }
         transcript.append_message(b"claims length", &Uint::from(self.claims.len()).to_vec());
     }
@@ -156,9 +165,9 @@ impl ClaimSchema {
 
 #[test]
 fn test_serialize() {
-    let string = r#"{"id":"63e8b522-3ef6-4c45-92f1-47cad2449523","label":"Finclusive KYC Schema","description":"","blind_claims":[],"claim_indices":{"address1":3,"address2":4,"city":5,"credential_id":0,"date_of_birth":9,"document_content":19,"document_file_name":18,"document_id":14,"document_identification_number":16,"document_iso_country_code":20,"document_type":17,"document_url":15,"email_address":12,"first_name":1,"iso_country_code":8,"last_name":2,"phone_number":10,"phone_number_type":11,"postal_cost":7,"state":6,"tax_id_number":13},"claims":[{"claim_type":4,"label":"credential_id","print_friendly":false},{"claim_type":1,"label":"first_name","print_friendly":true,"validators":[{"Length":{"max":64}}]},{"claim_type":1,"label":"last_name","print_friendly":true,"validators":[{"Length":{"max":64}}]},{"claim_type":1,"label":"address1","print_friendly":true},{"claim_type":1,"label":"address2","print_friendly":true},{"claim_type":1,"label":"city","print_friendly":true},{"claim_type":1,"label":"state","print_friendly":true},{"claim_type":1,"label":"postal_code","print_friendly":true},{"claim_type":1,"label":"iso_country_code","print_friendly":true},{"claim_type":2,"label":"date_of_birth","print_friendly":true,"validators":[{"Range":{"min":0,"max":65000}}]},{"claim_type":1,"label":"phone_number","print_friendly":true,"validators":[{"Regex":"\\d{10,15}"}]},{"claim_type":2,"label":"phone_number_type","print_friendly":true},{"claim_type":1,"label":"email_address","print_friendly":true},{"claim_type":1,"label":"tax_id_number","print_friendly":true},{"claim_type":1,"label":"document_id","print_friendly":true},{"claim_type":1,"label":"document_url","print_friendly":true},{"claim_type":1,"label":"document_identification_number","print_friendly":true},{"claim_type":1,"label":"document_type","print_friendly":true},{"claim_type":1,"label":"document_file_name","print_friendly":true},{"claim_type":1,"label":"document_content","print_friendly":false},{"claim_type":2,"label":"document_iso_country_code","print_friendly":true}]}"#;
+    let string = r#"{"id":"63e8b522-3ef6-4c45-92f1-47cad2449523","label":"FinclusiveKYCSchema","description":"","blind_claims":[],"claim_indices":["credential_id","first_name","last_name","address1","address2","city","state","postal_cost","iso_country_code","date_of_birth","phone_number","phone_number_type","email_address","tax_id_number","document_id","document_url","document_identification_number","document_type","document_file_name","document_content","document_iso_country_code"],"claims":[{"claim_type":4,"label":"credential_id","print_friendly":false},{"claim_type":1,"label":"first_name","print_friendly":true,"validators":[{"Length":{"max":64}}]},{"claim_type":1,"label":"last_name","print_friendly":true,"validators":[{"Length":{"max":64}}]},{"claim_type":1,"label":"address1","print_friendly":true},{"claim_type":1,"label":"address2","print_friendly":true},{"claim_type":1,"label":"city","print_friendly":true},{"claim_type":1,"label":"state","print_friendly":true},{"claim_type":1,"label":"postal_code","print_friendly":true},{"claim_type":1,"label":"iso_country_code","print_friendly":true},{"claim_type":2,"label":"date_of_birth","print_friendly":true,"validators":[{"Range":{"min":0,"max":65000}}]},{"claim_type":1,"label":"phone_number","print_friendly":true,"validators":[{"Regex":"\\d{10,15}"}]},{"claim_type":2,"label":"phone_number_type","print_friendly":true},{"claim_type":1,"label":"email_address","print_friendly":true},{"claim_type":1,"label":"tax_id_number","print_friendly":true},{"claim_type":1,"label":"document_id","print_friendly":true},{"claim_type":1,"label":"document_url","print_friendly":true},{"claim_type":1,"label":"document_identification_number","print_friendly":true},{"claim_type":1,"label":"document_type","print_friendly":true},{"claim_type":1,"label":"document_file_name","print_friendly":true},{"claim_type":1,"label":"document_content","print_friendly":false},{"claim_type":2,"label":"document_iso_country_code","print_friendly":true}]}"#;
     let res = serde_json::from_str::<CredentialSchema>(string);
-    assert!(res.is_ok());
+    assert!(res.is_ok(), "{}", res.unwrap_err());
     let schema = res.unwrap();
     assert_eq!("63e8b522-3ef6-4c45-92f1-47cad2449523", schema.id);
     let res = serde_cbor::to_vec(&schema);

@@ -229,13 +229,7 @@ impl Presentation {
                 // If the claim is not disclosed and used in a statement,
                 // it must use a shared blinder, otherwise its proof specific
                 if let Statements::Signature(ss) = sig {
-                    let (claim_label, _) = ss
-                        .issuer
-                        .schema
-                        .claim_indices
-                        .iter()
-                        .find(|(_, i)| index == **i)
-                        .unwrap();
+                    let claim_label = ss.issuer.schema.claim_indices.get_index(index).unwrap();
                     if ss.disclosed.contains(claim_label) {
                         proof_claims.push(ProofMessage::Revealed(claim_value));
                     } else if shared_proof_msg_indices[id][&index] {

@@ -113,7 +113,9 @@ impl TryFrom<&CredentialText> for Credential {
         for s in &credential.claims {
             match &s[0..4] {
                 HASHED_HEX => {
-                    let value = hex::decode(&s[4..]).map_err(|_| Error::InvalidClaimData)?;
+                    let value = hex::decode(&s[4..]).map_err(|_| {
+                        Error::InvalidClaimData("unable to decode hashed claim hex string")
+                    })?;
                     claims.push(ClaimData::Hashed(HashedClaim {
                         value,
                         print_friendly: false,
@@ -127,13 +129,16 @@ impl TryFrom<&CredentialText> for Credential {
                     }));
                 }
                 NUMBER => {
-                    let value = s[4..]
-                        .parse::<isize>()
-                        .map_err(|_| Error::InvalidClaimData)?;
+                    let value = s[4..].parse::<isize>().map_err(|_| {
+                        Error::InvalidClaimData("unable to deserialize number claim")
+                    })?;
                     claims.push(ClaimData::Number(NumberClaim { value }));
                 }
                 SCALAR => {
-                    let value = scalar_from_hex_str(&s[4..], Error::InvalidClaimData)?;
+                    let value = scalar_from_hex_str(
+                        &s[4..],
+                        Error::InvalidClaimData("unable to deserialize scalar claim"),
+                    )?;
                     claims.push(ClaimData::Scalar(ScalarClaim { value }));
                 }
                 REVOCATION => {
@@ -141,30 +146,37 @@ impl TryFrom<&CredentialText> for Credential {
                     claims.push(ClaimData::Revocation(RevocationClaim { value }));
                 }
                 ENUMERATION => {
-                    let value = hex::decode(&s[4..]).map_err(|_| Error::InvalidClaimData)?;
-                    let e = serde_bare::from_slice::<EnumerationClaim>(value.as_slice())
-                        .map_err(|_| Error::InvalidClaimData)?;
+                    let value = hex::decode(&s[4..]).map_err(|_| {
+                        Error::InvalidClaimData("unable to decode enumeration claim hex string")
+                    })?;
+                    let e = serde_bare::from_slice::<EnumerationClaim>(value.as_slice()).map_err(
+                        |_| Error::InvalidClaimData("unable to deserialize enumeration claim"),
+                    )?;
                     claims.push(ClaimData::Enumeration(e));
                 }
                 _ => {
-                    return Err(Error::InvalidClaimData);
+                    return Err(Error::InvalidClaimData("unknown claim type"));
                 }
             }
         }
 
-        let sig_bytes = hex::decode(&credential.signature).map_err(|_| Error::InvalidClaimData)?;
-        let sig_buf =
-            <[u8; 128]>::try_from(sig_bytes.as_slice()).map_err(|_| Error::InvalidClaimData)?;
+        let sig_bytes = hex::decode(&credential.signature).map_err(|_| {
+            Error::InvalidClaimData("unable to decode credential signature from hex string")
+        })?;
+        let sig_buf = <[u8; 128]>::try_from(sig_bytes.as_slice())
+            .map_err(|_| Error::InvalidClaimData("unable to read credential signature bytes"))?;
         let sig = Signature::from_bytes(&sig_buf);
         if sig.is_none().unwrap_u8() == 1 {
-            return Err(Error::InvalidClaimData);
+            return Err(Error::InvalidClaimData(
+                "unable to deserialize credential signature",
+            ));
         }
         Ok(Self {
             claims,
             signature: sig.unwrap(),
             revocation_handle: MembershipWitness(g1_from_hex_str(
                 &credential.revocation_handle,
-                Error::InvalidClaimData,
+                Error::InvalidClaimData("unable to deserialize revocation handle"),
             )?),
             revocation_index: credential.revocation_index,
         })

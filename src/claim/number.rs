@@ -1,14 +1,29 @@
 use super::{Claim, ClaimType};
 use crate::utils::get_num_scalar;
-use core::fmt::{self, Display, Formatter};
+use core::{
+    fmt::{self, Display, Formatter},
+    hash::{Hash, Hasher},
+};
 use serde::{Deserialize, Serialize};
 use yeti::knox::bls12_381_plus::Scalar;
 
 /// A claim that is a 64-bit signed number
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Deserialize, Serialize)]
+#[derive(Copy, Clone, Eq, Debug, Deserialize, Serialize)]
 pub struct NumberClaim {
     /// The claim value
     pub value: isize,
+}
+
+impl PartialEq for NumberClaim {
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value
+    }
+}
+
+impl Hash for NumberClaim {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.value.hash(state);
+    }
 }
 
 impl Display for NumberClaim {

@@ -1,5 +1,8 @@
 use crate::claim::{Claim, ClaimType};
-use core::fmt::{self, Display, Formatter};
+use core::{
+    fmt::{self, Display, Formatter},
+    hash::{Hash, Hasher},
+};
 use serde::{Deserialize, Serialize};
 use yeti::knox::bls12_381_plus::Scalar;
 use yeti::knox::Knox;
@@ -7,7 +10,7 @@ use yeti::sha3;
 
 /// A claim where there there is a list of values
 /// but can't use simple number like 0, 1, 2
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, Deserialize, Serialize)]
 pub struct EnumerationClaim {
     /// The domain separation tag for this enumeration
     pub dst: String,
@@ -15,6 +18,22 @@ pub struct EnumerationClaim {
     pub value: u8,
     /// The size of the enumeration
     pub total_values: usize,
+}
+
+impl PartialEq for EnumerationClaim {
+    fn eq(&self, other: &Self) -> bool {
+        self.dst == other.dst
+            && self.value == other.value
+            && self.total_values == other.total_values
+    }
+}
+
+impl Hash for EnumerationClaim {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.dst.hash(state);
+        self.value.hash(state);
+        self.total_values.hash(state);
+    }
 }
 
 impl Display for EnumerationClaim {

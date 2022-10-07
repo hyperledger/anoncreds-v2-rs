@@ -36,7 +36,9 @@ impl<'a> EqualityBuilder<'a> {
             res &= scalars[i] == scalars[i + 1];
         }
         if !res {
-            return Err(Error::InvalidClaimData);
+            return Err(Error::InvalidClaimData(
+                "equality statement - claims are not all the same",
+            ));
         }
         Ok(Self {
             reference_statement,
