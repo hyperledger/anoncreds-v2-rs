@@ -1,8 +1,10 @@
 use crate::error::Error;
-use crate::CredxResult;
+use crate::{
+    CredxResult, utils::*,
+};
+use indexmap::IndexSet;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashSet};
 use yeti::knox::accumulator::vb20::{Accumulator, Element, SecretKey};
 
 /// A revocation registry for credentials
@@ -12,9 +14,17 @@ pub struct RevocationRegistry {
     pub value: Accumulator,
     /// All the elements ever included in the revocation registry
     /// Includes the index to help with ordering
-    pub elements: BTreeMap<usize, String>,
+    #[serde(
+        serialize_with = "serialize_indexset",
+        deserialize_with = "deserialize_indexset"
+    )]
+    pub elements: IndexSet<String>,
     /// The current active set
-    pub active: HashSet<String>,
+    #[serde(
+        serialize_with = "serialize_indexset",
+        deserialize_with = "deserialize_indexset"
+    )]
+    pub active: IndexSet<String>,
 }
 
 impl RevocationRegistry {
@@ -22,8 +32,8 @@ impl RevocationRegistry {
     pub fn new(rng: impl RngCore + CryptoRng) -> Self {
         let value = Accumulator::random(rng);
         Self {
-            active: HashSet::new(),
-            elements: BTreeMap::new(),
+            active: IndexSet::new(),
+            elements: IndexSet::new(),
             value,
         }
     }
@@ -46,10 +56,7 @@ impl RevocationRegistry {
     /// Add the elements to the registry
     pub fn add(&mut self, elements: &[String]) {
         for e in elements {
-            if self
-                .elements
-                .insert(self.elements.len(), e.clone())
-                .is_none()
+            if self.elements.insert(e.clone())
             {
                 self.active.insert(e.clone());
             }

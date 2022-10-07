@@ -7,9 +7,6 @@
     unused_qualifications
 )]
 
-#[macro_use]
-extern crate maplit;
-
 use rand_core::{CryptoRng, RngCore};
 
 /// The result type for this crate

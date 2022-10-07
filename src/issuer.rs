@@ -1,10 +1,10 @@
 use super::{credential::CredentialSchema, error::Error, revocation_registry::RevocationRegistry};
 use crate::claim::{Claim, ClaimData, RevocationClaim};
 use crate::credential::{Credential, CredentialBundle};
-use crate::{random_string, CredxResult};
+use crate::{random_string, CredxResult, utils::*};
 use group::Curve;
+use indexmap::{indexmap, IndexMap};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
 use yeti::knox::bls12_381_plus::{G1Affine, G1Projective, G2Affine, G2Projective, Scalar};
 use yeti::knox::{
     accumulator::vb20::{self, Accumulator, Element, MembershipWitness},
@@ -53,7 +53,11 @@ pub struct IssuerPublicText {
     /// The schema for this issuer
     pub schema: CredentialSchema,
     /// The credential verifying key for this issuer
-    pub verifying_key: BTreeMap<String, String>,
+    #[serde(
+        serialize_with = "serialize_indexmap",
+        deserialize_with = "deserialize_indexmap"
+    )]
+    pub verifying_key: IndexMap<String, String>,
     /// The revocation registry verifying key for this issuer
     pub revocation_verifying_key: String,
     /// The verifiable encryption key for this issuer
@@ -140,14 +144,13 @@ impl Issuer {
         ))?;
         let revocation_claim =
             revocation_claim.ok_or(Error::InvalidClaimData("revocation claim not found"))?;
-        let registry_elements: BTreeSet<_> = self.revocation_registry.elements.values().collect();
 
         // This data has already been revoked
         if !self
             .revocation_registry
             .active
             .contains(&revocation_claim.value)
-            && registry_elements.contains(&revocation_claim.value)
+            && self.revocation_registry.elements.contains(&revocation_claim.value)
         {
             return Err(Error::InvalidClaimData("This claim is already revoked"));
         }
@@ -162,10 +165,7 @@ impl Issuer {
         self.revocation_registry
             .active
             .insert(revocation_claim.value.clone());
-        self.revocation_registry.elements.insert(
-            self.revocation_registry.elements.len(),
-            revocation_claim.value.clone(),
-        );
+        self.revocation_registry.elements.insert(revocation_claim.value.clone());
         let signature = ps::Signature::new(&self.signing_key, &attributes)
             .map_err(|_| Error::InvalidSigningOperation)?;
         Ok(CredentialBundle {
@@ -222,7 +222,7 @@ impl From<&IssuerPublic> for IssuerPublicText {
         IssuerPublicText {
             id: ip.id.clone(),
             schema: ip.schema.clone(),
-            verifying_key: btreemap! {
+            verifying_key: indexmap! {
                 "w".to_string() => hex::encode(&ip.verifying_key.w.to_affine().to_compressed()),
                 "x".to_string() => hex::encode(&ip.verifying_key.x.to_affine().to_compressed()),
                 "y".to_string() => serde_json::to_string(&ip.verifying_key.y.iter().map(|y| hex::encode(y.to_affine().to_compressed())).collect::<Vec<String>>()).unwrap(),
