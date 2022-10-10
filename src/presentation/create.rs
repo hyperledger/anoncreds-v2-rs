@@ -3,7 +3,7 @@ use super::*;
 impl Presentation {
     /// Create a new presentation composed of 1 to many proofs
     pub fn create(
-        credentials: &BTreeMap<String, Credential>,
+        credentials: &IndexMap<String, Credential>,
         schema: &PresentationSchema,
         nonce: &[u8],
     ) -> CredxResult<Self> {
@@ -34,11 +34,11 @@ impl Presentation {
         )?;
 
         let mut builders = Vec::<PresentationBuilders>::with_capacity(schema.statements.len());
-        let mut disclosed_messages = BTreeMap::new();
+        let mut disclosed_messages = IndexMap::new();
 
         for (id, sig_statement) in &signature_statements {
             if let Statements::Signature(ss) = sig_statement {
-                let mut dm = BTreeMap::new();
+                let mut dm = IndexMap::new();
                 for (index, claim) in credentials[*id].claims.iter().enumerate() {
                     if matches!(messages[id][index], ProofMessage::Revealed(_)) {
                         let label = ss.issuer.schema.claim_indices.get_index(index).unwrap();
@@ -58,8 +58,8 @@ impl Presentation {
             }
         }
 
-        let mut id_to_builder = BTreeMap::new();
-        let mut range_id = BTreeSet::new();
+        let mut id_to_builder = IndexMap::new();
+        let mut range_id = IndexSet::new();
         for (id, pred_statement) in &predicate_statements {
             match pred_statement {
                 Statements::Equality(e) => {
@@ -156,7 +156,7 @@ impl Presentation {
         transcript.challenge_bytes(b"challenge bytes", &mut okm);
         let challenge = Scalar::from_bytes_wide(&okm);
 
-        let mut proofs = BTreeMap::new();
+        let mut proofs = IndexMap::new();
 
         for builder in range_builders.into_iter() {
             let proof = builder.gen_proof(challenge);

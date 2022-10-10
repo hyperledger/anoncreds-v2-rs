@@ -7,7 +7,7 @@ use serde::ser::SerializeMap;
 use serde::{
     de::{DeserializeOwned, Error as DError, SeqAccess, Unexpected, Visitor},
     ser::SerializeSeq,
-    Deserializer, Serialize, Serializer,
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::{
     fmt::{self, Formatter},
@@ -167,6 +167,38 @@ pub fn deserialize_indexmap<
         _key_marker: PhantomData,
         _value_marker: PhantomData,
     })
+}
+
+pub fn serialize_indexmap_nested<K1: Serialize, K2: Serialize, V: Serialize, S: Serializer>(
+    map: &IndexMap<K1, IndexMap<K2, V>>,
+    s: S,
+) -> Result<S::Ok, S::Error> {
+    let result: Vec<(&K1, Vec<(&K2, &V)>)> = map
+        .iter()
+        .map(|(k1, v1)| {
+            let values = v1.iter().collect::<Vec<(&K2, &V)>>();
+            (k1, values)
+        })
+        .collect();
+    result.serialize(s)
+}
+
+pub fn deserialize_indexmap_nested<
+    'de,
+    K1: Deserialize<'de> + Hash + Eq,
+    K2: Deserialize<'de> + Hash + Eq,
+    V: Deserialize<'de>,
+    D: Deserializer<'de>,
+>(
+    deserialize: D,
+) -> Result<IndexMap<K1, IndexMap<K2, V>>, D::Error> {
+    let inner = Vec::<(K1, Vec<(K2, V)>)>::deserialize(deserialize)?;
+    let mut result = IndexMap::new();
+    for (k1, v) in inner.into_iter() {
+        let value: IndexMap<K2, V> = v.into_iter().collect();
+        result.insert(k1, value);
+    }
+    Ok(result)
 }
 
 pub fn scalar_from_hex_str(sc: &str, e: Error) -> CredxResult<Scalar> {

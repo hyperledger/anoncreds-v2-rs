@@ -1,6 +1,7 @@
 use super::*;
 use crate::statement::{EqualityStatement, Statement};
 use crate::{error::Error, CredxResult};
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 pub(crate) struct EqualityBuilder<'a> {
@@ -19,7 +20,7 @@ impl<'a> PresentationBuilder for EqualityBuilder<'a> {
 impl<'a> EqualityBuilder<'a> {
     pub fn commit(
         reference_statement: &'a EqualityStatement,
-        reference_id_credential: &BTreeMap<String, Credential>,
+        reference_id_credential: &IndexMap<String, Credential>,
     ) -> CredxResult<Self> {
         let mut scalars = Vec::new();
         for (id, claim_index) in &reference_statement.ref_id_claim_index {

@@ -3,14 +3,14 @@ use crate::presentation::{PresentationProofs, PresentationSchema};
 use crate::statement::{EqualityStatement, Statements};
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
+use indexmap::IndexMap;
 use merlin::Transcript;
-use std::collections::BTreeMap;
 use yeti::knox::bls12_381_plus::Scalar;
 
 pub struct EqualityVerifier<'a, 'b, 'c> {
     pub statement: &'a EqualityStatement,
     pub schema: &'b PresentationSchema,
-    pub proofs: &'c BTreeMap<String, PresentationProofs>,
+    pub proofs: &'c IndexMap<String, PresentationProofs>,
 }
 
 impl<'a, 'b, 'c> ProofVerifier for EqualityVerifier<'a, 'b, 'c> {

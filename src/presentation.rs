@@ -20,13 +20,14 @@ pub use verifiable_encryption::*;
 
 use crate::verifier::*;
 use crate::{
-    claim::ClaimData, credential::Credential, error::Error, statement::Statements, CredxResult,
+    claim::ClaimData, credential::Credential, error::Error, statement::Statements, utils::*,
+    CredxResult,
 };
 use group::ff::Field;
+use indexmap::{IndexMap, IndexSet};
 use merlin::Transcript;
 use rand_core::{CryptoRng, OsRng, RngCore};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
 use uint_zigzag::Uint;
 use yeti::knox::bls12_381_plus::{G1Affine, G2Affine, Scalar};
 use yeti::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
@@ -101,22 +102,30 @@ impl<'a> From<RangeBuilder<'a>> for PresentationBuilders<'a> {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Presentation {
     /// The proofs
-    pub proofs: BTreeMap<String, PresentationProofs>,
+    #[serde(
+        serialize_with = "serialize_indexmap",
+        deserialize_with = "deserialize_indexmap"
+    )]
+    pub proofs: IndexMap<String, PresentationProofs>,
     /// The fiat-shamir hash
     pub challenge: Scalar,
     /// The disclosed messages
-    pub disclosed_messages: BTreeMap<String, BTreeMap<String, ClaimData>>,
+    #[serde(
+        serialize_with = "serialize_indexmap_nested",
+        deserialize_with = "deserialize_indexmap_nested"
+    )]
+    pub disclosed_messages: IndexMap<String, IndexMap<String, ClaimData>>,
 }
 
 impl Presentation {
     fn split_statements(
         schema: &PresentationSchema,
     ) -> (
-        BTreeMap<&String, &Statements>,
-        BTreeMap<&String, &Statements>,
+        IndexMap<&String, &Statements>,
+        IndexMap<&String, &Statements>,
     ) {
-        let mut signature_statements: BTreeMap<&String, &Statements> = BTreeMap::new();
-        let mut predicate_statements: BTreeMap<&String, &Statements> = BTreeMap::new();
+        let mut signature_statements: IndexMap<&String, &Statements> = IndexMap::new();
+        let mut predicate_statements: IndexMap<&String, &Statements> = IndexMap::new();
 
         for (id, statement) in &schema.statements {
             if let Statements::Signature(_) = statement {
@@ -159,7 +168,7 @@ impl Presentation {
 
     fn add_disclosed_messages_challenge_contribution(
         id: &String,
-        dm: &BTreeMap<String, ClaimData>,
+        dm: &IndexMap<String, ClaimData>,
         transcript: &mut Transcript,
     ) {
         transcript.append_message(b"disclosed messages from statement ", id.as_bytes());
@@ -174,25 +183,20 @@ impl Presentation {
 
     /// Map the claims to the respective types
     fn get_message_types<'a>(
-        credentials: &BTreeMap<String, Credential>,
-        signature_statements: &'a BTreeMap<&String, &Statements>,
-        predicate_statements: &'a BTreeMap<&String, &Statements>,
+        credentials: &IndexMap<String, Credential>,
+        signature_statements: &'a IndexMap<&String, &Statements>,
+        predicate_statements: &'a IndexMap<&String, &Statements>,
         mut rng: impl RngCore + CryptoRng,
-    ) -> CredxResult<BTreeMap<&'a String, Vec<ProofMessage<Scalar>>>> {
-        let mut shared_proof_msg_indices: BTreeMap<&String, BTreeMap<usize, bool>> =
-            BTreeMap::new();
+    ) -> CredxResult<IndexMap<&'a String, Vec<ProofMessage<Scalar>>>> {
+        let mut shared_proof_msg_indices: IndexMap<&String, Vec<bool>> = IndexMap::new();
 
         for (id, cred) in credentials {
-            let mut indexer = BTreeMap::new();
-            for i in 0..cred.claims.len() {
-                indexer.insert(i, false);
-            }
-            shared_proof_msg_indices.insert(id, indexer);
+            shared_proof_msg_indices.insert(id, vec![false; cred.claims.len()]);
         }
 
         let mut same_proof_messages = Vec::new();
 
-        let mut proof_messages: BTreeMap<&String, Vec<ProofMessage<Scalar>>> = BTreeMap::new();
+        let mut proof_messages: IndexMap<&String, Vec<ProofMessage<Scalar>>> = IndexMap::new();
 
         // If a claim is used in a statement, it is a shared message between the signature
         // and the statement. Equality statements are shared across signatures
@@ -214,7 +218,7 @@ impl Presentation {
                     }
                     Some(indexer) => {
                         let claim_index = statement.get_claim_index(ref_id);
-                        match indexer.get_mut(&claim_index) {
+                        match indexer.get_mut(claim_index) {
                             None => return Err(Error::InvalidPresentationData),
                             Some(v) => *v = true,
                         }
@@ -236,7 +240,7 @@ impl Presentation {
                     let claim_label = ss.issuer.schema.claim_indices.get_index(index).unwrap();
                     if ss.disclosed.contains(claim_label) {
                         proof_claims.push(ProofMessage::Revealed(claim_value));
-                    } else if shared_proof_msg_indices[id][&index] {
+                    } else if shared_proof_msg_indices[id][index] {
                         let blinder = Scalar::random(&mut rng);
                         proof_claims.push(ProofMessage::Hidden(HiddenMessage::ExternalBlinding(
                             claim_value,

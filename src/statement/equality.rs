@@ -1,7 +1,7 @@
-use crate::statement::Statement;
+use crate::{statement::Statement, utils::*};
+use indexmap::IndexMap;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use uint_zigzag::Uint;
 
 /// An equality statement
@@ -10,7 +10,11 @@ pub struct EqualityStatement {
     /// The statement id
     pub id: String,
     /// The reference statement id to claim index
-    pub ref_id_claim_index: BTreeMap<String, usize>,
+    #[serde(
+        serialize_with = "serialize_indexmap",
+        deserialize_with = "deserialize_indexmap"
+    )]
+    pub ref_id_claim_index: IndexMap<String, usize>,
 }
 
 impl Statement for EqualityStatement {

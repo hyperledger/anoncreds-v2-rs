@@ -8,7 +8,8 @@ use credx::statement::{
     VerifiableEncryptionStatement,
 };
 use credx::{random_string, CredxResult};
-use maplit::{btreemap, btreeset};
+use indexmap::indexmap;
+use maplit::btreeset;
 use rand_core::RngCore;
 use yeti::knox::bls12_381_plus::{ExpandMsgXmd, G1Projective};
 use yeti::sha2;
@@ -115,7 +116,7 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
 
     let mut nonce = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut nonce);
-    let credentials = btreemap! { sig_st.id.clone() => credential.credential};
+    let credentials = indexmap! { sig_st.id.clone() => credential.credential};
     let presentation_schema = PresentationSchema::new(&[
         sig_st.into(),
         acc_st.into(),
@@ -231,7 +232,7 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
 
     let mut nonce = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut nonce);
-    let credentials = btreemap! { sig_st.id.clone() => credential.credential};
+    let credentials = indexmap! { sig_st.id.clone() => credential.credential};
     let presentation_schema = PresentationSchema::new(&[
         sig_st.into(),
         acc_st.into(),
