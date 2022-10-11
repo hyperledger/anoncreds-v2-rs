@@ -1,10 +1,12 @@
 use super::{credential::CredentialSchema, error::Error, revocation_registry::RevocationRegistry};
+use crate::blind::{BlindCredential, BlindCredentialBundle, BlindCredentialRequest};
 use crate::claim::{Claim, ClaimData, RevocationClaim};
 use crate::credential::{Credential, CredentialBundle};
 use crate::{random_string, utils::*, CredxResult};
 use group::Curve;
 use indexmap::{indexmap, IndexMap};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use yeti::knox::bls12_381_plus::{G1Affine, G1Projective, G2Affine, G2Projective, Scalar};
 use yeti::knox::{
     accumulator::vb20::{self, Accumulator, Element, MembershipWitness},
@@ -180,6 +182,99 @@ impl Issuer {
                 signature,
                 revocation_handle: witness,
                 revocation_index: revocation_element_index,
+            },
+        })
+    }
+
+    /// Blind sign a credential where only a subset of the claims are known
+    pub fn blind_sign_credential(
+        &mut self,
+        request: &BlindCredentialRequest,
+        claims: &BTreeMap<String, ClaimData>,
+    ) -> CredxResult<BlindCredentialBundle> {
+        request.verify(self)?;
+
+        if request.blind_claim_labels.len() + claims.len() != self.schema.claims.len() {
+            return Err(Error::InvalidClaimData(
+                "blind_claims.len + known_claims.len != schema.claims.len",
+            ));
+        }
+
+        let mut messages = Vec::with_capacity(claims.len());
+        let mut revocation_label = None;
+        let mut revocation_claim = None;
+        for ((label, c), t) in claims.iter().zip(&self.schema.claims) {
+            if !c.is_type(t.claim_type) {
+                return Err(Error::InvalidClaimData("claim is not the correct type"));
+            }
+            match t.is_valid(c) {
+                Some(b) => {
+                    if !b {
+                        return Err(Error::InvalidClaimData("claim is not valid"));
+                    }
+                }
+                None => {
+                    return Err(Error::InvalidClaimData(
+                        "claim is not correct type to validate",
+                    ))
+                }
+            };
+            messages.push((
+                self.schema
+                    .claim_indices
+                    .get_index_of(label)
+                    .ok_or(Error::InvalidClaimData("claim does not exist in schema"))?,
+                c.to_scalar(),
+            ));
+            if let ClaimData::Revocation(rc) = c {
+                revocation_label = Some(label.clone());
+                revocation_claim = Some(rc);
+            }
+        }
+        let revocation_label =
+            revocation_label.ok_or(Error::InvalidClaimData("revocation label not found"))?;
+        let revocation_claim =
+            revocation_claim.ok_or(Error::InvalidClaimData("revocation claim not found"))?;
+
+        // This data has already been revoked
+        if !self
+            .revocation_registry
+            .active
+            .contains(&revocation_claim.value)
+            && self
+                .revocation_registry
+                .elements
+                .contains(&revocation_claim.value)
+        {
+            return Err(Error::InvalidClaimData("This claim is already revoked"));
+        }
+
+        let revocation_id = Element(revocation_claim.to_scalar());
+        let witness = MembershipWitness::new(
+            revocation_id,
+            self.revocation_registry.value,
+            &self.revocation_key,
+        );
+        self.revocation_registry
+            .active
+            .insert(revocation_claim.value.clone());
+        self.revocation_registry
+            .elements
+            .insert(revocation_claim.value.clone());
+        let signature = ps::BlindSignature::new(
+            request.blind_signature_context.commitment,
+            &self.signing_key,
+            &messages,
+        )
+        .map_err(|_| Error::InvalidSigningOperation)?;
+
+        Ok(BlindCredentialBundle {
+            issuer: IssuerPublic::from(self),
+            credential: BlindCredential {
+                claims: claims.clone(),
+                signature,
+                revocation_handle: witness,
+                revocation_label,
             },
         })
     }
