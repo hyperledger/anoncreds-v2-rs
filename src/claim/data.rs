@@ -1,6 +1,19 @@
 use super::*;
-use crate::{error::Error, CredxResult};
+use crate::{error::Error, utils::scalar_from_hex_str, CredxResult};
 use serde::{Deserialize, Serialize};
+
+/// Hashed utf8 string
+pub const HASHED_UTF8: &str = "ut8:";
+/// Hashed binary string
+pub const HASHED_HEX: &str = "hex:";
+/// Scalar
+pub const SCALAR: &str = "scl:";
+/// Number
+pub const NUMBER: &str = "num:";
+/// Revocation id
+pub const REVOCATION: &str = "rev:";
+/// Enumeration
+pub const ENUMERATION: &str = "enm:";
 
 /// The type of claim data that can be signed
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize, Hash)]
@@ -134,6 +147,93 @@ impl ClaimData {
             | (Self::Revocation(_), ClaimType::Revocation)
             | (Self::Enumeration(_), ClaimType::Enumeration) => true,
             (_, _) => false,
+        }
+    }
+
+    /// Convert to a text friendly format
+    pub fn to_text(&self) -> String {
+        let mut s = String::new();
+        match self {
+            ClaimData::Hashed(HashedClaim {
+                value,
+                print_friendly,
+            }) => {
+                if *print_friendly {
+                    s.push_str(HASHED_UTF8);
+                    s.push_str(&String::from_utf8(value.clone()).unwrap());
+                } else {
+                    s.push_str(HASHED_HEX);
+                    s.push_str(&hex::encode(value));
+                }
+            }
+            ClaimData::Number(NumberClaim { value }) => {
+                s.push_str(NUMBER);
+                s.push_str(&value.to_string());
+            }
+            ClaimData::Scalar(ScalarClaim { value }) => {
+                s.push_str(SCALAR);
+                s.push_str(&hex::encode(&value.to_bytes()));
+            }
+            ClaimData::Revocation(RevocationClaim { value }) => {
+                s.push_str(REVOCATION);
+                s.push_str(value);
+            }
+            ClaimData::Enumeration(e) => {
+                s.push_str(ENUMERATION);
+                let data = serde_bare::to_vec(&e).unwrap();
+                s.push_str(&hex::encode(data.as_slice()))
+            }
+        }
+        s
+    }
+
+    /// Convert text to [`ClaimData`]
+    pub fn from_text(s: &str) -> CredxResult<Self> {
+        match &s[0..4] {
+            HASHED_HEX => {
+                let value = hex::decode(&s[4..]).map_err(|_| {
+                    Error::InvalidClaimData("unable to decode hashed claim hex string")
+                })?;
+                Ok(ClaimData::Hashed(HashedClaim {
+                    value,
+                    print_friendly: false,
+                }))
+            }
+            HASHED_UTF8 => {
+                let value = s[4..].to_string();
+                Ok(ClaimData::Hashed(HashedClaim {
+                    value: value.into_bytes(),
+                    print_friendly: true,
+                }))
+            }
+            NUMBER => {
+                let value = s[4..]
+                    .parse::<isize>()
+                    .map_err(|_| Error::InvalidClaimData("unable to deserialize number claim"))?;
+                Ok(ClaimData::Number(NumberClaim { value }))
+            }
+            SCALAR => {
+                let value = scalar_from_hex_str(
+                    &s[4..],
+                    Error::InvalidClaimData("unable to deserialize scalar claim"),
+                )?;
+                Ok(ClaimData::Scalar(ScalarClaim { value }))
+            }
+            REVOCATION => {
+                let value = s[4..].to_string();
+                Ok(ClaimData::Revocation(RevocationClaim { value }))
+            }
+            ENUMERATION => {
+                let value = hex::decode(&s[4..]).map_err(|_| {
+                    Error::InvalidClaimData("unable to decode enumeration claim hex string")
+                })?;
+                let e =
+                    serde_bare::from_slice::<EnumerationClaim>(value.as_slice()).map_err(|_| {
+                        Error::InvalidClaimData("unable to deserialize enumeration claim")
+                    })?;
+                Ok(ClaimData::Enumeration(e))
+            }
+            _ => Err(Error::InvalidClaimData("unknown claim type")),
         }
     }
 }
