@@ -1,4 +1,7 @@
-use credx::claim::{ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim};
+use credx::blind::BlindCredentialRequest;
+use credx::claim::{
+    ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim,
+};
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::error::Error;
 use credx::issuer::Issuer;
@@ -8,10 +11,11 @@ use credx::statement::{
     VerifiableEncryptionStatement,
 };
 use credx::{random_string, CredxResult};
+use group::ff::Field;
 use indexmap::indexmap;
-use maplit::btreeset;
+use maplit::{btreemap, btreeset};
 use rand_core::RngCore;
-use yeti::knox::bls12_381_plus::{ExpandMsgXmd, G1Projective};
+use yeti::knox::bls12_381_plus::{ExpandMsgXmd, G1Projective, Scalar};
 use yeti::sha2;
 
 #[test]
@@ -254,4 +258,82 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
         Err(_) => Ok(()),
         Ok(_) => Err(Error::InvalidPresentationData),
     }
+}
+
+#[test]
+fn blind_sign_request() {
+    let res = test_blind_sign_request();
+    assert!(res.is_ok(), "{:?}", res);
+}
+
+fn test_blind_sign_request() -> CredxResult<()> {
+    const LABEL: &str = "Test Schema";
+    const DESCRIPTION: &str = "This is a test presentation schema";
+    const CRED_ID: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
+    let schema_claims = [
+        ClaimSchema {
+            claim_type: ClaimType::Revocation,
+            label: "identifier".to_string(),
+            print_friendly: false,
+            validators: vec![],
+        },
+        ClaimSchema {
+            claim_type: ClaimType::Scalar,
+            label: "link_secret".to_string(),
+            print_friendly: false,
+            validators: vec![],
+        },
+        ClaimSchema {
+            claim_type: ClaimType::Hashed,
+            label: "name".to_string(),
+            print_friendly: true,
+            validators: vec![ClaimValidator::Length {
+                min: Some(3),
+                max: Some(u8::MAX as usize),
+            }],
+        },
+        ClaimSchema {
+            claim_type: ClaimType::Hashed,
+            label: "address".to_string(),
+            print_friendly: true,
+            validators: vec![ClaimValidator::Length {
+                min: None,
+                max: Some(u8::MAX as usize),
+            }],
+        },
+        ClaimSchema {
+            claim_type: ClaimType::Number,
+            label: "age".to_string(),
+            print_friendly: true,
+            validators: vec![ClaimValidator::Range {
+                min: Some(0),
+                max: Some(u16::MAX as isize),
+            }],
+        },
+    ];
+    let cred_schema = CredentialSchema::new(
+        Some(LABEL),
+        Some(DESCRIPTION),
+        &["link_secret"],
+        &schema_claims,
+    )?;
+
+    let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
+
+    let blind_claims = btreemap! { "link_secret".to_string() => ScalarClaim::from(Scalar::random(rand_core::OsRng)).into() };
+    let (request, blinder) = BlindCredentialRequest::new(&issuer_public, &blind_claims)?;
+
+    let blind_bundle = issuer.blind_sign_credential(
+        &request,
+        &btreemap! {
+            "identifier".to_string() => RevocationClaim::from(CRED_ID).into(),
+            "name".to_string() => HashedClaim::from("John Doe").into(),
+            "address".to_string() => HashedClaim::from("P Sherman 42 Wallaby Way Sydney").into(),
+            "age".to_string() => NumberClaim::from(30303).into(),
+        },
+    )?;
+
+    let _ = blind_bundle.to_unblinded(&blind_claims, blinder)?;
+
+    Ok(())
 }

@@ -192,7 +192,7 @@ impl Issuer {
         request: &BlindCredentialRequest,
         claims: &BTreeMap<String, ClaimData>,
     ) -> CredxResult<BlindCredentialBundle> {
-        request.verify(self)?;
+        // request.verify(self)?;
 
         if request.blind_claim_labels.len() + claims.len() != self.schema.claims.len() {
             return Err(Error::InvalidClaimData(
@@ -203,7 +203,14 @@ impl Issuer {
         let mut messages = Vec::with_capacity(claims.len());
         let mut revocation_label = None;
         let mut revocation_claim = None;
-        for ((label, c), t) in claims.iter().zip(&self.schema.claims) {
+        for (label, c) in claims {
+            let index = self
+                .schema
+                .claim_indices
+                .get_index_of(label)
+                .ok_or(Error::InvalidClaimData("claim not found in schema"))?;
+            let t = &self.schema.claims[index];
+
             if !c.is_type(t.claim_type) {
                 return Err(Error::InvalidClaimData("claim is not the correct type"));
             }
@@ -261,10 +268,12 @@ impl Issuer {
         self.revocation_registry
             .elements
             .insert(revocation_claim.value.clone());
-        let signature = ps::BlindSignature::new(
-            request.blind_signature_context.commitment,
+
+        let signature = ps::Issuer::blind_sign(
+            &request.blind_signature_context,
             &self.signing_key,
             &messages,
+            request.nonce,
         )
         .map_err(|_| Error::InvalidSigningOperation)?;
 
