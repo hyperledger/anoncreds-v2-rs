@@ -17,3 +17,16 @@ pub enum ClaimType {
     /// Enumeration based claims
     Enumeration = 5,
 }
+
+impl From<u8> for ClaimType {
+    fn from(v: u8) -> Self {
+        match v {
+            1 => Self::Hashed,
+            2 => Self::Number,
+            3 => Self::Scalar,
+            4 => Self::Revocation,
+            5 => Self::Enumeration,
+            _ => Self::Unknown,
+        }
+    }
+}

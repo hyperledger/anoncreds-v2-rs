@@ -2,6 +2,8 @@ use crate::claim::ClaimData;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
+use crate::CredxResult;
+use crate::error::Error;
 
 /// The claim validator types
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
@@ -17,6 +19,18 @@ pub enum ClaimValidatorType {
     Regex = 3,
     /// The any one list type
     AnyOne = 4,
+}
+
+impl From<u8> for ClaimValidatorType {
+    fn from(d: u8) -> Self {
+        match d {
+            1 => Self::Length,
+            2 => Self::Range,
+            3 => Self::Regex,
+            4 => Self::AnyOne,
+            _ => Self::Unknown
+        }
+    }
 }
 
 /// The validations that can be made to ClaimData
@@ -138,5 +152,11 @@ impl ClaimValidator {
                 }
             }
         }
+    }
+
+    /// Convert a regex into a validator
+    pub fn regex_from_string(regex: &str) -> CredxResult<Self> {
+        let rx = Regex::new(regex).map_err(|_| Error::General("invalid regex"))?;
+        Ok(Self::Regex(rx))
     }
 }

@@ -39,6 +39,21 @@ mod utils;
 /// Presentation verifiers
 mod verifier;
 
+/// One import to rule them all
+pub mod prelude {
+    use super::*;
+
+    pub use super::CredxResult;
+    pub use blind::*;
+    pub use claim::*;
+    pub use credential::*;
+    pub use error::*;
+    pub use issuer::*;
+    pub use presentation::*;
+    pub use revocation_registry::*;
+    pub use statement::*;
+}
+
 extern crate core;
 /// Re-export yeti
 pub extern crate yeti;
