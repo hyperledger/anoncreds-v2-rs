@@ -148,10 +148,7 @@ impl ClaimSchema {
     pub fn add_challenge_contribution(&self, transcript: &mut merlin::Transcript) {
         transcript.append_message(b"claim label", self.label.as_bytes());
         transcript.append_message(b"claim type", &[self.claim_type as u8]);
-        transcript.append_message(
-            b"claim print friendly",
-            &[if self.print_friendly { 1u8 } else { 0u8 }],
-        );
+        transcript.append_message(b"claim print friendly", &[u8::from(self.print_friendly)]);
         transcript.append_message(
             b"claim validators length",
             &Uint::from(self.validators.len()).to_vec(),

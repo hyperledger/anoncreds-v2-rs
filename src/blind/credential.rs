@@ -70,8 +70,8 @@ impl From<&BlindCredential> for BlindCredentialText {
             .collect();
         Self {
             claims,
-            signature: hex::encode(&credential.signature.to_bytes()),
-            revocation_handle: hex::encode(&credential.revocation_handle.to_bytes()),
+            signature: hex::encode(credential.signature.to_bytes()),
+            revocation_handle: hex::encode(credential.revocation_handle.to_bytes()),
             revocation_label: credential.revocation_label.clone(),
         }
     }

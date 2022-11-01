@@ -172,7 +172,7 @@ impl ClaimData {
             }
             ClaimData::Scalar(ScalarClaim { value }) => {
                 s.push_str(SCALAR);
-                s.push_str(&hex::encode(&value.to_bytes()));
+                s.push_str(&hex::encode(value.to_bytes()));
             }
             ClaimData::Revocation(RevocationClaim { value }) => {
                 s.push_str(REVOCATION);

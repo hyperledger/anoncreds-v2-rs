@@ -7,7 +7,7 @@ impl Presentation {
         schema: &PresentationSchema,
         nonce: &[u8],
     ) -> CredxResult<Self> {
-        let mut rng = OsRng {};
+        let rng = OsRng {};
         let mut transcript = Transcript::new(b"credx presentation");
         Self::add_curve_parameters_challenge_contribution(&mut transcript);
         transcript.append_message(b"nonce", nonce);
@@ -30,7 +30,7 @@ impl Presentation {
             credentials,
             &signature_statements,
             &predicate_statements,
-            &mut rng,
+            rng,
         )?;
 
         let mut builders = Vec::<PresentationBuilders>::with_capacity(schema.statements.len());
@@ -45,12 +45,12 @@ impl Presentation {
                         dm.insert((*label).clone(), claim.clone());
                     }
                 }
-                Self::add_disclosed_messages_challenge_contribution(*id, &dm, &mut transcript);
+                Self::add_disclosed_messages_challenge_contribution(id, &dm, &mut transcript);
                 let builder = SignatureBuilder::commit(
                     ss,
                     credentials[*id].signature,
                     &messages[*id],
-                    &mut rng,
+                    rng,
                     &mut transcript,
                 )?;
                 builders.push(builder.into());
@@ -93,9 +93,9 @@ impl Presentation {
                         ));
                     }
                     let message = proof_message.get_message();
-                    let blinder = proof_message.get_blinder(&mut rng).unwrap();
+                    let blinder = proof_message.get_blinder(rng).unwrap();
                     let builder =
-                        CommitmentBuilder::commit(c, message, blinder, &mut rng, &mut transcript)?;
+                        CommitmentBuilder::commit(c, message, blinder, rng, &mut transcript)?;
                     id_to_builder.insert(*id, builders.len());
                     builders.push(builder.into());
                 }
@@ -107,12 +107,12 @@ impl Presentation {
                         ));
                     }
                     let message = proof_message.get_message();
-                    let blinder = proof_message.get_blinder(&mut rng).unwrap();
+                    let blinder = proof_message.get_blinder(rng).unwrap();
                     let builder = VerifiableEncryptionBuilder::commit(
                         v,
                         message,
                         blinder,
-                        &mut rng,
+                        rng,
                         &mut transcript,
                     )?;
                     id_to_builder.insert(*id, builders.len());

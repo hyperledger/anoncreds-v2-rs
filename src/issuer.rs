@@ -137,6 +137,9 @@ impl Issuer {
                 }
             };
             if let ClaimData::Revocation(rc) = c {
+                if revocation_claim.is_some() {
+                    return Err(Error::InvalidClaimData("multiple revocation claims found"));
+                }
                 revocation_element_index = Some(i);
                 revocation_claim = Some(rc);
             }
@@ -332,14 +335,14 @@ impl From<&IssuerPublic> for IssuerPublicText {
             id: ip.id.clone(),
             schema: ip.schema.clone(),
             verifying_key: indexmap! {
-                "w".to_string() => hex::encode(&ip.verifying_key.w.to_affine().to_compressed()),
-                "x".to_string() => hex::encode(&ip.verifying_key.x.to_affine().to_compressed()),
+                "w".to_string() => hex::encode(ip.verifying_key.w.to_affine().to_compressed()),
+                "x".to_string() => hex::encode(ip.verifying_key.x.to_affine().to_compressed()),
                 "y".to_string() => serde_json::to_string(&ip.verifying_key.y.iter().map(|y| hex::encode(y.to_affine().to_compressed())).collect::<Vec<String>>()).unwrap(),
                 "y_blinds".to_string() => serde_json::to_string(&ip.verifying_key.y_blinds.iter().map(|y| hex::encode(y.to_affine().to_compressed())).collect::<Vec<String>>()).unwrap(),
             },
-            revocation_verifying_key: hex::encode(&ip.revocation_verifying_key.to_bytes()),
-            verifiable_encryption_key: hex::encode(&ip.verifiable_encryption_key.to_bytes()),
-            revocation_registry: hex::encode(&ip.revocation_registry.to_bytes()),
+            revocation_verifying_key: hex::encode(ip.revocation_verifying_key.to_bytes()),
+            verifiable_encryption_key: hex::encode(ip.verifiable_encryption_key.to_bytes()),
+            revocation_registry: hex::encode(ip.revocation_registry.to_bytes()),
         }
     }
 }

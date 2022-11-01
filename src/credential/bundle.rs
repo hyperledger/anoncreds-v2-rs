@@ -1,5 +1,6 @@
 use crate::{credential::*, issuer::*};
 use serde::{Deserialize, Serialize};
+use yeti::knox::accumulator::vb20::Accumulator;
 
 /// A credential and the issuer's information
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -16,6 +17,18 @@ impl From<&CredentialBundle> for CredentialBundleText {
             issuer: IssuerPublicText::from(&cb.issuer),
             credential: CredentialText::from(&cb.credential),
         }
+    }
+}
+
+impl CredentialBundle {
+    /// Update the bundles revocation handle
+    pub fn update_revocation_handle(
+        &mut self,
+        revocation_handle: MembershipWitness,
+        revocation_registry: Accumulator,
+    ) {
+        self.credential.revocation_handle = revocation_handle;
+        self.issuer.revocation_registry = revocation_registry;
     }
 }
 

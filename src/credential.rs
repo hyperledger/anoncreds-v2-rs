@@ -30,8 +30,8 @@ impl From<&Credential> for CredentialText {
     fn from(credential: &Credential) -> Self {
         Self {
             claims: credential.claims.iter().map(|c| c.to_text()).collect(),
-            signature: hex::encode(&credential.signature.to_bytes()),
-            revocation_handle: hex::encode(&credential.revocation_handle.to_bytes()),
+            signature: hex::encode(credential.signature.to_bytes()),
+            revocation_handle: hex::encode(credential.revocation_handle.to_bytes()),
             revocation_index: credential.revocation_index,
         }
     }

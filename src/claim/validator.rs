@@ -1,9 +1,9 @@
 use crate::claim::ClaimData;
+use crate::error::Error;
+use crate::CredxResult;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
-use crate::CredxResult;
-use crate::error::Error;
 
 /// The claim validator types
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
@@ -28,7 +28,7 @@ impl From<u8> for ClaimValidatorType {
             2 => Self::Range,
             3 => Self::Regex,
             4 => Self::AnyOne,
-            _ => Self::Unknown
+            _ => Self::Unknown,
         }
     }
 }
