@@ -195,8 +195,6 @@ impl Issuer {
         request: &BlindCredentialRequest,
         claims: &BTreeMap<String, ClaimData>,
     ) -> CredxResult<BlindCredentialBundle> {
-        // request.verify(self)?;
-
         if request.blind_claim_labels.len() + claims.len() != self.schema.claims.len() {
             return Err(Error::InvalidClaimData(
                 "blind_claims.len + known_claims.len != schema.claims.len",
