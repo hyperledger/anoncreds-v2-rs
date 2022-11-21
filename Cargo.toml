@@ -6,7 +6,8 @@ edition = "2021"
 
 [dependencies]
 bulletproofs = { version = "4.0.0", git = "https://github.com/cryptidtech/bulletproofs" }
-group = "0.10"
+ff = "0.12"
+group = "0.12"
 hex = "0.4"
 indexmap = "1"
 merlin = "3"
