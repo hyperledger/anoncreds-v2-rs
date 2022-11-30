@@ -18,7 +18,7 @@ impl<'a, 'b> ProofVerifier for VerifiableEncryptionVerifier<'a, 'b> {
         transcript: &mut Transcript,
     ) -> CredxResult<()> {
         let challenge = -challenge;
-        let r1 = self.proof.c1 * challenge + G1Projective::generator() * self.proof.blinder_proof;
+        let r1 = self.proof.c1 * challenge + G1Projective::GENERATOR * self.proof.blinder_proof;
         let r2 = self.proof.c2 * challenge
             + self.statement.message_generator * self.proof.message_proof
             + self.statement.encryption_key.0 * self.proof.blinder_proof;

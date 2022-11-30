@@ -44,10 +44,10 @@ impl<'a> VerifiableEncryptionBuilder<'a> {
     ) -> CredxResult<Self> {
         let r = Scalar::random(&mut rng);
 
-        let c1 = G1Projective::generator() * b;
+        let c1 = G1Projective::GENERATOR * b;
         let c2 = statement.message_generator * message + statement.encryption_key.0 * b;
 
-        let r1 = G1Projective::generator() * r;
+        let r1 = G1Projective::GENERATOR * r;
         let r2 = statement.message_generator * b + statement.encryption_key.0 * r;
 
         transcript.append_message(b"", statement.id.as_bytes());
