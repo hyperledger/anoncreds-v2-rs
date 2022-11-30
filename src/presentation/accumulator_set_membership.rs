@@ -1,7 +1,7 @@
 use crate::credential::Credential;
 use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::AccumulatorSetMembershipStatement;
-use crate::{error::Error, CredxResult};
+use crate::CredxResult;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use yeti::knox::accumulator::vb20::{
@@ -58,51 +58,4 @@ pub struct AccumulatorSetMembershipProof {
     pub id: String,
     /// The membership proof
     pub proof: MembershipProof,
-}
-
-impl From<AccumulatorSetMembershipProof> for AccumulatorSetMembershipProofText {
-    fn from(p: AccumulatorSetMembershipProof) -> Self {
-        Self::from(&p)
-    }
-}
-
-impl From<&AccumulatorSetMembershipProof> for AccumulatorSetMembershipProofText {
-    fn from(p: &AccumulatorSetMembershipProof) -> Self {
-        Self {
-            id: p.id.clone(),
-            proof: hex::encode(p.proof.to_bytes()),
-        }
-    }
-}
-
-/// A membership proof in a text friendly format
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct AccumulatorSetMembershipProofText {
-    /// The statement identifier
-    pub id: String,
-    /// The membership proof
-    pub proof: String,
-}
-
-impl TryFrom<AccumulatorSetMembershipProofText> for AccumulatorSetMembershipProof {
-    type Error = Error;
-
-    fn try_from(value: AccumulatorSetMembershipProofText) -> Result<Self, Self::Error> {
-        Self::try_from(&value)
-    }
-}
-
-impl TryFrom<&AccumulatorSetMembershipProofText> for AccumulatorSetMembershipProof {
-    type Error = Error;
-
-    fn try_from(value: &AccumulatorSetMembershipProofText) -> Result<Self, Self::Error> {
-        let mut input = [0u8; MembershipProof::BYTES];
-        let proof_bytes = hex::decode(&value.proof).map_err(|_| Error::DeserializationError)?;
-        input.copy_from_slice(&proof_bytes);
-        let proof = MembershipProof::from_bytes(&input).map_err(|_| Error::DeserializationError)?;
-        Ok(Self {
-            id: value.id.clone(),
-            proof,
-        })
-    }
 }

@@ -1,4 +1,3 @@
-use crate::utils::g1_from_hex_str;
 use crate::{
     claim::ClaimData, credential::Credential, error::Error, issuer::IssuerPublic, CredxResult,
 };
@@ -57,73 +56,6 @@ impl BlindCredential {
             signature,
             revocation_handle: self.revocation_handle,
             revocation_index,
-        })
-    }
-}
-
-impl From<&BlindCredential> for BlindCredentialText {
-    fn from(credential: &BlindCredential) -> Self {
-        let claims = credential
-            .claims
-            .iter()
-            .map(|(label, data)| (label.clone(), data.to_text()))
-            .collect();
-        Self {
-            claims,
-            signature: hex::encode(credential.signature.to_bytes()),
-            revocation_handle: hex::encode(credential.revocation_handle.to_bytes()),
-            revocation_label: credential.revocation_label.clone(),
-        }
-    }
-}
-
-impl From<BlindCredential> for BlindCredentialText {
-    fn from(credential: BlindCredential) -> Self {
-        Self::from(&credential)
-    }
-}
-
-/// A blind credential in a text friendly format
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct BlindCredentialText {
-    /// The signed claims
-    pub claims: BTreeMap<String, String>,
-    /// The signature
-    pub signature: String,
-    /// The revocation handle
-    pub revocation_handle: String,
-    /// The revocation label
-    pub revocation_label: String,
-}
-
-impl TryFrom<&BlindCredentialText> for BlindCredential {
-    type Error = Error;
-
-    fn try_from(credential: &BlindCredentialText) -> Result<Self, Self::Error> {
-        let mut claims = BTreeMap::new();
-        for (label, s) in &credential.claims {
-            claims.insert(label.clone(), ClaimData::from_text(s)?);
-        }
-
-        let sig_bytes = hex::decode(&credential.signature).map_err(|_| {
-            Error::InvalidClaimData("unable to decode credential signature from hex string")
-        })?;
-        let sig_buf = <[u8; 128]>::try_from(sig_bytes.as_slice())
-            .map_err(|_| Error::InvalidClaimData("unable to read credential signature bytes"))?;
-        let sig = BlindSignature::from_bytes(&sig_buf);
-        if sig.is_none().unwrap_u8() == 1 {
-            return Err(Error::InvalidClaimData(
-                "unable to deserialize credential blind signature",
-            ));
-        }
-        Ok(Self {
-            claims,
-            signature: sig.unwrap(),
-            revocation_handle: MembershipWitness(g1_from_hex_str(
-                &credential.revocation_handle,
-                Error::InvalidClaimData("unable to deserialize revocation handle"),
-            )?),
-            revocation_label: credential.revocation_label.clone(),
         })
     }
 }

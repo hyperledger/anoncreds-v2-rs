@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    claim::ClaimData, credential::CredentialBundle, error::Error, issuer::{IssuerPublic, IssuerPublicText}, CredxResult,
+    claim::ClaimData, credential::CredentialBundle, error::Error, issuer::IssuerPublic, CredxResult,
 };
 
 use crate::credential::Credential;
@@ -69,34 +69,5 @@ impl BlindCredentialBundle {
                 revocation_index,
             },
         })
-    }
-}
-
-impl TryFrom<&BlindCredentialBundleText> for BlindCredentialBundle {
-    type Error = Error;
-
-    fn try_from(value: &BlindCredentialBundleText) -> Result<Self, Self::Error> {
-        Ok(Self {
-            issuer: IssuerPublic::try_from(&value.issuer)?,
-            credential: BlindCredential::try_from(&value.credential)?,
-        })
-    }
-}
-
-/// A blind credential bundle in a text friendly format
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct BlindCredentialBundleText {
-    /// The issuer information that gave this credential
-    pub issuer: IssuerPublicText,
-    /// The blind credential
-    pub credential: BlindCredentialText,
-}
-
-impl From<&BlindCredentialBundle> for BlindCredentialBundleText {
-    fn from(value: &BlindCredentialBundle) -> Self {
-        Self {
-            issuer: IssuerPublicText::from(&value.issuer),
-            credential: BlindCredentialText::from(&value.credential),
-        }
     }
 }
