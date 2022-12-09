@@ -1,5 +1,7 @@
 use credx::blind::BlindCredentialRequest;
-use credx::claim::{ClaimData, ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim};
+use credx::claim::{
+    ClaimData, ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim,
+};
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::error::Error;
 use credx::issuer::Issuer;
@@ -165,11 +167,12 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
             claim_type: ClaimType::Hashed,
             label: "address".to_string(),
             print_friendly: true,
-            validators: vec![ClaimValidator::Length {
-                min: None,
-                max: Some(u8::MAX as usize),
-            },
-            ClaimValidator::Regex(Regex::new(r#"[\w\s]+"#).unwrap()),
+            validators: vec![
+                ClaimValidator::Length {
+                    min: None,
+                    max: Some(u8::MAX as usize),
+                },
+                ClaimValidator::Regex(Regex::new(r#"[\w\s]+"#).unwrap()),
                 ClaimValidator::AnyOne(vec![
                     NumberClaim::from(0).into(),
                     NumberClaim::from(2).into(),

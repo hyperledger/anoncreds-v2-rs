@@ -15,8 +15,11 @@ use yeti::knox::{
 /// A blind credential signing request
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BlindCredentialRequest {
+    /// The blind signing context
     pub blind_signature_context: BlindSignatureContext,
+    /// The blind claim labels
     pub blind_claim_labels: Vec<String>,
+    /// The nonce for this context
     pub nonce: Scalar,
 }
 
