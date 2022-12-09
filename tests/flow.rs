@@ -1,7 +1,5 @@
 use credx::blind::BlindCredentialRequest;
-use credx::claim::{
-    ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim,
-};
+use credx::claim::{ClaimData, ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim};
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::error::Error;
 use credx::issuer::Issuer;
@@ -15,6 +13,7 @@ use group::ff::Field;
 use indexmap::indexmap;
 use maplit::{btreemap, btreeset};
 use rand_core::RngCore;
+use regex::Regex;
 use yeti::knox::bls12_381_plus::{ExpandMsgXmd, G1Projective, Scalar};
 use yeti::sha2;
 
@@ -169,7 +168,17 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
             validators: vec![ClaimValidator::Length {
                 min: None,
                 max: Some(u8::MAX as usize),
-            }],
+            },
+            ClaimValidator::Regex(Regex::new(r#"[\w\s]+"#).unwrap()),
+                ClaimValidator::AnyOne(vec![
+                    NumberClaim::from(0).into(),
+                    NumberClaim::from(2).into(),
+                    NumberClaim::from(4).into(),
+                    NumberClaim::from(6).into(),
+                    NumberClaim::from(8).into(),
+                    NumberClaim::from(10).into(),
+                ]),
+            ],
         },
         ClaimSchema {
             claim_type: ClaimType::Number,
@@ -182,6 +191,8 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
         },
     ];
     let cred_schema = CredentialSchema::new(Some(LABEL), Some(DESCRIPTION), &[], &schema_claims)?;
+
+    println!("{}", serde_json::to_string(&cred_schema).unwrap());
 
     let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
 
