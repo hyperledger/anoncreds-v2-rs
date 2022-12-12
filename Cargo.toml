@@ -19,7 +19,6 @@ serde = { version = "1", features = ["serde_derive"] }
 serde_bare = "0.5"
 serde_json = "1"
 serde_regex = "1"
-serde_repr = "0.1"
 uint-zigzag = { version = "0.2", features = ["std"] }
 
 [dev-dependencies]
