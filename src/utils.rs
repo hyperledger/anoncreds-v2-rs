@@ -31,7 +31,11 @@ pub fn serialize_point<P: Group + GroupEncoding + Serialize + DeserializeOwned, 
     s: S,
 ) -> Result<S::Ok, S::Error> {
     let bytes = point.to_bytes().as_ref().to_vec();
-    s.serialize_bytes(bytes.as_slice())
+    if s.is_human_readable() {
+        s.serialize_str(&hex::encode(bytes.as_slice()))
+    } else {
+        s.serialize_bytes(bytes.as_slice())
+    }
 }
 
 pub fn deserialize_point<
@@ -69,11 +73,31 @@ pub fn deserialize_point<
             }
             Ok(point.unwrap())
         }
+
+        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: DError {
+            let v = hex::decode(v).map_err(|_| DError::invalid_type(Unexpected::Str(v), &self))?;
+            let mut repr = PP::Repr::default();
+            if repr.as_ref().len() != v.len() {
+                return Err(DError::invalid_type(Unexpected::Bytes(v.as_slice()), &self));
+            }
+            repr.as_mut().copy_from_slice(v.as_slice());
+            let point = PP::from_bytes(&repr);
+            if point.is_none().unwrap_u8() == 1u8 {
+                return Err(DError::invalid_type(Unexpected::Bytes(v.as_slice()), &self));
+            }
+            Ok(point.unwrap())
+        }
     }
 
-    d.deserialize_bytes(PointVisitor::<P> {
-        _marker: PhantomData,
-    })
+    if d.is_human_readable() {
+        d.deserialize_str(PointVisitor::<P> {
+            _marker: PhantomData,
+        })
+    } else {
+        d.deserialize_bytes(PointVisitor::<P> {
+            _marker: PhantomData,
+        })
+    }
 }
 
 pub fn serialize_indexset<T: Serialize, S: Serializer>(
