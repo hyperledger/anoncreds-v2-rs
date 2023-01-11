@@ -23,6 +23,7 @@
 - [BlindCredentialBundle](#blindcredentialbundle)
 - [BlindCredential](#blindcredential)
 - [PresentationSchema](#presentationschema)
+- [PresentationInfo](#presentationinfo)
 - [Presentation](#presentation)
 - [PresentationProofs](#presentationproofs)
 - [Statements](#statements)
@@ -269,7 +270,7 @@ Create a credential proof given a presentation schema
 2. presentation_schema: [PresentationSchema](#presentationschema)
 
 **Output**
-- presentation: [Presentation](#presentation)
+- presentation_info: [PresentationInfo](#presentationinfo)
 
 ### verifyCredentialProof
 
@@ -302,7 +303,8 @@ Verify a credential proof according to a presentation schema
   - Any of the following ["revocation", "hashed", "scalar", "number"]
 - **label**(required): String
   - No spaces allowed. Must be unique per credential schema
-- **print_friendly**(required): Boolean
+- **print_friendly**(optional): Boolean
+  - defaults to true is not supplied
 - **validators**(required): Array[[ClaimValidator](#claimvalidator)]
   - 0 or more validators
 
@@ -339,29 +341,30 @@ Is one of the following
 Is one of the following
 
 - Hashed: Object
-  - **value**: Array[byte]
+  - **value**(required): Array[byte]
     - Represents an arbitrary length value to be signed like a string, image, biometric.
-  - **print_friendly**: Boolean
+  - **print_friendly**(optional): Boolean
     - Whether the claim can be printed in human readable format
+    - Default is true
 - Number: Object
-  - **value**: Number
+  - **value**(required): Number
     - Represents a 64-bit signed number to be signed.
 - Scalar: Object
-  - **value**: Array[byte]
+  - **value**(required): Array[byte]
     - Represents a cryptographic secret to be signed
 - Revocation: Object
-    - **value**: String
+    - **value**(required): String
       - The revocable value to be signed
 
 ### Credential
 
-- **claims**: Array[[ClaimData](#claimdata)]
+- **claims**(required): Array[[ClaimData](#claimdata)]
   - The raw claims that were signed
-- **signature**: Array[byte]
+- **signature**(required): Array[byte]
   - The credential signature
-- **revocation_handle**: Array[byte]
+- **revocation_handle**(required): Array[byte]
   - The credential's revocation handle
-- **revocation_index**: Number
+- **revocation_index**(required): Number
   - The credential claim serving as the revocation claim
 
 
@@ -380,14 +383,18 @@ Is one of the following
 
 ### BlindCredential
 
-- **claims**: Array[[ClaimData](#claimdata)]
+- **claims**(required): Array[[ClaimData](#claimdata)]
     - The raw claims that were signed
-- **signature**: Array[byte]
+- **signature**(required): Array[byte]
     - The credential signature
-- **revocation_handle**: Array[byte]
+- **revocation_handle**(required): Array[byte]
     - The credential's revocation handle
-- **revocation_index**: Number
+- **revocation_index**(required): Number
     - The credential claim serving as the revocation claim
+
+### PresentationInfo
+- **presentation**(required): [Presentation](#presentation)
+- **nonce**(required): String
 
 ### PresentationSchema
 
