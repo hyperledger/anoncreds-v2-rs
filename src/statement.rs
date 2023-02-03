@@ -1,11 +1,11 @@
-mod accumulator_set_membership;
+mod revocation;
 mod commitment;
 mod equality;
 mod range;
 mod signature;
 mod verifiable_encryption;
 
-pub use accumulator_set_membership::*;
+pub use revocation::*;
 pub use commitment::*;
 pub use equality::*;
 pub use range::*;
@@ -35,7 +35,7 @@ pub enum Statements {
     /// Equality statements
     Equality(Box<EqualityStatement>),
     /// Accumulator set membership statements
-    AccumulatorSetMembership(Box<AccumulatorSetMembershipStatement>),
+    Revocation(Box<RevocationStatement>),
     /// Commitment statements
     Commitment(Box<CommitmentStatement<G1Projective>>),
     /// Verifiable Encryption statements
@@ -56,9 +56,9 @@ impl From<EqualityStatement> for Statements {
     }
 }
 
-impl From<AccumulatorSetMembershipStatement> for Statements {
-    fn from(a: AccumulatorSetMembershipStatement) -> Self {
-        Self::AccumulatorSetMembership(Box::new(a))
+impl From<RevocationStatement> for Statements {
+    fn from(a: RevocationStatement) -> Self {
+        Self::Revocation(Box::new(a))
     }
 }
 
@@ -86,7 +86,7 @@ impl Statements {
         match self {
             Self::Signature(s) => s.id(),
             Self::Equality(e) => e.id(),
-            Self::AccumulatorSetMembership(a) => a.id(),
+            Self::Revocation(a) => a.id(),
             Self::Commitment(c) => c.id(),
             Self::VerifiableEncryption(v) => v.id(),
             Self::Range(r) => r.id(),
@@ -98,7 +98,7 @@ impl Statements {
         match self {
             Self::Signature(s) => s.reference_ids(),
             Self::Equality(e) => e.reference_ids(),
-            Self::AccumulatorSetMembership(a) => a.reference_ids(),
+            Self::Revocation(a) => a.reference_ids(),
             Self::Commitment(c) => c.reference_ids(),
             Self::VerifiableEncryption(v) => v.reference_ids(),
             Self::Range(r) => r.reference_ids(),
@@ -110,7 +110,7 @@ impl Statements {
         match self {
             Self::Signature(s) => s.add_challenge_contribution(transcript),
             Self::Equality(e) => e.add_challenge_contribution(transcript),
-            Self::AccumulatorSetMembership(a) => a.add_challenge_contribution(transcript),
+            Self::Revocation(a) => a.add_challenge_contribution(transcript),
             Self::Commitment(c) => c.add_challenge_contribution(transcript),
             Self::VerifiableEncryption(v) => v.add_challenge_contribution(transcript),
             Self::Range(r) => r.add_challenge_contribution(transcript),
@@ -122,7 +122,7 @@ impl Statements {
         match self {
             Self::Signature(s) => s.get_claim_index(reference_id),
             Self::Equality(e) => e.get_claim_index(reference_id),
-            Self::AccumulatorSetMembership(a) => a.get_claim_index(reference_id),
+            Self::Revocation(a) => a.get_claim_index(reference_id),
             Self::Commitment(c) => c.get_claim_index(reference_id),
             Self::VerifiableEncryption(v) => v.get_claim_index(reference_id),
             Self::Range(r) => r.get_claim_index(reference_id),

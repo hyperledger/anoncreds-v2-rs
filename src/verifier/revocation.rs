@@ -1,21 +1,21 @@
-use crate::presentation::AccumulatorSetMembershipProof;
-use crate::statement::AccumulatorSetMembershipStatement;
+use crate::presentation::RevocationProof;
+use crate::statement::RevocationStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
 use merlin::Transcript;
 use yeti::knox::accumulator::vb20::{Element, ProofParams};
 use yeti::knox::bls12_381_plus::Scalar;
 
-pub struct AccumulatorSetMembershipVerifier<'a, 'b> {
-    statement: &'a AccumulatorSetMembershipStatement,
-    accumulator_proof: &'b AccumulatorSetMembershipProof,
+pub struct RevocationVerifier<'a, 'b> {
+    statement: &'a RevocationStatement,
+    accumulator_proof: &'b RevocationProof,
     params: ProofParams,
 }
 
-impl<'a, 'b> AccumulatorSetMembershipVerifier<'a, 'b> {
+impl<'a, 'b> RevocationVerifier<'a, 'b> {
     pub fn new(
-        statement: &'a AccumulatorSetMembershipStatement,
-        accumulator_proof: &'b AccumulatorSetMembershipProof,
+        statement: &'a RevocationStatement,
+        accumulator_proof: &'b RevocationProof,
         nonce: &[u8],
     ) -> Self {
         let params = ProofParams::new(statement.verification_key, Some(nonce));
@@ -27,7 +27,7 @@ impl<'a, 'b> AccumulatorSetMembershipVerifier<'a, 'b> {
     }
 }
 
-impl<'a, 'b> ProofVerifier for AccumulatorSetMembershipVerifier<'a, 'b> {
+impl<'a, 'b> ProofVerifier for RevocationVerifier<'a, 'b> {
     fn add_challenge_contribution(
         &self,
         challenge: Scalar,

@@ -1,6 +1,6 @@
 use super::SignatureProof;
 use crate::presentation::{
-    AccumulatorSetMembershipProof, CommitmentProof, EqualityProof, RangeProof,
+    RevocationProof, CommitmentProof, EqualityProof, RangeProof,
     VerifiableEncryptionProof,
 };
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ pub enum PresentationProofs {
     /// Signature proofs of knowledge
     Signature(Box<SignatureProof>),
     /// Accumulator set membership proof
-    AccumulatorSetMembership(Box<AccumulatorSetMembershipProof>),
+    AccumulatorSetMembership(Box<RevocationProof>),
     /// Equality proof
     Equality(Box<EqualityProof>),
     /// Commitment proof
@@ -28,8 +28,8 @@ impl From<SignatureProof> for PresentationProofs {
     }
 }
 
-impl From<AccumulatorSetMembershipProof> for PresentationProofs {
-    fn from(p: AccumulatorSetMembershipProof) -> Self {
+impl From<RevocationProof> for PresentationProofs {
+    fn from(p: RevocationProof) -> Self {
         Self::AccumulatorSetMembership(Box::new(p))
     }
 }

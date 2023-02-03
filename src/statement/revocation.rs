@@ -6,7 +6,7 @@ use yeti::knox::accumulator::vb20;
 
 /// Accumulator set membership statement
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AccumulatorSetMembershipStatement {
+pub struct RevocationStatement {
     /// The statement id
     pub id: String,
     /// The other statement id
@@ -19,7 +19,7 @@ pub struct AccumulatorSetMembershipStatement {
     pub claim: usize,
 }
 
-impl Statement for AccumulatorSetMembershipStatement {
+impl Statement for RevocationStatement {
     fn id(&self) -> String {
         self.id.clone()
     }
@@ -29,7 +29,7 @@ impl Statement for AccumulatorSetMembershipStatement {
     }
 
     fn add_challenge_contribution(&self, transcript: &mut Transcript) {
-        transcript.append_message(b"statement type", b"vb20 set membership");
+        transcript.append_message(b"statement type", b"vb20 set membership revocation");
         transcript.append_message(b"statement id", self.id.as_bytes());
         transcript.append_message(b"reference statement id", self.reference_id.as_bytes());
         transcript.append_message(b"claim index", &Uint::from(self.claim).to_vec());

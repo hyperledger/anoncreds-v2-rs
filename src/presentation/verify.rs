@@ -32,10 +32,10 @@ impl Presentation {
         for (id, pred_statement) in &predicate_statements {
             match (pred_statement, self.proofs.get(*id)) {
                 (
-                    Statements::AccumulatorSetMembership(aa),
+                    Statements::Revocation(aa),
                     Some(PresentationProofs::AccumulatorSetMembership(proof)),
                 ) => {
-                    let verifier = AccumulatorSetMembershipVerifier::new(aa, proof, nonce);
+                    let verifier = RevocationVerifier::new(aa, proof, nonce);
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }

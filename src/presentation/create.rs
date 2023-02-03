@@ -67,7 +67,7 @@ impl Presentation {
                     id_to_builder.insert(*id, builders.len());
                     builders.push(builder.into());
                 }
-                Statements::AccumulatorSetMembership(a) => {
+                Statements::Revocation(a) => {
                     let proof_message = messages[&a.reference_id][a.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData(
@@ -75,7 +75,7 @@ impl Presentation {
                         ));
                     }
                     let credential = &credentials[&a.reference_id];
-                    let builder = AccumulatorSetMembershipProofBuilder::commit(
+                    let builder = RevocationProofBuilder::commit(
                         a,
                         credential,
                         proof_message,

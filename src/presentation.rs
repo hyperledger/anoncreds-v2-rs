@@ -1,4 +1,4 @@
-mod accumulator_set_membership;
+mod revocation;
 mod commitment;
 mod create;
 mod equality;
@@ -9,7 +9,7 @@ mod signature;
 mod verifiable_encryption;
 mod verify;
 
-pub use accumulator_set_membership::*;
+pub use revocation::*;
 pub use commitment::*;
 pub use equality::*;
 pub use proof::*;
@@ -41,7 +41,7 @@ pub trait PresentationBuilder {
 /// Encapsulates the builders for later conversion to proofs
 pub(crate) enum PresentationBuilders<'a> {
     Signature(Box<SignatureBuilder<'a>>),
-    AccumulatorSetMembership(Box<AccumulatorSetMembershipProofBuilder<'a>>),
+    AccumulatorSetMembership(Box<RevocationProofBuilder<'a>>),
     Equality(Box<EqualityBuilder<'a>>),
     Commitment(Box<CommitmentBuilder<'a>>),
     VerifiableEncryption(Box<VerifiableEncryptionBuilder<'a>>),
@@ -68,8 +68,8 @@ impl<'a> From<SignatureBuilder<'a>> for PresentationBuilders<'a> {
     }
 }
 
-impl<'a> From<AccumulatorSetMembershipProofBuilder<'a>> for PresentationBuilders<'a> {
-    fn from(acc: AccumulatorSetMembershipProofBuilder<'a>) -> Self {
+impl<'a> From<RevocationProofBuilder<'a>> for PresentationBuilders<'a> {
+    fn from(acc: RevocationProofBuilder<'a>) -> Self {
         Self::AccumulatorSetMembership(Box::new(acc))
     }
 }

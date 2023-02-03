@@ -1,6 +1,6 @@
 use crate::credential::Credential;
 use crate::presentation::{PresentationBuilder, PresentationProofs};
-use crate::statement::AccumulatorSetMembershipStatement;
+use crate::statement::RevocationStatement;
 use crate::CredxResult;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
@@ -10,15 +10,15 @@ use yeti::knox::accumulator::vb20::{
 use yeti::knox::bls12_381_plus::Scalar;
 use yeti::knox::short_group_sig_core::ProofMessage;
 
-pub(crate) struct AccumulatorSetMembershipProofBuilder<'a> {
+pub(crate) struct RevocationProofBuilder<'a> {
     id: &'a String,
     committing: MembershipProofCommitting,
 }
 
-impl<'a> PresentationBuilder for AccumulatorSetMembershipProofBuilder<'a> {
+impl<'a> PresentationBuilder for RevocationProofBuilder<'a> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         let proof = self.committing.gen_proof(Element(challenge));
-        AccumulatorSetMembershipProof {
+        RevocationProof {
             id: self.id.clone(),
             proof,
         }
@@ -26,10 +26,10 @@ impl<'a> PresentationBuilder for AccumulatorSetMembershipProofBuilder<'a> {
     }
 }
 
-impl<'a> AccumulatorSetMembershipProofBuilder<'a> {
+impl<'a> RevocationProofBuilder<'a> {
     /// Create a new accumulator set membership proof builder
     pub fn commit(
-        statement: &'a AccumulatorSetMembershipStatement,
+        statement: &'a RevocationStatement,
         credential: &Credential,
         message: ProofMessage<Scalar>,
         nonce: &[u8],
@@ -53,7 +53,7 @@ impl<'a> AccumulatorSetMembershipProofBuilder<'a> {
 
 /// A membership proof based on accumulators
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct AccumulatorSetMembershipProof {
+pub struct RevocationProof {
     /// The statement identifier
     pub id: String,
     /// The membership proof

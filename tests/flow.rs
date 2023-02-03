@@ -7,7 +7,7 @@ use credx::error::Error;
 use credx::issuer::Issuer;
 use credx::presentation::{Presentation, PresentationSchema};
 use credx::statement::{
-    AccumulatorSetMembershipStatement, CommitmentStatement, RangeStatement, SignatureStatement,
+    RevocationStatement, CommitmentStatement, RangeStatement, SignatureStatement,
     VerifiableEncryptionStatement,
 };
 use credx::{random_string, CredxResult};
@@ -83,7 +83,7 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
         id: random_string(16, rand::thread_rng()),
         issuer: issuer_public.clone(),
     };
-    let acc_st = AccumulatorSetMembershipStatement {
+    let acc_st = RevocationStatement {
         id: random_string(16, rand::thread_rng()),
         reference_id: sig_st.id.clone(),
         accumulator: issuer_public.revocation_registry,
@@ -213,7 +213,7 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
         id: sig_st_id.clone(),
         issuer: issuer_public.clone(),
     };
-    let acc_st = AccumulatorSetMembershipStatement {
+    let acc_st = RevocationStatement {
         id: random_string(16, rand::thread_rng()),
         reference_id: sig_st.id.clone(),
         accumulator: issuer_public.revocation_registry,

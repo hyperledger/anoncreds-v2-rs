@@ -1,11 +1,11 @@
-mod accumulator_set_membership;
+mod revocation;
 mod commitment;
 mod equality;
 mod range;
 mod signature;
 mod verifiable_encryption;
 
-pub use accumulator_set_membership::*;
+pub use revocation::*;
 pub use commitment::*;
 pub use equality::*;
 pub use range::*;
@@ -30,7 +30,7 @@ pub(crate) trait ProofVerifier {
 
 pub(crate) enum ProofVerifiers<'a, 'b, 'c> {
     Signature(Box<SignatureVerifier<'a, 'b>>),
-    AccumulatorSetMembership(Box<AccumulatorSetMembershipVerifier<'a, 'b>>),
+    AccumulatorSetMembership(Box<RevocationVerifier<'a, 'b>>),
     Equality(Box<EqualityVerifier<'a, 'b, 'c>>),
     Commitment(Box<CommitmentVerifier<'a, 'b>>),
     VerifiableEncryption(Box<VerifiableEncryptionVerifier<'a, 'b>>),
@@ -43,8 +43,8 @@ impl<'a, 'b, 'c> From<SignatureVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> 
     }
 }
 
-impl<'a, 'b, 'c> From<AccumulatorSetMembershipVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
-    fn from(a: AccumulatorSetMembershipVerifier<'a, 'b>) -> Self {
+impl<'a, 'b, 'c> From<RevocationVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+    fn from(a: RevocationVerifier<'a, 'b>) -> Self {
         Self::AccumulatorSetMembership(Box::new(a))
     }
 }
