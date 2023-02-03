@@ -19,6 +19,10 @@ pub fn random_string(length: usize, mut rng: impl RngCore + CryptoRng) -> String
     hex::encode(&buffer)
 }
 
+pub use indexmap;
+pub use regex;
+pub use yeti;
+
 /// The blind credential operations
 pub mod blind;
 /// Claim related methods
@@ -55,5 +59,3 @@ pub mod prelude {
 }
 
 extern crate core;
-/// Re-export yeti
-pub extern crate yeti;
