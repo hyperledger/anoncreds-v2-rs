@@ -3,19 +3,69 @@ use core::{
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use yeti::{
     knox::{bls12_381_plus::Scalar, Knox},
     sha3::Shake256,
 };
 
 /// Claims that are hashed to a scalar
-#[derive(Clone, Debug, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq)]
 pub struct HashedClaim {
     /// The value to be hashed
     pub value: Vec<u8>,
     /// Whether the claim can be printed
     pub print_friendly: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+struct HashedClaimSerdesFriendly {
+    pub value: String,
+    pub print_friendly: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+struct HashedClaimSerdes {
+    pub value: Vec<u8>,
+    pub print_friendly: bool,
+}
+
+impl Serialize for HashedClaim {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        if s.is_human_readable() {
+            let ss = if self.print_friendly {
+                String::from_utf8(self.value.clone()).unwrap()
+            } else {
+                hex::encode(&self.value)
+            };
+            HashedClaimSerdesFriendly { value: ss, print_friendly: self.print_friendly }.serialize(s)
+        } else {
+            HashedClaimSerdes { value: self.value.clone(), print_friendly: self.print_friendly }.serialize(s)
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for HashedClaim {
+    fn deserialize<D>(d: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        if d.is_human_readable() {
+            let hc = HashedClaimSerdesFriendly::deserialize(d)?;
+            let value = if hc.print_friendly {
+                hc.value.as_bytes().to_vec()
+            } else {
+                hex::decode(hc.value).map_err(|e| serde::de::Error::custom(e.to_string()))?
+            };
+            Ok(HashedClaim {
+                value,
+                print_friendly: hc.print_friendly,
+            })
+        } else {
+            let hc = HashedClaimSerdes::deserialize(d)?;
+            Ok(HashedClaim {
+                value: hc.value,
+                print_friendly: hc.print_friendly,
+            })
+        }
+    }
 }
 
 impl PartialEq for HashedClaim {
