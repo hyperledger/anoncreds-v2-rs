@@ -31,22 +31,36 @@ struct HashedClaimSerdes {
 }
 
 impl Serialize for HashedClaim {
-    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         if s.is_human_readable() {
             let ss = if self.print_friendly {
                 String::from_utf8(self.value.clone()).unwrap()
             } else {
                 hex::encode(&self.value)
             };
-            HashedClaimSerdesFriendly { value: ss, print_friendly: self.print_friendly }.serialize(s)
+            HashedClaimSerdesFriendly {
+                value: ss,
+                print_friendly: self.print_friendly,
+            }
+            .serialize(s)
         } else {
-            HashedClaimSerdes { value: self.value.clone(), print_friendly: self.print_friendly }.serialize(s)
+            HashedClaimSerdes {
+                value: self.value.clone(),
+                print_friendly: self.print_friendly,
+            }
+            .serialize(s)
         }
     }
 }
 
 impl<'de> Deserialize<'de> for HashedClaim {
-    fn deserialize<D>(d: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(d: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         if d.is_human_readable() {
             let hc = HashedClaimSerdesFriendly::deserialize(d)?;
             let value = if hc.print_friendly {

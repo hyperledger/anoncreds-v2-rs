@@ -1,6 +1,9 @@
+use serde::{
+    de::{Error as DError, Unexpected, Visitor},
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 use std::fmt::{Display, Error as FmtError, Formatter};
 use std::str::FromStr;
-use serde::{Serialize, Serializer, Deserialize, Deserializer, de::{Visitor, Error as DError, Unexpected}};
 
 /// The claim type
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -25,12 +28,12 @@ impl FromStr for ClaimType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-           "enumeration" => Ok(Self::Enumeration),
+            "enumeration" => Ok(Self::Enumeration),
             "hashed" => Ok(Self::Hashed),
             "number" => Ok(Self::Number),
             "scalar" => Ok(Self::Scalar),
             "revocation" => Ok(Self::Revocation),
-            _ => Err("invalid type".to_string())
+            _ => Err("invalid type".to_string()),
         }
     }
 }
@@ -43,7 +46,7 @@ impl Display for ClaimType {
             Self::Number => write!(f, "Number"),
             Self::Revocation => write!(f, "Revocation"),
             Self::Scalar => write!(f, "Scalar"),
-            _ => Err(FmtError)
+            _ => Err(FmtError),
         }
     }
 }
@@ -62,7 +65,10 @@ impl From<u8> for ClaimType {
 }
 
 impl Serialize for ClaimType {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         if serializer.is_human_readable() {
             let s = self.to_string();
             serializer.serialize_str(&s)
@@ -74,7 +80,10 @@ impl Serialize for ClaimType {
 }
 
 impl<'de> Deserialize<'de> for ClaimType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         struct ClaimTypeVisitor;
 
         impl<'de> Visitor<'de> for ClaimTypeVisitor {
@@ -84,12 +93,19 @@ impl<'de> Deserialize<'de> for ClaimType {
                 write!(formatter, "a string or byte")
             }
 
-            fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E> where E: DError {
+            fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
+            where
+                E: DError,
+            {
                 Ok(ClaimType::from(v))
             }
 
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: DError {
-                ClaimType::from_str(v).map_err(|_e| DError::invalid_type(Unexpected::Other(v), &self))
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: DError,
+            {
+                ClaimType::from_str(v)
+                    .map_err(|_e| DError::invalid_type(Unexpected::Other(v), &self))
             }
         }
 

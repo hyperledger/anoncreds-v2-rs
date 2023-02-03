@@ -33,9 +33,17 @@ impl Presentation {
             match (pred_statement, self.proofs.get(*id)) {
                 (
                     Statements::Revocation(aa),
-                    Some(PresentationProofs::AccumulatorSetMembership(proof)),
+                    Some(PresentationProofs::Revocation(proof)),
                 ) => {
                     let verifier = RevocationVerifier::new(aa, proof, nonce);
+                    verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
+                    verifiers.push(verifier.into());
+                }
+                (
+                    Statements::Membership(mm),
+                    Some(PresentationProofs::Membership(proof))
+                ) => {
+                    let verifier = MembershipVerifier::new(mm, proof, nonce);
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }

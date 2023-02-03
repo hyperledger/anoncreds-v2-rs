@@ -1,8 +1,5 @@
 use super::SignatureProof;
-use crate::presentation::{
-    RevocationProof, CommitmentProof, EqualityProof, RangeProof,
-    VerifiableEncryptionProof,
-};
+use crate::presentation::{CommitmentProof, EqualityProof, MembershipProof, RangeProof, RevocationProof, VerifiableEncryptionProof};
 use serde::{Deserialize, Serialize};
 
 /// The types of presentation proofs
@@ -11,7 +8,7 @@ pub enum PresentationProofs {
     /// Signature proofs of knowledge
     Signature(Box<SignatureProof>),
     /// Accumulator set membership proof
-    AccumulatorSetMembership(Box<RevocationProof>),
+    Revocation(Box<RevocationProof>),
     /// Equality proof
     Equality(Box<EqualityProof>),
     /// Commitment proof
@@ -20,6 +17,8 @@ pub enum PresentationProofs {
     VerifiableEncryption(Box<VerifiableEncryptionProof>),
     /// Range proof
     Range(Box<RangeProof>),
+    /// Membership Proofs
+    Membership(Box<MembershipProof>)
 }
 
 impl From<SignatureProof> for PresentationProofs {
@@ -30,7 +29,7 @@ impl From<SignatureProof> for PresentationProofs {
 
 impl From<RevocationProof> for PresentationProofs {
     fn from(p: RevocationProof) -> Self {
-        Self::AccumulatorSetMembership(Box::new(p))
+        Self::Revocation(Box::new(p))
     }
 }
 
@@ -58,16 +57,23 @@ impl From<RangeProof> for PresentationProofs {
     }
 }
 
+impl From<MembershipProof> for PresentationProofs {
+    fn from(value: MembershipProof) -> Self {
+        Self::Membership(Box::new(value))
+    }
+}
+
 impl PresentationProofs {
     /// Get the underlying statement identifier
     pub fn id(&self) -> &String {
         match self {
             Self::Signature(s) => &s.id,
-            Self::AccumulatorSetMembership(a) => &a.id,
+            Self::Revocation(a) => &a.id,
             Self::Equality(e) => &e.id,
             Self::Commitment(c) => &c.id,
             Self::VerifiableEncryption(v) => &v.id,
             Self::Range(r) => &r.id,
+            Self::Membership(m) => &m.id,
         }
     }
 }

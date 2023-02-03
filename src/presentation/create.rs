@@ -3,7 +3,7 @@ use super::*;
 impl Presentation {
     /// Create a new presentation composed of 1 to many proofs
     pub fn create(
-        credentials: &IndexMap<String, Credential>,
+        credentials: &IndexMap<String, PresentationCredential>,
         schema: &PresentationSchema,
         nonce: &[u8],
     ) -> CredxResult<Self> {
@@ -15,7 +15,7 @@ impl Presentation {
 
         let (signature_statements, predicate_statements) = Self::split_statements(schema);
 
-        if signature_statements.len() != credentials.len() {
+        if signature_statements.len() > credentials.len() {
             return Err(Error::InvalidPresentationData);
         }
 
@@ -39,7 +39,12 @@ impl Presentation {
         for (id, sig_statement) in &signature_statements {
             if let Statements::Signature(ss) = sig_statement {
                 let mut dm = IndexMap::new();
-                for (index, claim) in credentials[*id].claims.iter().enumerate() {
+                let cred = if let PresentationCredential::Signature(cred) = &credentials[*id] {
+                    cred
+                } else {
+                    continue
+                };
+                for (index, claim) in cred.claims.iter().enumerate() {
                     if matches!(messages[id][index], ProofMessage::Revealed(_)) {
                         let label = ss.issuer.schema.claim_indices.get_index(index).unwrap();
                         dm.insert((*label).clone(), claim.clone());
@@ -48,7 +53,7 @@ impl Presentation {
                 Self::add_disclosed_messages_challenge_contribution(id, &dm, &mut transcript);
                 let builder = SignatureBuilder::commit(
                     ss,
-                    credentials[*id].signature,
+                    cred.signature,
                     &messages[*id],
                     rng,
                     &mut transcript,
@@ -74,9 +79,37 @@ impl Presentation {
                             "revealed claim cannot be used for set membership proofs",
                         ));
                     }
-                    let credential = &credentials[&a.reference_id];
+                    let credential = if let PresentationCredential::Signature(credential) =
+                        &credentials[&a.reference_id] {
+                        credential
+                    } else {
+                        continue
+                    };
                     let builder = RevocationProofBuilder::commit(
                         a,
+                        credential,
+                        proof_message,
+                        nonce,
+                        &mut transcript,
+                    )?;
+                    id_to_builder.insert(*id, builders.len());
+                    builders.push(builder.into());
+                }
+                Statements::Membership(m) => {
+                    let proof_message = messages[&m.reference_id][m.claim];
+                    if matches!(proof_message, ProofMessage::Revealed(_)) {
+                        return Err(Error::InvalidClaimData(
+                            "revealed claim cannot be used for set membership proofs",
+                        ));
+                    }
+                    let credential = if let PresentationCredential::Membership(credential) =
+                        &credentials[&m.id] {
+                        credential
+                    } else {
+                        continue
+                    };
+                    let builder = MembershipProofBuilder::commit(
+                        m,
                         credential,
                         proof_message,
                         nonce,
@@ -131,9 +164,13 @@ impl Presentation {
                 .get(id)
                 .ok_or(Error::InvalidPresentationData)?
             {
-                let sig = credentials
+                let sig = if let PresentationCredential::Signature(sig) = credentials
                     .get(&r.signature_id)
-                    .ok_or(Error::InvalidPresentationData)?;
+                    .ok_or(Error::InvalidPresentationData)? {
+                    sig
+                } else {
+                    continue
+                };
                 let builder_index = id_to_builder[&r.reference_id];
                 if let PresentationBuilders::Commitment(commitment) = &builders[builder_index] {
                     if let ClaimData::Number(n) = sig

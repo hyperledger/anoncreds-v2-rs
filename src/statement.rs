@@ -1,14 +1,16 @@
-mod revocation;
 mod commitment;
 mod equality;
+mod membership;
 mod range;
+mod revocation;
 mod signature;
 mod verifiable_encryption;
 
-pub use revocation::*;
 pub use commitment::*;
 pub use equality::*;
+pub use membership::*;
 pub use range::*;
+pub use revocation::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
 
@@ -34,7 +36,7 @@ pub enum Statements {
     Signature(Box<SignatureStatement>),
     /// Equality statements
     Equality(Box<EqualityStatement>),
-    /// Accumulator set membership statements
+    /// Revocation statements
     Revocation(Box<RevocationStatement>),
     /// Commitment statements
     Commitment(Box<CommitmentStatement<G1Projective>>),
@@ -42,6 +44,8 @@ pub enum Statements {
     VerifiableEncryption(Box<VerifiableEncryptionStatement<G1Projective>>),
     /// Range statements
     Range(Box<RangeStatement>),
+    /// Membership statements
+    Membership(Box<MembershipStatement>),
 }
 
 impl From<SignatureStatement> for Statements {
@@ -80,6 +84,12 @@ impl From<RangeStatement> for Statements {
     }
 }
 
+impl From<MembershipStatement> for Statements {
+    fn from(m: MembershipStatement) -> Self {
+        Self::Membership(Box::new(m))
+    }
+}
+
 impl Statements {
     /// Return the statement id
     pub fn id(&self) -> String {
@@ -90,6 +100,7 @@ impl Statements {
             Self::Commitment(c) => c.id(),
             Self::VerifiableEncryption(v) => v.id(),
             Self::Range(r) => r.id(),
+            Self::Membership(m) => m.id(),
         }
     }
 
@@ -102,6 +113,7 @@ impl Statements {
             Self::Commitment(c) => c.reference_ids(),
             Self::VerifiableEncryption(v) => v.reference_ids(),
             Self::Range(r) => r.reference_ids(),
+            Self::Membership(m) => m.reference_ids(),
         }
     }
 
@@ -114,6 +126,7 @@ impl Statements {
             Self::Commitment(c) => c.add_challenge_contribution(transcript),
             Self::VerifiableEncryption(v) => v.add_challenge_contribution(transcript),
             Self::Range(r) => r.add_challenge_contribution(transcript),
+            Self::Membership(m) => m.add_challenge_contribution(transcript),
         }
     }
 
@@ -126,6 +139,7 @@ impl Statements {
             Self::Commitment(c) => c.get_claim_index(reference_id),
             Self::VerifiableEncryption(v) => v.get_claim_index(reference_id),
             Self::Range(r) => r.get_claim_index(reference_id),
+            Self::Membership(m) => m.get_claim_index(reference_id),
         }
     }
 }

@@ -20,15 +20,17 @@ impl<'a> PresentationBuilder for EqualityBuilder<'a> {
 impl<'a> EqualityBuilder<'a> {
     pub fn commit(
         reference_statement: &'a EqualityStatement,
-        reference_id_credential: &IndexMap<String, Credential>,
+        reference_id_credential: &IndexMap<String, PresentationCredential>,
     ) -> CredxResult<Self> {
         let mut scalars = Vec::new();
         for (id, claim_index) in &reference_statement.ref_id_claim_index {
             match reference_id_credential.get(id) {
                 None => return Err(Error::InvalidPresentationData),
                 Some(cred) => {
-                    let sc = cred.claims[*claim_index].to_scalar();
-                    scalars.push(sc);
+                    if let PresentationCredential::Signature(c) = cred {
+                        let sc = c.claims[*claim_index].to_scalar();
+                        scalars.push(sc);
+                    }
                 }
             }
         }

@@ -1,25 +1,25 @@
+use crate::prelude::{MembershipRegistry, MembershipVerificationKey};
 use crate::statement::Statement;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
-use yeti::knox::accumulator::vb20;
 
 /// Accumulator set membership statement for revocation
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct RevocationStatement {
+pub struct MembershipStatement {
     /// The statement id
     pub id: String,
     /// The other statement id
     pub reference_id: String,
     /// The accumulator value
-    pub accumulator: vb20::Accumulator,
+    pub accumulator: MembershipRegistry,
     /// The accumulator verification key
-    pub verification_key: vb20::PublicKey,
+    pub verification_key: MembershipVerificationKey,
     /// The claim index in the other statement
     pub claim: usize,
 }
 
-impl Statement for RevocationStatement {
+impl Statement for MembershipStatement {
     fn id(&self) -> String {
         self.id.clone()
     }
@@ -29,7 +29,7 @@ impl Statement for RevocationStatement {
     }
 
     fn add_challenge_contribution(&self, transcript: &mut Transcript) {
-        transcript.append_message(b"statement type", b"vb20 set membership revocation");
+        transcript.append_message(b"statement type", b"vb20 set membership");
         transcript.append_message(b"statement id", self.id.as_bytes());
         transcript.append_message(b"reference statement id", self.reference_id.as_bytes());
         transcript.append_message(b"claim index", &Uint::from(self.claim).to_vec());

@@ -74,7 +74,10 @@ pub fn deserialize_point<
             Ok(point.unwrap())
         }
 
-        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: DError {
+        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        where
+            E: DError,
+        {
             let v = hex::decode(v).map_err(|_| DError::invalid_type(Unexpected::Str(v), &self))?;
             let mut repr = PP::Repr::default();
             if repr.as_ref().len() != v.len() {

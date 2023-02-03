@@ -1,14 +1,16 @@
-mod revocation;
 mod commitment;
 mod equality;
 mod range;
+mod revocation;
 mod signature;
 mod verifiable_encryption;
+mod membership;
 
-pub use revocation::*;
 pub use commitment::*;
 pub use equality::*;
+pub use membership::*;
 pub use range::*;
+pub use revocation::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
 
@@ -30,11 +32,12 @@ pub(crate) trait ProofVerifier {
 
 pub(crate) enum ProofVerifiers<'a, 'b, 'c> {
     Signature(Box<SignatureVerifier<'a, 'b>>),
-    AccumulatorSetMembership(Box<RevocationVerifier<'a, 'b>>),
+    Revocation(Box<RevocationVerifier<'a, 'b>>),
     Equality(Box<EqualityVerifier<'a, 'b, 'c>>),
     Commitment(Box<CommitmentVerifier<'a, 'b>>),
     VerifiableEncryption(Box<VerifiableEncryptionVerifier<'a, 'b>>),
     Range(Box<RangeProofVerifier<'a, 'b, 'c>>),
+    Membership(Box<MembershipVerifier<'a, 'b>>),
 }
 
 impl<'a, 'b, 'c> From<SignatureVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
@@ -45,7 +48,7 @@ impl<'a, 'b, 'c> From<SignatureVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> 
 
 impl<'a, 'b, 'c> From<RevocationVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
     fn from(a: RevocationVerifier<'a, 'b>) -> Self {
-        Self::AccumulatorSetMembership(Box::new(a))
+        Self::Revocation(Box::new(a))
     }
 }
 
@@ -73,16 +76,23 @@ impl<'a, 'b, 'c> From<RangeProofVerifier<'a, 'b, 'c>> for ProofVerifiers<'a, 'b,
     }
 }
 
+impl<'a, 'b, 'c> From<MembershipVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+    fn from(a: MembershipVerifier<'a, 'b>) -> Self {
+        Self::Membership(Box::new(a))
+    }
+}
+
 impl<'a, 'b, 'c> ProofVerifiers<'a, 'b, 'c> {
     /// Verify any additional proof material
     pub fn verify(&self, challenge: Scalar) -> CredxResult<()> {
         match self {
             Self::Signature(s) => s.verify(challenge),
-            Self::AccumulatorSetMembership(a) => a.verify(challenge),
+            Self::Revocation(a) => a.verify(challenge),
             Self::Equality(e) => e.verify(challenge),
             Self::Commitment(c) => c.verify(challenge),
             Self::VerifiableEncryption(v) => v.verify(challenge),
             Self::Range(r) => r.verify(challenge),
+            Self::Membership(m) => m.verify(challenge),
         }
     }
 }

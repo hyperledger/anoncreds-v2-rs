@@ -1,26 +1,30 @@
-mod revocation;
 mod commitment;
 mod create;
+mod credential;
 mod equality;
+mod membership;
 mod proof;
 mod range;
+mod revocation;
 mod schema;
 mod signature;
 mod verifiable_encryption;
 mod verify;
 
-pub use revocation::*;
 pub use commitment::*;
+pub use credential::*;
 pub use equality::*;
+pub use membership::*;
 pub use proof::*;
 pub use range::*;
+pub use revocation::*;
 pub use schema::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
 
 use crate::verifier::*;
 use crate::{
-    claim::ClaimData, credential::Credential, error::Error, statement::Statements, utils::*,
+    claim::ClaimData, error::Error, statement::Statements, utils::*,
     CredxResult,
 };
 use group::ff::Field;
@@ -41,11 +45,12 @@ pub trait PresentationBuilder {
 /// Encapsulates the builders for later conversion to proofs
 pub(crate) enum PresentationBuilders<'a> {
     Signature(Box<SignatureBuilder<'a>>),
-    AccumulatorSetMembership(Box<RevocationProofBuilder<'a>>),
+    Revocation(Box<RevocationProofBuilder<'a>>),
     Equality(Box<EqualityBuilder<'a>>),
     Commitment(Box<CommitmentBuilder<'a>>),
     VerifiableEncryption(Box<VerifiableEncryptionBuilder<'a>>),
     Range(Box<RangeBuilder<'a>>),
+    Membership(Box<MembershipProofBuilder<'a>>),
 }
 
 impl<'a> PresentationBuilders<'a> {
@@ -55,9 +60,10 @@ impl<'a> PresentationBuilders<'a> {
             Self::Signature(s) => s.gen_proof(challenge),
             Self::Equality(e) => e.gen_proof(challenge),
             Self::Commitment(c) => c.gen_proof(challenge),
-            Self::AccumulatorSetMembership(a) => a.gen_proof(challenge),
+            Self::Revocation(a) => a.gen_proof(challenge),
             Self::VerifiableEncryption(v) => v.gen_proof(challenge),
             Self::Range(r) => r.gen_proof(challenge),
+            Self::Membership(m) => m.gen_proof(challenge),
         }
     }
 }
@@ -70,7 +76,7 @@ impl<'a> From<SignatureBuilder<'a>> for PresentationBuilders<'a> {
 
 impl<'a> From<RevocationProofBuilder<'a>> for PresentationBuilders<'a> {
     fn from(acc: RevocationProofBuilder<'a>) -> Self {
-        Self::AccumulatorSetMembership(Box::new(acc))
+        Self::Revocation(Box::new(acc))
     }
 }
 
@@ -95,6 +101,12 @@ impl<'a> From<VerifiableEncryptionBuilder<'a>> for PresentationBuilders<'a> {
 impl<'a> From<RangeBuilder<'a>> for PresentationBuilders<'a> {
     fn from(rg: RangeBuilder<'a>) -> Self {
         Self::Range(Box::new(rg))
+    }
+}
+
+impl<'a> From<MembershipProofBuilder<'a>> for PresentationBuilders<'a> {
+    fn from(value: MembershipProofBuilder<'a>) -> Self {
+        Self::Membership(Box::new(value))
     }
 }
 
@@ -183,7 +195,7 @@ impl Presentation {
 
     /// Map the claims to the respective types
     fn get_message_types<'a>(
-        credentials: &IndexMap<String, Credential>,
+        credentials: &IndexMap<String, PresentationCredential>,
         signature_statements: &'a IndexMap<&String, &Statements>,
         predicate_statements: &'a IndexMap<&String, &Statements>,
         mut rng: impl RngCore + CryptoRng,
@@ -191,7 +203,9 @@ impl Presentation {
         let mut shared_proof_msg_indices: IndexMap<&String, Vec<bool>> = IndexMap::new();
 
         for (id, cred) in credentials {
-            shared_proof_msg_indices.insert(id, vec![false; cred.claims.len()]);
+            if let PresentationCredential::Signature(c) = cred {
+                shared_proof_msg_indices.insert(id, vec![false; c.claims.len()]);
+            }
         }
 
         let mut same_proof_messages = Vec::new();
@@ -228,7 +242,11 @@ impl Presentation {
         }
 
         for (id, sig) in signature_statements {
-            let signature = &credentials[*id];
+            let signature = if let PresentationCredential::Signature(signature) = &credentials[*id] {
+                signature
+            } else {
+                continue
+            };
             let mut proof_claims = Vec::with_capacity(signature.claims.len());
 
             for (index, claim) in signature.claims.iter().enumerate() {

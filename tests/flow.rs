@@ -1,23 +1,25 @@
 use credx::blind::BlindCredentialRequest;
 use credx::claim::{
-    ClaimData, ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim,
+    ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim,
 };
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::error::Error;
 use credx::issuer::Issuer;
 use credx::presentation::{Presentation, PresentationSchema};
 use credx::statement::{
-    RevocationStatement, CommitmentStatement, RangeStatement, SignatureStatement,
+    CommitmentStatement, RangeStatement, RevocationStatement, SignatureStatement,
     VerifiableEncryptionStatement,
 };
 use credx::{random_string, CredxResult};
 use group::ff::Field;
 use indexmap::indexmap;
 use maplit::{btreemap, btreeset};
+use rand::thread_rng;
 use rand_core::RngCore;
 use regex::Regex;
 use yeti::knox::bls12_381_plus::{ExpandMsgXmd, G1Projective, Scalar};
 use yeti::sha2;
+use credx::prelude::{MembershipClaim, MembershipCredential, MembershipRegistry, MembershipSigningKey, MembershipStatement, MembershipVerificationKey};
 
 #[test]
 fn presentation_1_credential_works() {
@@ -78,6 +80,11 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
     let after = std::time::Instant::now();
     println!("{:?}", after - before);
 
+    let dummy_sk = MembershipSigningKey::new(None);
+    let dummy_vk = MembershipVerificationKey::from(&dummy_sk);
+    let dummy_registry = MembershipRegistry::random(thread_rng());
+    let dummy_membership_credential = MembershipCredential::new(MembershipClaim::from(&credential.credential.claims[2]).0, dummy_registry, &dummy_sk);
+
     let sig_st = SignatureStatement {
         disclosed: btreeset! {"name".to_string()},
         id: random_string(16, rand::thread_rng()),
@@ -111,23 +118,32 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
         claim: 0,
     };
     let range_st = RangeStatement {
-        id: random_string(16, rand::thread_rng()),
+        id: random_string(16, thread_rng()),
         reference_id: comm_st.id.clone(),
         signature_id: sig_st.id.clone(),
         claim: 3,
         lower: Some(0),
         upper: Some(44829),
     };
+    let mem_st = MembershipStatement {
+        id: random_string(16, thread_rng()),
+        reference_id: sig_st.id.clone(),
+        accumulator: dummy_registry,
+        verification_key: dummy_vk,
+        claim: 2,
+    };
 
     let mut nonce = [0u8; 16];
-    rand::thread_rng().fill_bytes(&mut nonce);
-    let credentials = indexmap! { sig_st.id.clone() => credential.credential};
+    thread_rng().fill_bytes(&mut nonce);
+
+    let credentials = indexmap! { sig_st.id.clone() => credential.credential.into(), mem_st.id.clone() => dummy_membership_credential.into() };
     let presentation_schema = PresentationSchema::new(&[
         sig_st.into(),
         acc_st.into(),
         comm_st.into(),
         verenc_st.into(),
         range_st.into(),
+        mem_st.into(),
     ]);
     println!("{}", serde_json::to_string(&presentation_schema).unwrap());
     let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
@@ -251,7 +267,8 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
 
     let mut nonce = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut nonce);
-    let credentials = indexmap! { sig_st.id.clone() => credential.credential};
+
+    let credentials = indexmap! { sig_st.id.clone() => credential.credential.into() };
     let presentation_schema = PresentationSchema::new(&[
         sig_st.into(),
         acc_st.into(),
