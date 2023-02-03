@@ -78,6 +78,12 @@ impl ClaimValidator {
                     let len = h.value.len();
                     Some(min <= len && len <= max)
                 }
+                ClaimData::Revocation(h) => {
+                    let min = min.unwrap_or(0);
+                    let max = max.unwrap_or(u64::MAX as usize);
+                    let len = h.value.len();
+                    Some(min <= len && len <= max)
+                }
                 _ => None,
             },
             Self::Range { min, max } => match claim {
@@ -93,6 +99,7 @@ impl ClaimValidator {
                     Err(_) => None,
                     Ok(s) => Some(rx.is_match(&s)),
                 },
+                ClaimData::Revocation(h) => Some(rx.is_match(&h.value)),
                 _ => None,
             },
             Self::AnyOne(claims) => Some(claims.iter().any(|c| c == claim)),
