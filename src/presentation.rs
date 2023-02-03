@@ -23,10 +23,7 @@ pub use signature::*;
 pub use verifiable_encryption::*;
 
 use crate::verifier::*;
-use crate::{
-    claim::ClaimData, error::Error, statement::Statements, utils::*,
-    CredxResult,
-};
+use crate::{claim::ClaimData, error::Error, statement::Statements, utils::*, CredxResult};
 use group::ff::Field;
 use indexmap::{IndexMap, IndexSet};
 use merlin::Transcript;
@@ -242,10 +239,11 @@ impl Presentation {
         }
 
         for (id, sig) in signature_statements {
-            let signature = if let PresentationCredential::Signature(signature) = &credentials[*id] {
+            let signature = if let PresentationCredential::Signature(signature) = &credentials[*id]
+            {
                 signature
             } else {
-                continue
+                continue;
             };
             let mut proof_claims = Vec::with_capacity(signature.claims.len());
 

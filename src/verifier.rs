@@ -1,10 +1,10 @@
 mod commitment;
 mod equality;
+mod membership;
 mod range;
 mod revocation;
 mod signature;
 mod verifiable_encryption;
-mod membership;
 
 pub use commitment::*;
 pub use equality::*;

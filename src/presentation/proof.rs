@@ -1,5 +1,8 @@
 use super::SignatureProof;
-use crate::presentation::{CommitmentProof, EqualityProof, MembershipProof, RangeProof, RevocationProof, VerifiableEncryptionProof};
+use crate::presentation::{
+    CommitmentProof, EqualityProof, MembershipProof, RangeProof, RevocationProof,
+    VerifiableEncryptionProof,
+};
 use serde::{Deserialize, Serialize};
 
 /// The types of presentation proofs
@@ -18,7 +21,7 @@ pub enum PresentationProofs {
     /// Range proof
     Range(Box<RangeProof>),
     /// Membership Proofs
-    Membership(Box<MembershipProof>)
+    Membership(Box<MembershipProof>),
 }
 
 impl From<SignatureProof> for PresentationProofs {

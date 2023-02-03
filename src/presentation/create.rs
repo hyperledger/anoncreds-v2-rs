@@ -42,7 +42,7 @@ impl Presentation {
                 let cred = if let PresentationCredential::Signature(cred) = &credentials[*id] {
                     cred
                 } else {
-                    continue
+                    continue;
                 };
                 for (index, claim) in cred.claims.iter().enumerate() {
                     if matches!(messages[id][index], ProofMessage::Revealed(_)) {
@@ -80,10 +80,11 @@ impl Presentation {
                         ));
                     }
                     let credential = if let PresentationCredential::Signature(credential) =
-                        &credentials[&a.reference_id] {
+                        &credentials[&a.reference_id]
+                    {
                         credential
                     } else {
-                        continue
+                        continue;
                     };
                     let builder = RevocationProofBuilder::commit(
                         a,
@@ -103,10 +104,11 @@ impl Presentation {
                         ));
                     }
                     let credential = if let PresentationCredential::Membership(credential) =
-                        &credentials[&m.id] {
+                        &credentials[&m.id]
+                    {
                         credential
                     } else {
-                        continue
+                        continue;
                     };
                     let builder = MembershipProofBuilder::commit(
                         m,
@@ -166,10 +168,11 @@ impl Presentation {
             {
                 let sig = if let PresentationCredential::Signature(sig) = credentials
                     .get(&r.signature_id)
-                    .ok_or(Error::InvalidPresentationData)? {
+                    .ok_or(Error::InvalidPresentationData)?
+                {
                     sig
                 } else {
-                    continue
+                    continue;
                 };
                 let builder_index = id_to_builder[&r.reference_id];
                 if let PresentationBuilders::Commitment(commitment) = &builders[builder_index] {

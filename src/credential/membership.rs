@@ -1,6 +1,6 @@
+use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 use yeti::knox::accumulator::vb20;
-use crate::prelude::*;
 
 /// A membership signing key
 pub type MembershipSigningKey = vb20::SecretKey;

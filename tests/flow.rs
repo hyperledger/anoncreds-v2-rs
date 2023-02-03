@@ -5,6 +5,10 @@ use credx::claim::{
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::error::Error;
 use credx::issuer::Issuer;
+use credx::prelude::{
+    MembershipClaim, MembershipCredential, MembershipRegistry, MembershipSigningKey,
+    MembershipStatement, MembershipVerificationKey,
+};
 use credx::presentation::{Presentation, PresentationSchema};
 use credx::statement::{
     CommitmentStatement, RangeStatement, RevocationStatement, SignatureStatement,
@@ -19,7 +23,6 @@ use rand_core::RngCore;
 use regex::Regex;
 use yeti::knox::bls12_381_plus::{ExpandMsgXmd, G1Projective, Scalar};
 use yeti::sha2;
-use credx::prelude::{MembershipClaim, MembershipCredential, MembershipRegistry, MembershipSigningKey, MembershipStatement, MembershipVerificationKey};
 
 #[test]
 fn presentation_1_credential_works() {
@@ -83,7 +86,11 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
     let dummy_sk = MembershipSigningKey::new(None);
     let dummy_vk = MembershipVerificationKey::from(&dummy_sk);
     let dummy_registry = MembershipRegistry::random(thread_rng());
-    let dummy_membership_credential = MembershipCredential::new(MembershipClaim::from(&credential.credential.claims[2]).0, dummy_registry, &dummy_sk);
+    let dummy_membership_credential = MembershipCredential::new(
+        MembershipClaim::from(&credential.credential.claims[2]).0,
+        dummy_registry,
+        &dummy_sk,
+    );
 
     let sig_st = SignatureStatement {
         disclosed: btreeset! {"name".to_string()},
