@@ -7,7 +7,7 @@ use bulletproofs::RangeProof as RangeProofBulletproof;
 use group::Curve;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
-use yeti::knox::bls12_381_plus::Scalar;
+use signature_bls::bls12_381_plus::Scalar;
 
 pub(crate) struct RangeBuilder<'a> {
     statement: &'a RangeStatement,

@@ -16,7 +16,7 @@ pub use revocation::*;
 pub use scalar::*;
 pub use validator::*;
 
-use yeti::knox::bls12_381_plus::Scalar;
+use signature_bls::bls12_381_plus::Scalar;
 
 /// Represents claims
 pub trait Claim {

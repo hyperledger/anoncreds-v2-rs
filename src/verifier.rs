@@ -16,7 +16,7 @@ pub use verifiable_encryption::*;
 
 use crate::CredxResult;
 use merlin::Transcript;
-use yeti::knox::bls12_381_plus::Scalar;
+use signature_bls::bls12_381_plus::Scalar;
 
 /// A trait for indication of proof verifier logic
 pub(crate) trait ProofVerifier {

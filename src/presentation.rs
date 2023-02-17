@@ -30,8 +30,8 @@ use merlin::Transcript;
 use rand_core::{CryptoRng, OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
-use yeti::knox::bls12_381_plus::{G1Affine, G2Affine, Scalar};
-use yeti::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
+use signature_bls::bls12_381_plus::{G1Affine, G2Affine, Scalar};
+use crate::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
 
 /// Implementers can build proofs for presentations
 pub trait PresentationBuilder {

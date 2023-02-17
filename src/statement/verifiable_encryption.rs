@@ -15,7 +15,7 @@ pub struct VerifiableEncryptionStatement<P: Group + GroupEncoding + Serialize + 
     )]
     pub message_generator: P,
     /// The encryption key for this ciphertext
-    pub encryption_key: yeti::knox::bls::PublicKeyVt,
+    pub encryption_key: signature_bls::PublicKeyVt,
     /// The statement id
     pub id: String,
     /// The other statement id

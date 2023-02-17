@@ -4,10 +4,9 @@ use core::{
     hash::{Hash, Hasher},
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use yeti::{
-    knox::{bls12_381_plus::Scalar, Knox},
-    sha3::Shake256,
-};
+use sha3::Shake256;
+use signature_bls::bls12_381_plus::Scalar;
+use crate::knox::Knox;
 
 /// Claims that are hashed to a scalar
 #[derive(Clone, Debug, Eq)]

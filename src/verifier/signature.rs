@@ -4,7 +4,7 @@ use crate::statement::SignatureStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
 use merlin::Transcript;
-use yeti::knox::bls12_381_plus::Scalar;
+use signature_bls::bls12_381_plus::Scalar;
 
 pub struct SignatureVerifier<'a, 'b> {
     statement: &'a SignatureStatement,

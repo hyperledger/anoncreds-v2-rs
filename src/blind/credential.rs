@@ -3,8 +3,9 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use yeti::knox::{
-    accumulator::vb20::MembershipWitness, bls12_381_plus::Scalar, ps::BlindSignature,
+use signature_bls::bls12_381_plus::Scalar;
+use crate::knox::{
+    accumulator::vb20::MembershipWitness, ps::BlindSignature,
 };
 
 /// A blind credential

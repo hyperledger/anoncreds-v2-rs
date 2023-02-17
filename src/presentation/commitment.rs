@@ -6,7 +6,7 @@ use group::Curve;
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
-use yeti::knox::bls12_381_plus::{G1Projective, Scalar};
+use signature_bls::bls12_381_plus::{G1Projective, Scalar};
 
 /// A commitment builder
 pub(crate) struct CommitmentBuilder<'a> {

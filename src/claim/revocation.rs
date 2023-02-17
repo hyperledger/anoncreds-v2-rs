@@ -4,7 +4,8 @@ use core::{
     hash::{Hash, Hasher},
 };
 use serde::{Deserialize, Serialize};
-use yeti::knox::{accumulator::vb20::Element, bls12_381_plus::Scalar};
+use signature_bls::bls12_381_plus::Scalar;
+use crate::knox::accumulator::vb20::Element;
 
 /// A claim used for revocation
 #[derive(Clone, Debug, Eq, Deserialize, Serialize)]

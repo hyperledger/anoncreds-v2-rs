@@ -4,10 +4,10 @@ use crate::{error::Error, utils::*, CredxResult};
 use indexmap::IndexMap;
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
-use yeti::knox::{
-    bls12_381_plus::Scalar,
+use signature_bls::bls12_381_plus::Scalar;
+use crate::knox::short_group_sig_core::ProofMessage;
+use crate::knox::{
     ps::{PokSignature, PokSignatureProof, Signature as PsSignature},
-    short_group_sig_core::ProofMessage,
 };
 
 /// A builder for creating signature presentations

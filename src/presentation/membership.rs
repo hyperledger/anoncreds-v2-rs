@@ -4,11 +4,11 @@ use crate::statement::MembershipStatement;
 use crate::CredxResult;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
-use yeti::knox::accumulator::vb20::{
+use crate::knox::accumulator::vb20::{
     Element, MembershipProof as Vb20MembershipProof, MembershipProofCommitting, ProofParams,
 };
-use yeti::knox::bls12_381_plus::Scalar;
-use yeti::knox::short_group_sig_core::ProofMessage;
+use signature_bls::bls12_381_plus::Scalar;
+use crate::knox::short_group_sig_core::ProofMessage;
 
 pub(crate) struct MembershipProofBuilder<'a> {
     id: &'a String,

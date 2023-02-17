@@ -21,7 +21,6 @@ pub fn random_string(length: usize, mut rng: impl RngCore + CryptoRng) -> String
 
 pub use indexmap;
 pub use regex;
-pub use yeti;
 
 /// The blind credential operations
 pub mod blind;
@@ -42,6 +41,8 @@ pub mod statement;
 mod utils;
 /// Presentation verifiers
 mod verifier;
+/// Internal crypto primitives
+pub mod knox;
 
 /// One import to rule them all
 pub mod prelude {

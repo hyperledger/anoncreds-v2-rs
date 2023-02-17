@@ -1,6 +1,6 @@
 use crate::{credential::*, issuer::*};
 use serde::{Deserialize, Serialize};
-use yeti::knox::accumulator::vb20::Accumulator;
+use crate::knox::accumulator::vb20::Accumulator;
 
 /// A credential and the issuer's information
 #[derive(Clone, Debug, Deserialize, Serialize)]

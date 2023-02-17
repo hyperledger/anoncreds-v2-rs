@@ -14,7 +14,7 @@ use std::{
     hash::Hash,
     marker::PhantomData,
 };
-use yeti::knox::bls12_381_plus::Scalar;
+use signature_bls::bls12_381_plus::Scalar;
 
 pub const TOP_BIT: u64 = i64::MIN as u64;
 

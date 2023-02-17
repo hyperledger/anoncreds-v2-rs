@@ -4,9 +4,9 @@ use core::{
     hash::{Hash, Hasher},
 };
 use serde::{Deserialize, Serialize};
-use yeti::knox::bls12_381_plus::Scalar;
-use yeti::knox::Knox;
-use yeti::sha3;
+use signature_bls::bls12_381_plus::Scalar;
+use crate::knox::Knox;
+use sha3;
 
 /// A claim where there there is a list of values
 /// but can't use simple number like 0, 1, 2

@@ -4,7 +4,7 @@ use crate::verifier::ProofVerifier;
 use crate::CredxResult;
 use group::Curve;
 use merlin::Transcript;
-use yeti::knox::bls12_381_plus::{G1Projective, Scalar};
+use signature_bls::bls12_381_plus::{G1Projective, Scalar};
 
 pub struct VerifiableEncryptionVerifier<'a, 'b> {
     pub statement: &'a VerifiableEncryptionStatement<G1Projective>,

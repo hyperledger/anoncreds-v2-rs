@@ -3,8 +3,8 @@ use crate::statement::RevocationStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
 use merlin::Transcript;
-use yeti::knox::accumulator::vb20::{Element, ProofParams};
-use yeti::knox::bls12_381_plus::Scalar;
+use crate::knox::accumulator::vb20::{Element, ProofParams};
+use signature_bls::bls12_381_plus::Scalar;
 
 pub struct RevocationVerifier<'a, 'b> {
     statement: &'a RevocationStatement,

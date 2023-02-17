@@ -7,10 +7,8 @@ use crate::{
 use group::ff::Field;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use yeti::knox::{
-    bls12_381_plus::Scalar,
-    ps::{BlindSignatureContext, Prover},
-};
+use signature_bls::bls12_381_plus::Scalar;
+use crate::knox::ps::{BlindSignatureContext, Prover};
 
 /// A blind credential signing request
 #[derive(Clone, Debug, Deserialize, Serialize)]

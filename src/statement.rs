@@ -15,7 +15,7 @@ pub use signature::*;
 pub use verifiable_encryption::*;
 
 use serde::{Deserialize, Serialize};
-use yeti::knox::bls12_381_plus::G1Projective;
+use signature_bls::bls12_381_plus::G1Projective;
 
 /// Statement methods
 pub trait Statement {

@@ -4,7 +4,7 @@ use core::{
     hash::{Hash, Hasher},
 };
 use serde::{Deserialize, Serialize};
-use yeti::knox::bls12_381_plus::Scalar;
+use signature_bls::bls12_381_plus::Scalar;
 
 /// A claim that is already a scalar
 #[derive(Copy, Clone, Debug, Eq, Deserialize, Serialize)]
