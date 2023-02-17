@@ -185,7 +185,7 @@ impl TryFrom<&[u8; 96]> for PublicKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bls12_381_plus::G1Projective;
+    use signature_bls::bls12_381_plus::G1Projective;
 
     #[test]
     fn batch_test() {

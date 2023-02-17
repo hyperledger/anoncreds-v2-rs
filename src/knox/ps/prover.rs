@@ -79,13 +79,11 @@ impl Prover {
 
 #[test]
 fn blind_signature_context_test() {
-    use signature_bls::MockRng;
     use super::super::ecc_group::ScalarOps;
     use super::*;
     use rand_core::*;
 
-    let seed = [1u8; 16];
-    let mut rng = MockRng::from_seed(seed);
+    let mut rng = OsRng;
 
     let (pk, sk) = Issuer::new_keys(4, &mut rng).unwrap();
     let nonce = Scalar::random(&mut rng);

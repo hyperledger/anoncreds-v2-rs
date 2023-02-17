@@ -277,7 +277,7 @@ impl Accumulator {
 mod tests {
     use super::super::*;
     use super::*;
-    use crate::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
+    
 
     #[test]
     fn new_accmulator_100() {

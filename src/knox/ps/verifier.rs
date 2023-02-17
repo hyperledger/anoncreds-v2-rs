@@ -37,12 +37,9 @@ impl Verifier {
 #[test]
 fn pok_sig_proof_works() {
     use super::{Issuer, PokSignature};
-    use signature_bls::MockRng;
     use crate::knox::short_group_sig_core::*;
-    use rand_core::SeedableRng;
 
-    let seed = [1u8; 16];
-    let mut rng = MockRng::from_seed(seed);
+    let mut rng = rand_core::OsRng;
 
     let (pk, sk) = Issuer::new_keys(4, &mut rng).unwrap();
     let messages = [

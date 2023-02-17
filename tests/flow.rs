@@ -21,8 +21,8 @@ use maplit::{btreemap, btreeset};
 use rand::thread_rng;
 use rand_core::RngCore;
 use regex::Regex;
-use yeti::knox::bls12_381_plus::{ExpandMsgXmd, G1Projective, Scalar};
-use yeti::sha2;
+use signature_bls::bls12_381_plus::{ExpandMsgXmd, G1Projective, Scalar};
+use sha2;
 
 #[test]
 fn presentation_1_credential_works() {

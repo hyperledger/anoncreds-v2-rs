@@ -842,7 +842,7 @@ mod tests {
 
     #[test]
     fn basic_nonmembership_proof() {
-        let mut rng = get_rng();
+        let mut rng = rand_core::OsRng;
         let sk = SecretKey::new(None);
         let pk = PublicKey::from(&sk);
         let proof_params = ProofParams::new(pk, None);
@@ -882,7 +882,7 @@ mod tests {
     fn growing_accumulator() {
         use core::convert::TryFrom;
 
-        let mut rng = get_rng();
+        let mut rng = rand_core::OsRng;
         let sk = SecretKey::try_from(&[
             83, 88, 211, 208, 98, 73, 80, 160, 247, 119, 30, 138, 197, 40, 149, 84, 224, 194, 132,
             99, 42, 220, 247, 225, 118, 194, 100, 61, 247, 72, 186, 15,
