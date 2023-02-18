@@ -6,6 +6,7 @@ mod revocation;
 mod signature;
 mod verifiable_encryption;
 
+use std::fmt::Formatter;
 pub use commitment::*;
 pub use equality::*;
 pub use membership::*;
@@ -14,7 +15,8 @@ pub use revocation::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::{Error, Visitor};
 use signature_bls::bls12_381_plus::G1Projective;
 
 /// Statement methods
@@ -140,6 +142,113 @@ impl Statements {
             Self::VerifiableEncryption(v) => v.get_claim_index(reference_id),
             Self::Range(r) => r.get_claim_index(reference_id),
             Self::Membership(m) => m.get_claim_index(reference_id),
+        }
+    }
+}
+
+/// Statement types
+#[derive(Copy, Clone, Debug)]
+#[repr(u8)]
+pub enum StatementType {
+    /// Unknown statements
+    Unknown = 0,
+    /// Signature statements
+    Signature = 1,
+    /// Equality statements
+    Equality = 2,
+    /// Revocation statements
+    Revocation = 3,
+    /// Commitment statements
+    Commitment = 4,
+    /// VerifiableEncryption statements
+    VerifiableEncryption = 5,
+    /// Range statements
+    Range = 6,
+    /// Membership statements
+    Membership = 7,
+}
+
+impl std::fmt::Display for StatementType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::Signature => write!(f, "Signature"),
+            Self::Equality => write!(f, "Equality"),
+            Self::Revocation => write!(f, "Revocation"),
+            Self::Commitment => write!(f, "Commitment"),
+            Self::VerifiableEncryption => write!(f, "VerifiableEncryption"),
+            Self::Range => write!(f, "Range"),
+            Self::Membership => write!(f, "Membership"),
+        }
+    }
+}
+
+impl std::str::FromStr for StatementType {
+    type Err = Box<dyn std::error::Error>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s.to_lowercase().as_str() {
+            "signature" => Self::Signature,
+            "equality" => Self::Equality,
+            "revocation" => Self::Revocation,
+            "commitment" => Self::Commitment,
+            "verifiableencryption" => Self::VerifiableEncryption,
+            "range" => Self::Range,
+            "membership" => Self::Membership,
+            _ => Self::Unknown,
+        })
+    }
+}
+
+impl From<u8> for StatementType {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::Signature,
+            2 => Self::Equality,
+            3 => Self::Revocation,
+            4 => Self::Commitment,
+            5 => Self::VerifiableEncryption,
+            6 => Self::Range,
+            7 => Self::Membership,
+            _ => Self::Unknown,
+        }
+    }
+}
+
+impl Serialize for StatementType {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        if s.is_human_readable() {
+            self.to_string().serialize(s)
+        } else {
+            (*self as u8).serialize(s)
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for StatementType {
+    fn deserialize<D>(d: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        struct TypeVisitor;
+
+        impl<'de> Visitor<'de> for TypeVisitor {
+            type Value = StatementType;
+
+            fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+                write!(formatter, "a string or byte")
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: Error {
+                v.parse().map_err(|_e| Error::invalid_value(serde::de::Unexpected::Str(v), &self))
+            }
+
+            fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E> where E: Error {
+                Ok(v.into())
+            }
+        }
+
+        if d.is_human_readable() {
+            d.deserialize_str(TypeVisitor)
+        } else {
+            d.deserialize_u8(TypeVisitor)
         }
     }
 }
