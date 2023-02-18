@@ -54,9 +54,10 @@ pub mod prelude {
     pub use credential::*;
     pub use error::*;
     pub use issuer::*;
+    pub use knox::{Knox, accumulator::vb20, ps};
     pub use presentation::*;
     pub use revocation_registry::*;
     pub use statement::*;
-}
 
-extern crate core;
+    pub use signature_bls;
+}
