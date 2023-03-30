@@ -7,9 +7,9 @@ pub mod ps;
 /// Operations for short group signatures
 pub mod short_group_sig_core;
 
-use rand_core::{RngCore, CryptoRng};
+use blsful::*;
+use rand_core::{CryptoRng, RngCore};
 use sha3::digest::{ExtendableOutput, Update, XofReader};
-use signature_bls::*;
 
 /// General purpose crypto operations
 pub struct Knox {}
@@ -22,17 +22,13 @@ impl Knox {
     }
 
     /// New BLS Keys w/G1 public keys
-    pub fn new_bls381g1_keys(
-        rng: impl RngCore + CryptoRng,
-    ) -> (PublicKeyVt, SecretKey) {
+    pub fn new_bls381g1_keys(rng: impl RngCore + CryptoRng) -> (PublicKeyVt, SecretKey) {
         let sk = SecretKey::random(rng).unwrap();
         (PublicKeyVt::from(&sk), sk)
     }
 
     /// New BLS Keys w/G2 public keys
-    pub fn new_bls381g2_keys(
-        rng: impl RngCore + CryptoRng,
-    ) -> (PublicKey, SecretKey) {
+    pub fn new_bls381g2_keys(rng: impl RngCore + CryptoRng) -> (PublicKey, SecretKey) {
         let sk = SecretKey::random(rng).unwrap();
         (PublicKey::from(&sk), sk)
     }

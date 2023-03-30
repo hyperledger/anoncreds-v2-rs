@@ -1,11 +1,11 @@
 use super::{Claim, ClaimType};
+use crate::knox::accumulator::vb20::Element;
+use blsful::bls12_381_plus::Scalar;
 use core::{
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},
 };
 use serde::{Deserialize, Serialize};
-use signature_bls::bls12_381_plus::Scalar;
-use crate::knox::accumulator::vb20::Element;
 
 /// A claim used for revocation
 #[derive(Clone, Debug, Eq, Deserialize, Serialize)]

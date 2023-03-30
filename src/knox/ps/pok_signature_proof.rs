@@ -1,15 +1,15 @@
 use super::PublicKey;
-use signature_bls::bls12_381_plus::{
+use crate::error::Error;
+use crate::CredxResult;
+use blsful::bls12_381_plus::{
+    group::{Curve, Group},
     multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Scalar,
 };
 use core::convert::TryFrom;
 use core::ops::BitOr;
-use std::collections::{BTreeMap, BTreeSet};
-use group::{Curve, Group};
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
-use crate::CredxResult;
-use crate::error::Error;
+use std::collections::{BTreeMap, BTreeSet};
 
 /// The actual proof that is sent from prover to verifier.
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -211,7 +211,10 @@ impl PokSignatureProof {
                 j += 1;
                 continue;
             }
-            let message = self.proof.get(i + 2).ok_or(Error::General("invalid proof"))?;
+            let message = self
+                .proof
+                .get(i + 2)
+                .ok_or(Error::General("invalid proof"))?;
             hidden.insert(i, *message);
         }
 

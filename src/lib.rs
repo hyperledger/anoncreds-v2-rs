@@ -32,6 +32,8 @@ pub mod credential;
 pub mod error;
 /// Issuer related methods
 pub mod issuer;
+/// Internal crypto primitives
+pub mod knox;
 /// Presentation related methods
 pub mod presentation;
 /// Revocation registry methods
@@ -41,8 +43,6 @@ pub mod statement;
 mod utils;
 /// Presentation verifiers
 mod verifier;
-/// Internal crypto primitives
-pub mod knox;
 
 /// One import to rule them all
 pub mod prelude {
@@ -54,10 +54,10 @@ pub mod prelude {
     pub use credential::*;
     pub use error::*;
     pub use issuer::*;
-    pub use knox::{Knox, accumulator::vb20, ps};
+    pub use knox::{accumulator::vb20, ps, Knox};
     pub use presentation::*;
     pub use revocation_registry::*;
     pub use statement::*;
 
-    pub use signature_bls;
+    pub use blsful;
 }

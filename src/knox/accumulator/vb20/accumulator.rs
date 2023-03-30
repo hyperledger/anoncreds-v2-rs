@@ -1,7 +1,6 @@
 use super::{error::Error, generate_fr, hash_to_g1, key::SecretKey, SALT};
-use signature_bls::bls12_381_plus::{G1Affine, G1Projective, Scalar};
+use blsful::bls12_381_plus::{group::GroupEncoding, G1Affine, G1Projective, Scalar};
 use core::convert::TryFrom;
-use group::GroupEncoding;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
 
@@ -277,7 +276,6 @@ impl Accumulator {
 mod tests {
     use super::super::*;
     use super::*;
-    
 
     #[test]
     fn new_accmulator_100() {

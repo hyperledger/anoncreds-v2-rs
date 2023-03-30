@@ -1,14 +1,12 @@
 use super::*;
+use crate::knox::ps::{PokSignature, PokSignatureProof, Signature as PsSignature};
+use crate::knox::short_group_sig_core::ProofMessage;
 use crate::statement::SignatureStatement;
 use crate::{error::Error, utils::*, CredxResult};
+use blsful::bls12_381_plus::Scalar;
 use indexmap::IndexMap;
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
-use signature_bls::bls12_381_plus::Scalar;
-use crate::knox::short_group_sig_core::ProofMessage;
-use crate::knox::{
-    ps::{PokSignature, PokSignatureProof, Signature as PsSignature},
-};
 
 /// A builder for creating signature presentations
 pub(crate) struct SignatureBuilder<'a> {

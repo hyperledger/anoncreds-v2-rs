@@ -3,31 +3,27 @@ name = "credx"
 version = "0.1.0"
 edition = "2021"
 
-
 [dependencies]
 bulletproofs = { version = "4.0.0", git = "https://github.com/cryptidtech/bulletproofs" }
-elliptic-curve = "0.12.3"
-ff = "0.12"
-group = "0.12"
 hex = "0.4"
 indexmap = "1"
 merlin = "3"
 rand = "0.8"
-rand_chacha = "0.3.1"
+rand_chacha = "0.3"
 rand_core = "0.6"
 regex = "1"
 serde = { version = "1", features = ["serde_derive"] }
 serde_bare = "0.5"
 serde_json = "1"
 serde_regex = "1"
-sha2 = "0.9.9"
-sha3 = "0.9.1"
-signature_bls = { git = "https://github.com/cryptidtech/signature_bls" }
+sha2 = "0.10"
+sha3 = "0.10"
+blsful = "1.2.0-pre1"
 subtle = "2.4.1"
 uint-zigzag = { version = "0.2", features = ["std"] }
-zeroize = "1.5"
+zeroize = "1"
 
 [dev-dependencies]
 maplit = "1"
 serde_cbor = "0.11"
-sha2 = "0.9"
+sha2 = "0.10"

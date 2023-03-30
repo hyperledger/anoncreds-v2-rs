@@ -1,10 +1,10 @@
+use crate::knox::accumulator::vb20::{Element, ProofParams};
 use crate::presentation::MembershipProof;
 use crate::statement::MembershipStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
+use blsful::bls12_381_plus::Scalar;
 use merlin::Transcript;
-use crate::knox::accumulator::vb20::{Element, ProofParams};
-use signature_bls::bls12_381_plus::Scalar;
 
 pub struct MembershipVerifier<'a, 'b> {
     statement: &'a MembershipStatement,

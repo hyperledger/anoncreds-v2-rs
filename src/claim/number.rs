@@ -1,11 +1,11 @@
 use super::{Claim, ClaimType};
 use crate::utils::get_num_scalar;
+use blsful::bls12_381_plus::Scalar;
 use core::{
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},
 };
 use serde::{Deserialize, Serialize};
-use signature_bls::bls12_381_plus::Scalar;
 
 /// A claim that is a 64-bit signed number
 #[derive(Copy, Clone, Eq, Debug, Deserialize, Serialize)]

@@ -1,12 +1,13 @@
 use crate::error::Error;
 use crate::CredxResult;
-use group::{Group, GroupEncoding};
+use blsful::bls12_381_plus::{
+    group::{Group, GroupEncoding},
+    Scalar,
+};
 use indexmap::{IndexMap, IndexSet};
-use serde::de::MapAccess;
-use serde::ser::SerializeMap;
 use serde::{
-    de::{DeserializeOwned, Error as DError, SeqAccess, Unexpected, Visitor},
-    ser::SerializeSeq,
+    de::{DeserializeOwned, Error as DError, MapAccess, SeqAccess, Unexpected, Visitor},
+    ser::{SerializeMap, SerializeSeq},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::{
@@ -14,7 +15,6 @@ use std::{
     hash::Hash,
     marker::PhantomData,
 };
-use signature_bls::bls12_381_plus::Scalar;
 
 pub const TOP_BIT: u64 = i64::MIN as u64;
 

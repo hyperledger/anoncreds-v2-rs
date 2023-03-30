@@ -1,12 +1,12 @@
 use super::{Claim, ClaimType};
+use crate::knox::Knox;
+use blsful::bls12_381_plus::Scalar;
 use core::{
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha3::Shake256;
-use signature_bls::bls12_381_plus::Scalar;
-use crate::knox::Knox;
 
 /// Claims that are hashed to a scalar
 #[derive(Clone, Debug, Eq)]

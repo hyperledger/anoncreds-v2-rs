@@ -1,9 +1,11 @@
-use signature_bls::bls12_381_plus::Scalar;
-use sha3::digest::{ExtendableOutput, Update, XofReader};
-use ff::{Field, PrimeField};
+use blsful::bls12_381_plus::{
+    ff::{Field, PrimeField},
+    Scalar,
+};
 use rand_chacha::ChaChaRng;
 use rand_core::{CryptoRng, RngCore, SeedableRng};
 use serde::{Deserialize, Serialize};
+use sha3::digest::{ExtendableOutput, Update, XofReader};
 use zeroize::Zeroize;
 
 /// The secret key contains a field element for each

@@ -1,16 +1,16 @@
 use super::{PublicKey, SecretKey};
-use signature_bls::bls12_381_plus::{
-    multi_miller_loop, ExpandMsgXof, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective,
-    Scalar,
+use crate::error::Error;
+use crate::CredxResult;
+use blsful::bls12_381_plus::{
+    elliptic_curve::hash2curve::ExpandMsgXof,
+    ff::PrimeField,
+    group::{Curve, Group},
+    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Scalar,
 };
 use core::convert::TryFrom;
-use sha3::digest::{ExtendableOutput, Update, XofReader};
-use ff::PrimeField;
-use group::{Curve, Group};
 use serde::{Deserialize, Serialize};
+use sha3::digest::{ExtendableOutput, Update, XofReader};
 use subtle::{Choice, ConditionallySelectable, CtOption};
-use crate::CredxResult;
-use crate::error::Error;
 
 /// A Pointcheval Saunders signature
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]

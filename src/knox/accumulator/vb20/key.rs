@@ -1,7 +1,6 @@
 use super::{accumulator::Element, error::Error, generate_fr, Polynomial};
-use signature_bls::bls12_381_plus::{G2Affine, G2Projective, Scalar};
+use blsful::bls12_381_plus::{group::GroupEncoding, G2Affine, G2Projective, Scalar};
 use core::convert::TryFrom;
-use group::GroupEncoding;
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
 
@@ -185,7 +184,7 @@ impl TryFrom<&[u8; 96]> for PublicKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use signature_bls::bls12_381_plus::G1Projective;
+    use blsful::bls12_381_plus::G1Projective;
 
     #[test]
     fn batch_test() {

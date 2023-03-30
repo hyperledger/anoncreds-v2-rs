@@ -1,8 +1,8 @@
+use crate::knox::accumulator::vb20;
 use crate::statement::Statement;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
-use crate::knox::accumulator::vb20;
 
 /// Accumulator set membership statement for revocation
 #[derive(Clone, Debug, Serialize, Deserialize)]

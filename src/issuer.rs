@@ -2,14 +2,14 @@ use super::{credential::CredentialSchema, error::Error, revocation_registry::Rev
 use crate::blind::{BlindCredential, BlindCredentialBundle, BlindCredentialRequest};
 use crate::claim::{Claim, ClaimData, RevocationClaim};
 use crate::credential::{Credential, CredentialBundle};
-use crate::{random_string, CredxResult};
-use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-use signature_bls::bls12_381_plus::Scalar;
 use crate::knox::{
     accumulator::vb20::{self, Accumulator, Element, MembershipWitness},
     ps, Knox,
 };
+use crate::{random_string, CredxResult};
+use blsful::bls12_381_plus::Scalar;
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 /// An issuer of a credential
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -23,7 +23,7 @@ pub struct Issuer {
     /// The revocation update key for this issuer
     pub revocation_key: vb20::SecretKey,
     /// The verifiable decryption key for this issuer
-    pub verifiable_decryption_key: signature_bls::SecretKey,
+    pub verifiable_decryption_key: blsful::SecretKey,
     /// The revocation registry for this issuer
     pub revocation_registry: RevocationRegistry,
 }
@@ -40,7 +40,7 @@ pub struct IssuerPublic {
     /// The revocation registry verifying key for this issuer
     pub revocation_verifying_key: vb20::PublicKey,
     /// The verifiable encryption key for this issuer
-    pub verifiable_encryption_key: signature_bls::PublicKeyVt,
+    pub verifiable_encryption_key: blsful::PublicKeyVt,
     /// The revocation registry for this issuer
     pub revocation_registry: Accumulator,
 }
@@ -292,7 +292,7 @@ impl Issuer {
     fn get_public(&self) -> IssuerPublic {
         let verifying_key = ps::PublicKey::from(&self.signing_key);
         let revocation_verifying_key = vb20::PublicKey::from(&self.revocation_key);
-        let verifiable_encryption_key = signature_bls::PublicKeyVt::from(&self.verifiable_decryption_key);
+        let verifiable_encryption_key = blsful::PublicKeyVt::from(&self.verifiable_decryption_key);
         IssuerPublic {
             id: self.id.clone(),
             schema: self.schema.clone(),

@@ -1,12 +1,10 @@
 use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::VerifiableEncryptionStatement;
 use crate::CredxResult;
-use group::ff::Field;
-use group::Curve;
+use blsful::bls12_381_plus::{ff::Field, group::Curve, G1Projective, Scalar};
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
-use signature_bls::bls12_381_plus::{G1Projective, Scalar};
 
 /// Verifiable encryption builder
 pub(crate) struct VerifiableEncryptionBuilder<'a> {

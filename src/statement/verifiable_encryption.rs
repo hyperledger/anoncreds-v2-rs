@@ -1,6 +1,6 @@
 use crate::statement::Statement;
 use crate::utils::*;
-use group::{Group, GroupEncoding};
+use blsful::bls12_381_plus::group::{Group, GroupEncoding};
 use merlin::Transcript;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uint_zigzag::Uint;
@@ -15,7 +15,7 @@ pub struct VerifiableEncryptionStatement<P: Group + GroupEncoding + Serialize + 
     )]
     pub message_generator: P,
     /// The encryption key for this ciphertext
-    pub encryption_key: signature_bls::PublicKeyVt,
+    pub encryption_key: blsful::PublicKeyVt,
     /// The statement id
     pub id: String,
     /// The other statement id

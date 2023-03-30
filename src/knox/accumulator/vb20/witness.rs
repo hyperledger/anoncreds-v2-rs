@@ -5,9 +5,11 @@ use super::{
     key::{PublicKey, SecretKey},
     PolynomialG1,
 };
-use signature_bls::bls12_381_plus::{multi_miller_loop, G1Affine, G1Projective, G2Prepared, G2Projective, Scalar};
+use blsful::bls12_381_plus::{
+    group::{Curve, Group, GroupEncoding},
+    multi_miller_loop, G1Affine, G1Projective, G2Prepared, G2Projective, Scalar,
+};
 use core::{convert::TryFrom, fmt};
-use group::{Curve, Group, GroupEncoding};
 use serde::{Deserialize, Serialize};
 
 /// A membership witness that can be used for membership proof generation

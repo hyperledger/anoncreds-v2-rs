@@ -1,8 +1,7 @@
 use core::{fmt, ops};
 use sha3::digest::Digest;
 
-
-use signature_bls::bls12_381_plus::Scalar;
+use blsful::bls12_381_plus::Scalar;
 use zeroize::Zeroize;
 
 /// Adds `from_bytes_wide` for Generic Scalars

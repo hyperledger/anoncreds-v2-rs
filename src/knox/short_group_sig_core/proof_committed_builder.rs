@@ -1,11 +1,13 @@
 use super::super::ecc_group::*;
+use crate::CredxResult;
+use blsful::bls12_381_plus::{
+    ff::PrimeField,
+    group::{Curve, GroupEncoding},
+};
 use core::fmt::Debug;
-use ff::PrimeField;
-use group::{Curve, GroupEncoding};
 use merlin::Transcript;
 use rand_core::RngCore;
 use subtle::ConstantTimeEq;
-use crate::CredxResult;
 
 /// A builder struct for creating a proof of knowledge
 /// of messages in a vector commitment
@@ -82,7 +84,7 @@ where
 mod test {
 
     use super::*;
-    use signature_bls::bls12_381_plus::{G1Affine, G1Projective, Scalar};
+    use blsful::bls12_381_plus::{G1Affine, G1Projective, Scalar};
 
     #[test]
     fn test_proof_committed_builder() {

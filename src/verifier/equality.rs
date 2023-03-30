@@ -3,9 +3,9 @@ use crate::presentation::{PresentationProofs, PresentationSchema};
 use crate::statement::{EqualityStatement, Statements};
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
+use blsful::bls12_381_plus::Scalar;
 use indexmap::IndexMap;
 use merlin::Transcript;
-use signature_bls::bls12_381_plus::Scalar;
 
 pub struct EqualityVerifier<'a, 'b, 'c> {
     pub statement: &'a EqualityStatement,

@@ -3,11 +3,10 @@ use crate::presentation::{CommitmentBuilder, PresentationBuilder, PresentationPr
 use crate::statement::RangeStatement;
 use crate::utils::*;
 use crate::CredxResult;
+use blsful::bls12_381_plus::{group::Curve, Scalar};
 use bulletproofs::RangeProof as RangeProofBulletproof;
-use group::Curve;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
-use signature_bls::bls12_381_plus::Scalar;
 
 pub(crate) struct RangeBuilder<'a> {
     statement: &'a RangeStatement,

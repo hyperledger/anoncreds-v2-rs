@@ -1,11 +1,11 @@
 use crate::claim::{Claim, ClaimType};
+use crate::knox::Knox;
+use blsful::bls12_381_plus::Scalar;
 use core::{
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},
 };
 use serde::{Deserialize, Serialize};
-use signature_bls::bls12_381_plus::Scalar;
-use crate::knox::Knox;
 use sha3;
 
 /// A claim where there there is a list of values

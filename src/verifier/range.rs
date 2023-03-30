@@ -4,9 +4,8 @@ use crate::statement::{CommitmentStatement, RangeStatement};
 use crate::utils::{get_num_scalar, zero_center};
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use group::Curve;
+use blsful::bls12_381_plus::{group::Curve, G1Projective, Scalar};
 use merlin::Transcript;
-use signature_bls::bls12_381_plus::{G1Projective, Scalar};
 
 pub struct RangeProofVerifier<'a, 'b, 'c> {
     pub statement: &'a RangeStatement,

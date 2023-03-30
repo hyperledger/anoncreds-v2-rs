@@ -6,12 +6,14 @@ use super::{
     SALT,
 };
 use crate::knox::short_group_sig_core::ProofMessage;
-use signature_bls::bls12_381_plus::{G1Projective, G2Projective, Gt, Scalar};
+use blsful::bls12_381_plus::{
+    group::{Curve, GroupEncoding},
+    G1Projective, G2Projective, Gt, Scalar,
+};
 
-use group::{Curve, GroupEncoding};
+use crate::knox::accumulator::vb20::Error;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
-use crate::knox::accumulator::vb20::Error;
 
 /// Section 8 in <https://eprint.iacr.org/2020/777>
 /// setup calls for four distinct generators in G1
@@ -778,12 +780,12 @@ fn cap_r(bases: &[G1Projective], scalars: &[Scalar]) -> G1Projective {
 }
 
 fn pair(g1: G1Projective, g2: G2Projective) -> Gt {
-    signature_bls::bls12_381_plus::pairing(&g1.to_affine(), &g2.to_affine())
+    blsful::bls12_381_plus::pairing(&g1.to_affine(), &g2.to_affine())
 }
 
 fn pairing(g1: G1Projective, g2: G2Projective, exp: Scalar) -> Gt {
     let base = g1 * exp;
-    signature_bls::bls12_381_plus::pairing(&base.to_affine(), &g2.to_affine())
+    blsful::bls12_381_plus::pairing(&base.to_affine(), &g2.to_affine())
 }
 
 fn schnorr(r: Scalar, v: Scalar, challenge: Scalar) -> Scalar {

@@ -1,10 +1,10 @@
 use super::{Claim, ClaimType};
+use blsful::bls12_381_plus::Scalar;
 use core::{
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},
 };
 use serde::{Deserialize, Serialize};
-use signature_bls::bls12_381_plus::Scalar;
 
 /// A claim that is already a scalar
 #[derive(Copy, Clone, Debug, Eq, Deserialize, Serialize)]

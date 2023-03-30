@@ -15,9 +15,12 @@ pub use key::*;
 pub use proof::*;
 pub use witness::*;
 
-use signature_bls::bls12_381_plus::{ExpandMsgXof, G1Projective, Scalar};
+use blsful::bls12_381_plus::{elliptic_curve::hash2curve::ExpandMsgXof, G1Projective, Scalar};
 use rand_core::{CryptoRng, RngCore};
-use sha3::{Shake256, digest::{ExtendableOutput, Update, XofReader}};
+use sha3::{
+    digest::{ExtendableOutput, Update, XofReader},
+    Shake256,
+};
 
 /// Similar to https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.3
 /// info is left blank
@@ -32,7 +35,7 @@ fn generate_fr(salt: &[u8], ikm: Option<&[u8]>, mut rng: impl RngCore + CryptoRn
             hasher.update(salt);
             let mut arr = [0u8; 32];
             rng.fill_bytes(&mut arr);
-            hasher.update(arr);
+            hasher.update(&arr);
         }
     };
     let mut okm = [0u8; 64];

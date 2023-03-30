@@ -1,11 +1,11 @@
 use super::{PokSignatureProof, PublicKey, Signature};
 use crate::knox::short_group_sig_core::*;
-use signature_bls::bls12_381_plus::{G1Projective, G2Affine, G2Projective, Scalar};
-use ff::Field;
-use group::Curve;
+use crate::CredxResult;
+use blsful::bls12_381_plus::{
+    ff::Field, group::Curve, G1Projective, G2Affine, G2Projective, Scalar,
+};
 use merlin::Transcript;
 use rand_core::*;
-use crate::CredxResult;
 
 /// Proof of Knowledge of a Signature that is used by the prover
 /// to construct `PoKOfSignatureProof`.

@@ -1,6 +1,6 @@
 use super::super::ecc_group::ScalarOps;
 use super::hidden_message::HiddenMessage;
-use ff::PrimeField;
+use blsful::bls12_381_plus::ff::PrimeField;
 use rand_core::{CryptoRng, RngCore};
 
 /// A message classification by the prover

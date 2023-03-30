@@ -4,9 +4,9 @@ use crate::{
 };
 
 use crate::credential::Credential;
+use blsful::bls12_381_plus::Scalar;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use signature_bls::bls12_381_plus::Scalar;
 
 /// A blind credential bundle returned by the issuer from a blind signing operation
 #[derive(Clone, Debug, Deserialize, Serialize)]

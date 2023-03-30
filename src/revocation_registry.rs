@@ -1,9 +1,9 @@
 use crate::error::Error;
+use crate::knox::accumulator::vb20::{Accumulator, Element, SecretKey};
 use crate::{utils::*, CredxResult};
 use indexmap::IndexSet;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
-use crate::knox::accumulator::vb20::{Accumulator, Element, SecretKey};
 
 /// A revocation registry for credentials
 #[derive(Clone, Debug, Serialize, Deserialize)]

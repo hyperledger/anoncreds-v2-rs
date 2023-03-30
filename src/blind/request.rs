@@ -1,14 +1,13 @@
+use crate::knox::ps::{BlindSignatureContext, Prover};
 use crate::{
     claim::ClaimData,
     error::Error,
     issuer::{Issuer, IssuerPublic},
     CredxResult,
 };
-use group::ff::Field;
+use blsful::bls12_381_plus::{ff::Field, Scalar};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use signature_bls::bls12_381_plus::Scalar;
-use crate::knox::ps::{BlindSignatureContext, Prover};
 
 /// A blind credential signing request
 #[derive(Clone, Debug, Deserialize, Serialize)]

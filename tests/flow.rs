@@ -1,3 +1,6 @@
+use blsful::bls12_381_plus::{
+    elliptic_curve::hash2curve::ExpandMsgXmd, ff::Field, G1Projective, Scalar,
+};
 use credx::blind::BlindCredentialRequest;
 use credx::claim::{
     ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim,
@@ -15,13 +18,11 @@ use credx::statement::{
     VerifiableEncryptionStatement,
 };
 use credx::{random_string, CredxResult};
-use group::ff::Field;
 use indexmap::indexmap;
 use maplit::{btreemap, btreeset};
 use rand::thread_rng;
 use rand_core::RngCore;
 use regex::Regex;
-use signature_bls::bls12_381_plus::{ExpandMsgXmd, G1Projective, Scalar};
 use sha2;
 
 #[test]
@@ -118,7 +119,7 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
         claim: 3,
     };
     let verenc_st = VerifiableEncryptionStatement {
-        message_generator: G1Projective::generator(),
+        message_generator: G1Projective::GENERATOR,
         encryption_key: issuer_public.verifiable_encryption_key,
         id: random_string(16, rand::thread_rng()),
         reference_id: sig_st.id.clone(),
@@ -257,7 +258,7 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
         claim: 3,
     };
     let verenc_st = VerifiableEncryptionStatement {
-        message_generator: G1Projective::generator(),
+        message_generator: G1Projective::GENERATOR,
         encryption_key: issuer_public.verifiable_encryption_key,
         id: random_string(16, rand::thread_rng()),
         reference_id: sig_st.id.clone(),

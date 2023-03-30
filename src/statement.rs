@@ -6,18 +6,18 @@ mod revocation;
 mod signature;
 mod verifiable_encryption;
 
-use std::fmt::Formatter;
 pub use commitment::*;
 pub use equality::*;
 pub use membership::*;
 pub use range::*;
 pub use revocation::*;
 pub use signature::*;
+use std::fmt::Formatter;
 pub use verifiable_encryption::*;
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use blsful::bls12_381_plus::G1Projective;
 use serde::de::{Error, Visitor};
-use signature_bls::bls12_381_plus::G1Projective;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Statement methods
 pub trait Statement {
@@ -216,7 +216,10 @@ impl From<u8> for StatementType {
 }
 
 impl Serialize for StatementType {
-    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         if s.is_human_readable() {
             self.to_string().serialize(s)
         } else {
@@ -226,7 +229,10 @@ impl Serialize for StatementType {
 }
 
 impl<'de> Deserialize<'de> for StatementType {
-    fn deserialize<D>(d: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(d: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         struct TypeVisitor;
 
         impl<'de> Visitor<'de> for TypeVisitor {
@@ -236,11 +242,18 @@ impl<'de> Deserialize<'de> for StatementType {
                 write!(formatter, "a string or byte")
             }
 
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: Error {
-                v.parse().map_err(|_e| Error::invalid_value(serde::de::Unexpected::Str(v), &self))
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                v.parse()
+                    .map_err(|_e| Error::invalid_value(serde::de::Unexpected::Str(v), &self))
             }
 
-            fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E> where E: Error {
+            fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
                 Ok(v.into())
             }
         }

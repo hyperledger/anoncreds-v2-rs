@@ -1,12 +1,11 @@
 use super::SecretKey;
-use signature_bls::bls12_381_plus::{G1Affine, G1Projective, Scalar};
+use crate::CredxResult;
+use blsful::bls12_381_plus::{group::Curve, G1Affine, G1Projective, Scalar};
 use core::convert::TryFrom;
-use std::collections::BTreeSet;
-use group::Curve;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 use subtle::ConstantTimeEq;
-use crate::CredxResult;
 
 /// Contains the data used for computing a blind signature and verifying
 /// proof of hidden messages from a prover

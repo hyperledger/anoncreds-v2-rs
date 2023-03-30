@@ -1,6 +1,5 @@
 use super::{PokSignatureProof, PublicKey};
-use signature_bls::bls12_381_plus::Scalar;
-use ff::Field;
+use blsful::bls12_381_plus::{ff::Field, Scalar};
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 

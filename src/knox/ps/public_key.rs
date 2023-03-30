@@ -1,7 +1,9 @@
 use super::SecretKey;
-use signature_bls::bls12_381_plus::{G1Projective, G2Projective};
+use blsful::bls12_381_plus::{
+    group::{Curve, GroupEncoding},
+    G1Projective, G2Projective,
+};
 use core::convert::TryFrom;
-use group::{Curve, GroupEncoding};
 use serde::{Deserialize, Serialize};
 use subtle::Choice;
 

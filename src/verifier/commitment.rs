@@ -2,9 +2,8 @@ use crate::presentation::CommitmentProof;
 use crate::statement::CommitmentStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use group::Curve;
+use blsful::bls12_381_plus::{group::Curve, G1Projective, Scalar};
 use merlin::Transcript;
-use signature_bls::bls12_381_plus::{G1Projective, Scalar};
 
 pub struct CommitmentVerifier<'a, 'b> {
     pub statement: &'a CommitmentStatement<G1Projective>,

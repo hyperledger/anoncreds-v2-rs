@@ -1,9 +1,9 @@
 use super::{SecretKey, Signature};
-use signature_bls::bls12_381_plus::{G1Projective, Scalar};
-use sha3::digest::{ExtendableOutput, Update, XofReader};
-use serde::{Deserialize, Serialize};
-use subtle::CtOption;
 use crate::CredxResult;
+use blsful::bls12_381_plus::{G1Projective, Scalar};
+use serde::{Deserialize, Serialize};
+use sha3::digest::{ExtendableOutput, Update, XofReader};
+use subtle::CtOption;
 
 /// A PS blind signature
 /// structurally identical to `Signature` but is used to

@@ -9,8 +9,8 @@ pub use offer::*;
 pub use schema::*;
 
 use super::claim::*;
-use serde::{Deserialize, Serialize};
 use crate::knox::{accumulator::vb20::MembershipWitness, ps::Signature};
+use serde::{Deserialize, Serialize};
 
 /// A credential
 #[derive(Clone, Debug, Deserialize, Serialize)]

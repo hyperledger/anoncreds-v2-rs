@@ -1,14 +1,14 @@
 use crate::credential::Credential;
-use crate::presentation::{PresentationBuilder, PresentationProofs};
-use crate::statement::RevocationStatement;
-use crate::CredxResult;
-use merlin::Transcript;
-use serde::{Deserialize, Serialize};
 use crate::knox::accumulator::vb20::{
     Element, MembershipProof, MembershipProofCommitting, ProofParams,
 };
-use signature_bls::bls12_381_plus::Scalar;
 use crate::knox::short_group_sig_core::ProofMessage;
+use crate::presentation::{PresentationBuilder, PresentationProofs};
+use crate::statement::RevocationStatement;
+use crate::CredxResult;
+use blsful::bls12_381_plus::Scalar;
+use merlin::Transcript;
+use serde::{Deserialize, Serialize};
 
 pub(crate) struct RevocationProofBuilder<'a> {
     id: &'a String,

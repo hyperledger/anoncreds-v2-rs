@@ -22,16 +22,15 @@ pub use schema::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
 
+use crate::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
 use crate::verifier::*;
 use crate::{claim::ClaimData, error::Error, statement::Statements, utils::*, CredxResult};
-use group::ff::Field;
+use blsful::bls12_381_plus::{ff::Field, G1Affine, G2Affine, Scalar};
 use indexmap::{IndexMap, IndexSet};
 use merlin::Transcript;
 use rand_core::{CryptoRng, OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
-use signature_bls::bls12_381_plus::{G1Affine, G2Affine, Scalar};
-use crate::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
 
 /// Implementers can build proofs for presentations
 pub trait PresentationBuilder {

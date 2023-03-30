@@ -1,9 +1,8 @@
 use super::{BlindSignature, BlindSignatureContext, PublicKey, SecretKey, Signature};
-use signature_bls::bls12_381_plus::Scalar;
-use ff::Field;
-use rand_core::{CryptoRng, RngCore};
-use crate::CredxResult;
 use crate::error::Error;
+use crate::CredxResult;
+use blsful::bls12_381_plus::{ff::Field, Scalar};
+use rand_core::{CryptoRng, RngCore};
 
 /// This struct represents an Issuer of signatures or Signer.
 /// Provided are methods for signing regularly where all messages are known

@@ -1,11 +1,9 @@
 use super::{BlindSignatureContext, PokSignature, PublicKey, Signature};
 use crate::knox::short_group_sig_core::*;
-use signature_bls::bls12_381_plus::{G1Affine, G1Projective, Scalar};
-use ff::Field;
-use group::Curve;
+use crate::CredxResult;
+use blsful::bls12_381_plus::{ff::Field, group::Curve, G1Affine, G1Projective, Scalar};
 use merlin::Transcript;
 use rand_core::*;
-use crate::CredxResult;
 
 /// A Prover is whomever receives signatures or uses them to generate proofs.
 /// Provided are methods for 2PC where some are only known to the prover and a blind signature

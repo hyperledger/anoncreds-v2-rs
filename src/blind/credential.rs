@@ -1,12 +1,10 @@
+use crate::knox::{accumulator::vb20::MembershipWitness, ps::BlindSignature};
 use crate::{
     claim::ClaimData, credential::Credential, error::Error, issuer::IssuerPublic, CredxResult,
 };
+use blsful::bls12_381_plus::Scalar;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use signature_bls::bls12_381_plus::Scalar;
-use crate::knox::{
-    accumulator::vb20::MembershipWitness, ps::BlindSignature,
-};
 
 /// A blind credential
 #[derive(Clone, Debug, Deserialize, Serialize)]
