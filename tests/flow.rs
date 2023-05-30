@@ -153,7 +153,7 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
         range_st.into(),
         mem_st.into(),
     ]);
-    println!("{}", serde_json::to_string(&presentation_schema).unwrap());
+    // println!("{}", serde_json::to_string(&presentation_schema).unwrap());
     let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
     presentation.verify(&presentation_schema, &nonce)?;
     let proof_data = serde_bare::to_vec(&presentation).unwrap();
