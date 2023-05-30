@@ -1,7 +1,7 @@
 use super::{BlindSignatureContext, PokSignature, PublicKey, Signature};
 use crate::knox::short_group_sig_core::*;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{ff::Field, group::Curve, G1Affine, G1Projective, Scalar};
+use blsful::inner_types::{ff::Field, group::Curve, G1Affine, G1Projective, Scalar};
 use merlin::Transcript;
 use rand_core::*;
 
@@ -24,7 +24,7 @@ impl Prover {
         let mut points = Vec::new();
         let mut secrets = Vec::new();
         let mut committing = ProofCommittedBuilder::<G1Projective, G1Affine, Scalar>::new(
-            G1Projective::sum_of_products_in_place,
+            G1Projective::sum_of_products,
         );
 
         for (i, m) in messages {
@@ -42,13 +42,13 @@ impl Prover {
         committing.commit_random(G1Projective::GENERATOR, &mut rng);
 
         let mut transcript = Transcript::new(b"new blind signature");
-        let commitment = G1Projective::sum_of_products_in_place(points.as_ref(), secrets.as_mut());
+        let commitment = G1Projective::sum_of_products(points.as_ref(), secrets.as_ref());
         committing.add_challenge_contribution(b"random commitment", &mut transcript);
         transcript.append_message(
             b"blind commitment",
             commitment.to_affine().to_compressed().as_ref(),
         );
-        transcript.append_message(b"nonce", nonce.to_bytes().as_ref());
+        transcript.append_message(b"nonce", nonce.to_be_bytes().as_ref());
         let mut res = [0u8; 64];
         transcript.challenge_bytes(b"blind signature context challenge", &mut res);
         let challenge = Scalar::from_bytes_wide(&res);

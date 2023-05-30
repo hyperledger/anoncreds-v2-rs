@@ -1,6 +1,6 @@
 use crate::claim::{Claim, ClaimType};
 use crate::knox::Knox;
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use core::{
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},

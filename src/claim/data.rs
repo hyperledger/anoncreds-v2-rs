@@ -1,5 +1,6 @@
 use super::*;
-use crate::{error::Error, utils::scalar_from_hex_str, CredxResult};
+use crate::{error::Error, CredxResult};
+use blsful::inner_types::Scalar;
 use serde::{Deserialize, Serialize};
 
 /// Hashed utf8 string
@@ -76,8 +77,8 @@ impl ClaimData {
     pub fn to_bytes(&self) -> Vec<u8> {
         match self {
             Self::Hashed(h) => h.value.clone(),
-            Self::Number(n) => n.value.to_le_bytes().to_vec(),
-            Self::Scalar(s) => s.value.to_bytes().to_vec(),
+            Self::Number(n) => n.value.to_be_bytes().to_vec(),
+            Self::Scalar(s) => s.value.to_be_bytes().to_vec(),
             Self::Revocation(r) => r.value.as_bytes().to_vec(),
             Self::Enumeration(e) => vec![e.value],
         }
@@ -94,15 +95,15 @@ impl ClaimData {
                 let n = match data.len() {
                     1 => NumberClaim::from(data[0]),
                     2 => {
-                        let i = u16::from_le_bytes(<[u8; 2]>::try_from(data).unwrap());
+                        let i = u16::from_be_bytes(<[u8; 2]>::try_from(data).unwrap());
                         NumberClaim::from(i)
                     }
                     4 => {
-                        let i = u32::from_le_bytes(<[u8; 4]>::try_from(data).unwrap());
+                        let i = u32::from_be_bytes(<[u8; 4]>::try_from(data).unwrap());
                         NumberClaim::from(i)
                     }
                     8 => {
-                        let i = u64::from_le_bytes(<[u8; 8]>::try_from(data).unwrap());
+                        let i = u64::from_be_bytes(<[u8; 8]>::try_from(data).unwrap());
                         NumberClaim::from(i)
                     }
                     _ => {
@@ -114,7 +115,7 @@ impl ClaimData {
                 Ok(Self::Number(n))
             }
             ClaimType::Scalar => {
-                let s = Scalar::from_bytes(&<[u8; 32]>::try_from(data).unwrap());
+                let s = Scalar::from_be_bytes(&<[u8; 32]>::try_from(data).unwrap());
                 if s.is_none().unwrap_u8() == 1 {
                     return Err(Error::InvalidClaimData(
                         "scalar claim could not be deserialized",
@@ -172,7 +173,7 @@ impl ClaimData {
             }
             ClaimData::Scalar(ScalarClaim { value }) => {
                 s.push_str(SCALAR);
-                s.push_str(&hex::encode(value.to_bytes()));
+                s.push_str(&format!("{:x}", value));
             }
             ClaimData::Revocation(RevocationClaim { value }) => {
                 s.push_str(REVOCATION);
@@ -213,10 +214,10 @@ impl ClaimData {
                 Ok(ClaimData::Number(NumberClaim { value }))
             }
             SCALAR => {
-                let value = scalar_from_hex_str(
-                    &s[4..],
-                    Error::InvalidClaimData("unable to deserialize scalar claim"),
-                )?;
+                let value =
+                    Option::<Scalar>::from(Scalar::from_be_hex(&s[4..])).ok_or_else(|| {
+                        Error::InvalidClaimData("unable to deserialize scalar claim hex string")
+                    })?;
                 Ok(ClaimData::Scalar(ScalarClaim { value }))
             }
             REVOCATION => {

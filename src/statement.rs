@@ -15,7 +15,7 @@ pub use signature::*;
 use std::fmt::Formatter;
 pub use verifiable_encryption::*;
 
-use blsful::bls12_381_plus::G1Projective;
+use blsful::inner_types::G1Projective;
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 

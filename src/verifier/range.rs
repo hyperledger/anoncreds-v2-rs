@@ -4,7 +4,7 @@ use crate::statement::{CommitmentStatement, RangeStatement};
 use crate::utils::{get_num_scalar, zero_center};
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{group::Curve, G1Projective, Scalar};
+use blsful::inner_types::{group::Curve, G1Projective, Scalar};
 use merlin::Transcript;
 
 pub struct RangeProofVerifier<'a, 'b, 'c> {
@@ -79,7 +79,7 @@ impl<'a, 'b, 'c> ProofVerifier for RangeProofVerifier<'a, 'b, 'c> {
         };
 
         let mut transcript = Transcript::new(b"credx range proof");
-        transcript.append_message(b"challenge", &challenge.to_bytes());
+        transcript.append_message(b"challenge", &challenge.to_be_bytes());
 
         match (self.statement.lower, self.statement.upper) {
             (Some(lower), Some(upper)) => {

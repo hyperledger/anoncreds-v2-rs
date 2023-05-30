@@ -7,7 +7,7 @@ use crate::knox::{
     ps, Knox,
 };
 use crate::{random_string, CredxResult};
-use blsful::bls12_381_plus::Scalar;
+use blsful::{inner_types::*, *};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -23,7 +23,7 @@ pub struct Issuer {
     /// The revocation update key for this issuer
     pub revocation_key: vb20::SecretKey,
     /// The verifiable decryption key for this issuer
-    pub verifiable_decryption_key: blsful::SecretKey,
+    pub verifiable_decryption_key: SecretKey<Bls12381G2Impl>,
     /// The revocation registry for this issuer
     pub revocation_registry: RevocationRegistry,
 }
@@ -40,7 +40,7 @@ pub struct IssuerPublic {
     /// The revocation registry verifying key for this issuer
     pub revocation_verifying_key: vb20::PublicKey,
     /// The verifiable encryption key for this issuer
-    pub verifiable_encryption_key: blsful::PublicKeyVt,
+    pub verifiable_encryption_key: PublicKey<Bls12381G2Impl>,
     /// The revocation registry for this issuer
     pub revocation_registry: Accumulator,
 }
@@ -63,11 +63,11 @@ impl Issuer {
         let id = random_string(16, rand::thread_rng());
         let (verifying_key, signing_key) =
             ps::Issuer::new_keys(schema.claims.len(), rand::thread_rng()).unwrap();
-        let (pubkkey, seckey) = Knox::new_bls381g2_keys(rand::thread_rng());
+        let (pubkkey, seckey) = Knox::new_bls381g1_keys(rand::thread_rng());
         let revocation_verifying_key = vb20::PublicKey(pubkkey.0);
         let revocation_key = vb20::SecretKey(seckey.0);
         let (verifiable_encryption_key, verifiable_decryption_key) =
-            Knox::new_bls381g1_keys(rand::thread_rng());
+            Knox::new_bls381g2_keys(rand::thread_rng());
         let revocation_registry = RevocationRegistry::new(rand::thread_rng());
         (
             IssuerPublic {
@@ -292,7 +292,8 @@ impl Issuer {
     fn get_public(&self) -> IssuerPublic {
         let verifying_key = ps::PublicKey::from(&self.signing_key);
         let revocation_verifying_key = vb20::PublicKey::from(&self.revocation_key);
-        let verifiable_encryption_key = blsful::PublicKeyVt::from(&self.verifiable_decryption_key);
+        let verifiable_encryption_key =
+            blsful::PublicKey::<Bls12381G2Impl>::from(&self.verifiable_decryption_key);
         IssuerPublic {
             id: self.id.clone(),
             schema: self.schema.clone(),
@@ -318,11 +319,11 @@ impl IssuerPublic {
         );
         transcript.append_message(
             b"issuer revocation registry",
-            self.revocation_registry.to_bytes().as_slice(),
+            self.revocation_registry.0.to_bytes().as_ref(),
         );
         transcript.append_message(
             b"issuer verifiable encryption key",
-            self.verifiable_encryption_key.to_bytes().as_slice(),
+            self.verifiable_encryption_key.0.to_bytes().as_ref(),
         );
         self.schema.add_challenge_contribution(transcript);
     }

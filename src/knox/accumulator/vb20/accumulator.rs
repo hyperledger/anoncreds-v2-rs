@@ -1,5 +1,5 @@
 use super::{error::Error, generate_fr, hash_to_g1, key::SecretKey, SALT};
-use blsful::bls12_381_plus::{group::GroupEncoding, G1Affine, G1Projective, Scalar};
+use blsful::inner_types::*;
 use core::convert::TryFrom;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
@@ -30,7 +30,7 @@ impl TryFrom<&[u8; 32]> for Element {
     type Error = Error;
 
     fn try_from(value: &[u8; 32]) -> Result<Self, Self::Error> {
-        let s = Scalar::from_bytes(value);
+        let s = Scalar::from_be_bytes(value);
         if s.is_some().unwrap_u8() == 1u8 {
             Ok(Self(s.unwrap()))
         } else {
@@ -52,7 +52,7 @@ impl Element {
 
     /// Return the byte representation
     pub fn to_bytes(&self) -> [u8; Self::BYTES] {
-        self.0.to_bytes()
+        self.0.to_be_bytes()
     }
 
     /// Construct an element by hashing the specified bytes

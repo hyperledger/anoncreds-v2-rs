@@ -1,7 +1,7 @@
 use super::{BlindSignature, BlindSignatureContext, PublicKey, SecretKey, Signature};
 use crate::error::Error;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{ff::Field, Scalar};
+use blsful::inner_types::{ff::Field, Scalar};
 use rand_core::{CryptoRng, RngCore};
 
 /// This struct represents an Issuer of signatures or Signer.

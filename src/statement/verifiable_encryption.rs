@@ -1,6 +1,9 @@
 use crate::statement::Statement;
 use crate::utils::*;
-use blsful::bls12_381_plus::group::{Group, GroupEncoding};
+use blsful::{
+    inner_types::group::{Group, GroupEncoding},
+    *,
+};
 use merlin::Transcript;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uint_zigzag::Uint;
@@ -15,7 +18,7 @@ pub struct VerifiableEncryptionStatement<P: Group + GroupEncoding + Serialize + 
     )]
     pub message_generator: P,
     /// The encryption key for this ciphertext
-    pub encryption_key: blsful::PublicKeyVt,
+    pub encryption_key: PublicKey<Bls12381G2Impl>,
     /// The statement id
     pub id: String,
     /// The other statement id
@@ -44,7 +47,7 @@ impl<P: Group + GroupEncoding + DeserializeOwned + Serialize> Statement
             b"message generator",
             self.message_generator.to_bytes().as_ref(),
         );
-        transcript.append_message(b"encryption key", self.encryption_key.to_bytes().as_ref());
+        transcript.append_message(b"encryption key", self.encryption_key.0.to_bytes().as_ref());
     }
 
     fn get_claim_index(&self, _reference_id: &str) -> usize {

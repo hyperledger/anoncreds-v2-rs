@@ -1,6 +1,6 @@
 use super::{Claim, ClaimType};
 use crate::knox::accumulator::vb20::Element;
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use core::{
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},

@@ -22,14 +22,18 @@ impl Knox {
     }
 
     /// New BLS Keys w/G1 public keys
-    pub fn new_bls381g1_keys(rng: impl RngCore + CryptoRng) -> (PublicKeyVt, SecretKey) {
-        let sk = SecretKey::random(rng).unwrap();
-        (PublicKeyVt::from(&sk), sk)
+    pub fn new_bls381g1_keys(
+        rng: impl RngCore + CryptoRng,
+    ) -> (PublicKey<Bls12381G1Impl>, SecretKey<Bls12381G1Impl>) {
+        let sk = Bls12381G1::random_secret_key(rng);
+        (sk.public_key(), sk)
     }
 
     /// New BLS Keys w/G2 public keys
-    pub fn new_bls381g2_keys(rng: impl RngCore + CryptoRng) -> (PublicKey, SecretKey) {
-        let sk = SecretKey::random(rng).unwrap();
-        (PublicKey::from(&sk), sk)
+    pub fn new_bls381g2_keys(
+        rng: impl RngCore + CryptoRng,
+    ) -> (PublicKey<Bls12381G2Impl>, SecretKey<Bls12381G2Impl>) {
+        let sk = Bls12381G2::random_secret_key(rng);
+        (sk.public_key(), sk)
     }
 }

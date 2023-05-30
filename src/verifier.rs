@@ -15,7 +15,7 @@ pub use signature::*;
 pub use verifiable_encryption::*;
 
 use crate::CredxResult;
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use merlin::Transcript;
 
 /// A trait for indication of proof verifier logic

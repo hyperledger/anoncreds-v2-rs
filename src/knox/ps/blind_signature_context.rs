@@ -1,6 +1,6 @@
 use super::SecretKey;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{group::Curve, G1Affine, G1Projective, Scalar};
+use blsful::inner_types::{group::Curve, G1Affine, G1Projective, Scalar};
 use core::convert::TryFrom;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
@@ -26,10 +26,10 @@ impl BlindSignatureContext {
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut buffer = Vec::new();
         buffer.extend_from_slice(self.commitment.to_affine().to_compressed().as_ref());
-        buffer.extend_from_slice(&self.challenge.to_bytes());
+        buffer.extend_from_slice(&self.challenge.to_be_bytes());
 
         for i in 0..self.proofs.len() {
-            buffer.extend_from_slice(&self.proofs[i].to_bytes());
+            buffer.extend_from_slice(&self.proofs[i].to_be_bytes());
         }
         buffer
     }
@@ -54,7 +54,7 @@ impl BlindSignatureContext {
         let mut offset = 48;
         let mut end = 80;
 
-        let challenge = Scalar::from_bytes(&<[u8; 32]>::try_from(&buffer[offset..end]).unwrap());
+        let challenge = Scalar::from_be_bytes(&<[u8; 32]>::try_from(&buffer[offset..end]).unwrap());
         if challenge.is_none().unwrap_u8() == 1 {
             return None;
         }
@@ -66,7 +66,7 @@ impl BlindSignatureContext {
 
         let mut proofs = Vec::new();
         for _ in 0..times {
-            let p = Scalar::from_bytes(&<[u8; 32]>::try_from(&buffer[offset..end]).unwrap());
+            let p = Scalar::from_be_bytes(&<[u8; 32]>::try_from(&buffer[offset..end]).unwrap());
             if p.is_none().unwrap_u8() == 1 {
                 return None;
             }
@@ -112,7 +112,7 @@ impl BlindSignatureContext {
         let mut transcript = Transcript::new(b"new blind signature");
         let mut res = [0u8; 64];
 
-        let commitment = G1Projective::sum_of_products_in_place(points.as_ref(), scalars.as_mut());
+        let commitment = G1Projective::sum_of_products(points.as_ref(), scalars.as_ref());
         transcript.append_message(
             b"random commitment",
             &commitment.to_affine().to_compressed(),
@@ -121,7 +121,7 @@ impl BlindSignatureContext {
             b"blind commitment",
             &self.commitment.to_affine().to_compressed(),
         );
-        transcript.append_message(b"nonce", &nonce.to_bytes());
+        transcript.append_message(b"nonce", &nonce.to_be_bytes());
         transcript.challenge_bytes(b"blind signature context challenge", &mut res);
         let challenge = Scalar::from_bytes_wide(&res);
 

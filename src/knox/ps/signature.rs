@@ -1,11 +1,10 @@
 use super::{PublicKey, SecretKey};
 use crate::error::Error;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{
-    elliptic_curve::hash2curve::ExpandMsgXof,
+use blsful::inner_types::{
     ff::PrimeField,
-    group::{Curve, Group},
-    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Scalar,
+    group::{prime::PrimeCurveAffine, Curve, Group},
+    *,
 };
 use core::convert::TryFrom;
 use serde::{Deserialize, Serialize};
@@ -63,8 +62,7 @@ impl Signature {
         }
 
         let m_tick = Self::compute_m_tick(msgs);
-        let sigma_1 =
-            G1Projective::hash::<ExpandMsgXof<sha3::Shake256>>(&m_tick.to_bytes()[..], Self::DST);
+        let sigma_1 = G1Projective::hash_to_curve(&m_tick.to_be_bytes()[..], Self::DST, &[]);
         let mut exp = sk.x + sk.w * m_tick;
 
         for (ski, m) in msgs.iter().zip(sk.y.iter()) {
@@ -108,7 +106,7 @@ impl Signature {
         }
 
         // Y_m = X_tilde * W_tilde^m' * Y_tilde[1]^m_1 * Y_tilde[2]^m_2 * ...Y_tilde[i]^m_i
-        let y_m = G2Projective::sum_of_products_in_place(points.as_ref(), scalars.as_mut());
+        let y_m = G2Projective::sum_of_products(points.as_ref(), scalars.as_ref());
 
         // e(sigma_1, Y_m) == e(sigma_2, G2) or
         // e(sigma_1 + sigma_2, Y_m - G2) == GT_1
@@ -131,7 +129,7 @@ impl Signature {
         let mut bytes = [0u8; Self::BYTES];
         bytes[..48].copy_from_slice(&self.sigma_1.to_affine().to_compressed());
         bytes[48..96].copy_from_slice(&self.sigma_2.to_affine().to_compressed());
-        bytes[96..].copy_from_slice(&self.m_tick.to_bytes());
+        bytes[96..].copy_from_slice(&self.m_tick.to_be_bytes());
         bytes
     }
 
@@ -141,7 +139,7 @@ impl Signature {
             .map(G1Projective::from);
         let s2 = G1Affine::from_compressed(&<[u8; 48]>::try_from(&data[48..96]).unwrap())
             .map(G1Projective::from);
-        let m = Scalar::from_bytes(&<[u8; 32]>::try_from(&data[96..]).unwrap());
+        let m = Scalar::from_be_bytes(&<[u8; 32]>::try_from(&data[96..]).unwrap());
 
         s1.and_then(|sigma_1| {
             s2.and_then(|sigma_2| {

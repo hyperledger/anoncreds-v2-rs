@@ -1,9 +1,7 @@
 use super::{PokSignatureProof, PublicKey, Signature};
 use crate::knox::short_group_sig_core::*;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{
-    ff::Field, group::Curve, G1Projective, G2Affine, G2Projective, Scalar,
-};
+use blsful::inner_types::{ff::Field, group::Curve, G1Projective, G2Affine, G2Projective, Scalar};
 use merlin::Transcript;
 use rand_core::*;
 
@@ -37,7 +35,7 @@ impl PokSignature {
         let sigma_2 = (signature.sigma_2 + (signature.sigma_1 * t)) * r;
 
         // Prove knowledge of m_tick, m_1, m_2, ... for all hidden m_i and t in J = Y_tilde_1^m_1 * Y_tilde_2^m_2 * ..... * g_tilde^t
-        let mut proof = ProofCommittedBuilder::new(G2Projective::sum_of_products_in_place);
+        let mut proof = ProofCommittedBuilder::new(G2Projective::sum_of_products);
         let mut points = Vec::new();
         let mut secrets = Vec::new();
 
@@ -64,7 +62,7 @@ impl PokSignature {
                 ProofMessage::Revealed(_) => {}
             }
         }
-        let commitment = G2Projective::sum_of_products_in_place(points.as_ref(), secrets.as_mut());
+        let commitment = G2Projective::sum_of_products(points.as_ref(), secrets.as_ref());
         Ok(Self {
             secrets,
             proof,

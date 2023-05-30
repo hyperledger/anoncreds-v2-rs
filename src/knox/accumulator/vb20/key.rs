@@ -1,5 +1,5 @@
 use super::{accumulator::Element, error::Error, generate_fr, Polynomial};
-use blsful::bls12_381_plus::{group::GroupEncoding, G2Affine, G2Projective, Scalar};
+use blsful::inner_types::*;
 use core::convert::TryFrom;
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
@@ -24,7 +24,7 @@ impl From<Scalar> for SecretKey {
 
 impl From<SecretKey> for [u8; 32] {
     fn from(s: SecretKey) -> Self {
-        s.0.to_bytes()
+        s.0.to_be_bytes()
     }
 }
 
@@ -32,7 +32,7 @@ impl TryFrom<&[u8; 32]> for SecretKey {
     type Error = Error;
 
     fn try_from(bytes: &[u8; 32]) -> Result<Self, Self::Error> {
-        let res = Scalar::from_bytes(bytes);
+        let res = Scalar::from_be_bytes(bytes);
         if res.is_some().unwrap_u8() == 1u8 {
             Ok(Self(res.unwrap()))
         } else {
@@ -56,7 +56,7 @@ impl SecretKey {
 
     /// Return the raw byte representation of the key
     pub fn to_bytes(&self) -> [u8; Self::BYTES] {
-        self.0.to_bytes()
+        self.0.to_be_bytes()
     }
 
     /// Compute the batch add elements value
@@ -184,7 +184,7 @@ impl TryFrom<&[u8; 96]> for PublicKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use blsful::bls12_381_plus::G1Projective;
+    use blsful::inner_types::G1Projective;
 
     #[test]
     fn batch_test() {

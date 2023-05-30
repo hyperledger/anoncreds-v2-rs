@@ -1,8 +1,5 @@
 use super::SecretKey;
-use blsful::bls12_381_plus::{
-    group::{Curve, GroupEncoding},
-    G1Projective, G2Projective,
-};
+use blsful::inner_types::*;
 use core::convert::TryFrom;
 use serde::{Deserialize, Serialize};
 use subtle::Choice;

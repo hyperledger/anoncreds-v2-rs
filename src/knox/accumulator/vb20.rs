@@ -15,7 +15,7 @@ pub use key::*;
 pub use proof::*;
 pub use witness::*;
 
-use blsful::bls12_381_plus::{elliptic_curve::hash2curve::ExpandMsgXof, G1Projective, Scalar};
+use blsful::inner_types::*;
 use rand_core::{CryptoRng, RngCore};
 use sha3::{
     digest::{ExtendableOutput, Update, XofReader},
@@ -45,8 +45,8 @@ fn generate_fr(salt: &[u8], ikm: Option<&[u8]>, mut rng: impl RngCore + CryptoRn
 }
 
 fn hash_to_g1<I: AsRef<[u8]>>(data: I) -> G1Projective {
-    const DST: &[u8] = b"BLS12381G1_XOF:SHAKE256_SSWU_RO_VB_ACCUMULATOR:1_0_0";
-    G1Projective::hash::<ExpandMsgXof<Shake256>>(data.as_ref(), DST)
+    const DST: &[u8] = b"BLS12381G1_XMD:SHA-256_SSWU_RO_VB_ACCUMULATOR:1_0_0";
+    G1Projective::hash_to_curve(data.as_ref(), DST, &[])
 }
 
 /// dA(x) and dD(x)

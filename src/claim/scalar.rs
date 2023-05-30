@@ -1,5 +1,5 @@
 use super::{Claim, ClaimType};
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use core::{
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},
@@ -21,7 +21,7 @@ impl PartialEq for ScalarClaim {
 
 impl Hash for ScalarClaim {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.value.to_bytes().hash(state)
+        self.value.to_be_bytes().hash(state)
     }
 }
 

@@ -3,7 +3,7 @@ use crate::knox::ps::{PokSignature, PokSignatureProof, Signature as PsSignature}
 use crate::knox::short_group_sig_core::ProofMessage;
 use crate::statement::SignatureStatement;
 use crate::{error::Error, utils::*, CredxResult};
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use indexmap::IndexMap;
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};

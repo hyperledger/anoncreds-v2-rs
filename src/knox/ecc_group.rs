@@ -1,7 +1,7 @@
 use core::{fmt, ops};
 use sha3::digest::Digest;
 
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use zeroize::Zeroize;
 
 /// Adds `from_bytes_wide` for Generic Scalars

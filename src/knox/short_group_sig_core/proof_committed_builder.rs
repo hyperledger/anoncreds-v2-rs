@@ -1,6 +1,6 @@
 use super::super::ecc_group::*;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{
+use blsful::inner_types::{
     ff::PrimeField,
     group::{Curve, GroupEncoding},
 };
@@ -20,7 +20,7 @@ where
 {
     points: Vec<B>,
     scalars: Vec<S>,
-    sum_of_products: fn(&[B], &mut [S]) -> B,
+    sum_of_products: fn(&[B], &[S]) -> B,
 }
 
 impl<B, C, S> Default for ProofCommittedBuilder<B, C, S>
@@ -41,7 +41,7 @@ where
     S: PrimeField + ScalarOps<Scalar = S>,
 {
     /// Create a new builder
-    pub fn new(sum_of_products: fn(&[B], &mut [S]) -> B) -> Self {
+    pub fn new(sum_of_products: fn(&[B], &[S]) -> B) -> Self {
         Self {
             points: Vec::new(),
             scalars: Vec::new(),
@@ -84,12 +84,12 @@ where
 mod test {
 
     use super::*;
-    use blsful::bls12_381_plus::{G1Affine, G1Projective, Scalar};
+    use blsful::inner_types::*;
 
     #[test]
     fn test_proof_committed_builder() {
         let mut pb = ProofCommittedBuilder::<G1Projective, G1Affine, Scalar>::new(
-            G1Projective::sum_of_products_in_place,
+            G1Projective::sum_of_products,
         );
 
         let mut transcript = Transcript::new(b"test_proof_committed_builder");

@@ -3,7 +3,7 @@ use crate::presentation::{PresentationProofs, PresentationSchema};
 use crate::statement::{EqualityStatement, Statements};
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use indexmap::IndexMap;
 use merlin::Transcript;
 

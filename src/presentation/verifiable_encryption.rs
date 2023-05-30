@@ -1,7 +1,7 @@
 use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::VerifiableEncryptionStatement;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{ff::Field, group::Curve, G1Projective, Scalar};
+use blsful::inner_types::{ff::Field, group::Curve, G1Projective, Scalar};
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};

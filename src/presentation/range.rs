@@ -3,7 +3,7 @@ use crate::presentation::{CommitmentBuilder, PresentationBuilder, PresentationPr
 use crate::statement::RangeStatement;
 use crate::utils::*;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{group::Curve, Scalar};
+use blsful::inner_types::{group::Curve, Scalar};
 use bulletproofs::RangeProof as RangeProofBulletproof;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
@@ -23,7 +23,7 @@ impl<'a> PresentationBuilder for RangeBuilder<'a> {
         };
 
         let mut transcript = Transcript::new(b"credx range proof");
-        transcript.append_message(b"challenge", &challenge.to_bytes());
+        transcript.append_message(b"challenge", &challenge.to_be_bytes());
 
         let blinder = self.commitment_builder.b;
 

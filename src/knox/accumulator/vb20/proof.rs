@@ -6,10 +6,7 @@ use super::{
     SALT,
 };
 use crate::knox::short_group_sig_core::ProofMessage;
-use blsful::bls12_381_plus::{
-    group::{Curve, GroupEncoding},
-    G1Projective, G2Projective, Gt, Scalar,
-};
+use blsful::inner_types::*;
 
 use crate::knox::accumulator::vb20::Error;
 use merlin::Transcript;
@@ -780,12 +777,12 @@ fn cap_r(bases: &[G1Projective], scalars: &[Scalar]) -> G1Projective {
 }
 
 fn pair(g1: G1Projective, g2: G2Projective) -> Gt {
-    blsful::bls12_381_plus::pairing(&g1.to_affine(), &g2.to_affine())
+    blsful::inner_types::pairing(&g1.to_affine(), &g2.to_affine())
 }
 
 fn pairing(g1: G1Projective, g2: G2Projective, exp: Scalar) -> Gt {
     let base = g1 * exp;
-    blsful::bls12_381_plus::pairing(&base.to_affine(), &g2.to_affine())
+    blsful::inner_types::pairing(&base.to_affine(), &g2.to_affine())
 }
 
 fn schnorr(r: Scalar, v: Scalar, challenge: Scalar) -> Scalar {

@@ -4,7 +4,7 @@ use crate::{
 };
 
 use crate::credential::Credential;
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 

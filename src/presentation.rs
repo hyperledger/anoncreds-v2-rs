@@ -25,7 +25,7 @@ pub use verifiable_encryption::*;
 use crate::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
 use crate::verifier::*;
 use crate::{claim::ClaimData, error::Error, statement::Statements, utils::*, CredxResult};
-use blsful::bls12_381_plus::{ff::Field, G1Affine, G2Affine, Scalar};
+use blsful::inner_types::{ff::Field, group::prime::PrimeCurveAffine, G1Affine, G2Affine, Scalar};
 use indexmap::{IndexMap, IndexSet};
 use merlin::Transcript;
 use rand_core::{CryptoRng, OsRng, RngCore};
@@ -185,7 +185,10 @@ impl Presentation {
             transcript.append_message(b"disclosed message label", label.as_bytes());
             transcript.append_message(b"disclosed message index", &Uint::from(i).to_vec());
             transcript.append_message(b"disclosed message value", &claim.to_bytes());
-            transcript.append_message(b"disclosed message scalar", &claim.to_scalar().to_bytes());
+            transcript.append_message(
+                b"disclosed message scalar",
+                &claim.to_scalar().to_be_bytes(),
+            );
         }
     }
 

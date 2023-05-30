@@ -2,7 +2,7 @@ use crate::presentation::CommitmentProof;
 use crate::statement::CommitmentStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{group::Curve, G1Projective, Scalar};
+use blsful::inner_types::{group::Curve, G1Projective, Scalar};
 use merlin::Transcript;
 
 pub struct CommitmentVerifier<'a, 'b> {

@@ -5,7 +5,7 @@ use crate::{
     issuer::{Issuer, IssuerPublic},
     CredxResult,
 };
-use blsful::bls12_381_plus::{ff::Field, Scalar};
+use blsful::inner_types::*;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 

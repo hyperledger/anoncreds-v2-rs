@@ -16,7 +16,7 @@ pub use revocation::*;
 pub use scalar::*;
 pub use validator::*;
 
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::*;
 
 /// Represents claims
 pub trait Claim {

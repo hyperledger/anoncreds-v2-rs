@@ -1,6 +1,4 @@
-use crate::error::Error;
-use crate::CredxResult;
-use blsful::bls12_381_plus::{
+use blsful::inner_types::{
     group::{Group, GroupEncoding},
     Scalar,
 };
@@ -226,15 +224,4 @@ pub fn deserialize_indexmap_nested<
         result.insert(k1, value);
     }
     Ok(result)
-}
-
-pub fn scalar_from_hex_str(sc: &str, e: Error) -> CredxResult<Scalar> {
-    let bytes = hex::decode(sc).map_err(|_| e)?;
-    let buf = <[u8; 32]>::try_from(bytes.as_slice()).map_err(|_| e)?;
-    let sr = Scalar::from_bytes(&buf);
-    if sr.is_some().unwrap_u8() == 1 {
-        Ok(sr.unwrap())
-    } else {
-        Err(Error::DeserializationError)
-    }
 }

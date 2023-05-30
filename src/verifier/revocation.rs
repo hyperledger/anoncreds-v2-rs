@@ -3,7 +3,7 @@ use crate::presentation::RevocationProof;
 use crate::statement::RevocationStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use merlin::Transcript;
 
 pub struct RevocationVerifier<'a, 'b> {

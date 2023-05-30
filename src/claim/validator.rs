@@ -154,7 +154,7 @@ impl ClaimValidator {
                         .append_message(b"claim validator anyone claim raw data", &c.to_bytes());
                     transcript.append_message(
                         b"claim validator anyone claim mapped data",
-                        &c.to_scalar().to_bytes(),
+                        &c.to_scalar().to_be_bytes(),
                     );
                 }
             }

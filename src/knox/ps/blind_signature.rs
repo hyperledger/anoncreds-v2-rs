@@ -1,6 +1,6 @@
 use super::{SecretKey, Signature};
 use crate::CredxResult;
-use blsful::bls12_381_plus::{G1Projective, Scalar};
+use blsful::inner_types::{G1Projective, Scalar};
 use serde::{Deserialize, Serialize};
 use sha3::digest::{ExtendableOutput, Update, XofReader};
 use subtle::CtOption;
@@ -36,7 +36,7 @@ impl BlindSignature {
 
         let mut hasher = sha3::Shake256::default();
         hasher.update(&sk.to_bytes());
-        t_msgs.iter().for_each(|m| hasher.update(&m.to_bytes()));
+        t_msgs.iter().for_each(|m| hasher.update(&m.to_be_bytes()));
 
         let mut reader = hasher.finalize_xof();
         let mut okm = [0u8; 64];

@@ -1,10 +1,7 @@
 use super::PublicKey;
 use crate::error::Error;
 use crate::CredxResult;
-use blsful::bls12_381_plus::{
-    group::{Curve, Group},
-    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Scalar,
-};
+use blsful::inner_types::{group::prime::PrimeCurveAffine, *};
 use core::convert::TryFrom;
 use core::ops::BitOr;
 use merlin::Transcript;
@@ -32,7 +29,7 @@ impl PokSignatureProof {
         buffer.extend_from_slice(&self.commitment.to_affine().to_compressed());
 
         for m in &self.proof {
-            buffer.extend_from_slice(m.to_bytes().as_ref());
+            buffer.extend_from_slice(m.to_be_bytes().as_ref());
         }
         buffer
     }
@@ -75,7 +72,7 @@ impl PokSignatureProof {
 
         let mut proof = Vec::new();
         for _ in 0..hid_msg_cnt {
-            let c = Scalar::from_bytes(&<[u8; 32]>::try_from(&buffer[offset..end]).unwrap());
+            let c = Scalar::from_be_bytes(&<[u8; 32]>::try_from(&buffer[offset..end]).unwrap());
             offset = end;
             end = offset + 32;
             if c.is_none().unwrap_u8() == 1 {
@@ -133,7 +130,7 @@ impl PokSignatureProof {
 
         let mut scalars = self.proof.clone();
         scalars.push(-challenge);
-        let commitment = G2Projective::sum_of_products_in_place(points.as_ref(), scalars.as_mut());
+        let commitment = G2Projective::sum_of_products(points.as_ref(), scalars.as_ref());
         transcript.append_message(
             b"blind commitment",
             commitment.to_affine().to_compressed().as_ref(),
@@ -177,7 +174,7 @@ impl PokSignatureProof {
         points.push(self.commitment);
         scalars.push(Scalar::ONE);
 
-        let j = G2Projective::sum_of_products_in_place(points.as_ref(), scalars.as_mut());
+        let j = G2Projective::sum_of_products(points.as_ref(), scalars.as_ref());
 
         multi_miller_loop(&[
             (&self.sigma_1.to_affine(), &G2Prepared::from(j.to_affine())),

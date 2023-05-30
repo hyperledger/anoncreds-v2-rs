@@ -2,7 +2,7 @@ use crate::knox::{accumulator::vb20::MembershipWitness, ps::BlindSignature};
 use crate::{
     claim::ClaimData, credential::Credential, error::Error, issuer::IssuerPublic, CredxResult,
 };
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 

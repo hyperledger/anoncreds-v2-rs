@@ -1,4 +1,4 @@
-use blsful::bls12_381_plus::{
+use blsful::inner_types::{
     ff::{Field, PrimeField},
     Scalar,
 };

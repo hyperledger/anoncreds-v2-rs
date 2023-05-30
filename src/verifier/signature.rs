@@ -3,7 +3,7 @@ use crate::presentation::SignatureProof;
 use crate::statement::SignatureStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use blsful::bls12_381_plus::Scalar;
+use blsful::inner_types::Scalar;
 use merlin::Transcript;
 
 pub struct SignatureVerifier<'a, 'b> {

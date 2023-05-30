@@ -1,5 +1,5 @@
 use super::{PokSignatureProof, PublicKey};
-use blsful::bls12_381_plus::{ff::Field, Scalar};
+use blsful::inner_types::{ff::Field, Scalar};
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 
@@ -24,7 +24,7 @@ impl Verifier {
     ) -> bool {
         let mut transcript = Transcript::new(b"signature proof of knowledge");
         proof.add_challenge_contribution(public_key, revealed_msgs, challenge, &mut transcript);
-        transcript.append_message(b"nonce", nonce.to_bytes().as_ref());
+        transcript.append_message(b"nonce", nonce.to_be_bytes().as_ref());
         let mut res = [0u8; 64];
         transcript.challenge_bytes(b"signature proof of knowledge", &mut res);
         let v_challenge = Scalar::from_bytes_wide(&res);
@@ -67,7 +67,7 @@ fn pok_sig_proof_works() {
     let nonce = Verifier::generate_proof_nonce(&mut rng);
     let mut transcript = Transcript::new(b"signature proof of knowledge");
     pok_sig.add_proof_contribution(&mut transcript);
-    transcript.append_message(b"nonce", nonce.to_bytes().as_ref());
+    transcript.append_message(b"nonce", nonce.to_be_bytes().as_ref());
     let mut tmp = [0u8; 64];
     transcript.challenge_bytes(b"signature proof of knowledge", &mut tmp);
     let challenge = Scalar::from_bytes_wide(&tmp);
@@ -80,7 +80,7 @@ fn pok_sig_proof_works() {
 
     let mut transcript = Transcript::new(b"signature proof of knowledge");
     proof.add_challenge_contribution(&pk, rvl_msgs, challenge, &mut transcript);
-    transcript.append_message(b"nonce", nonce.to_bytes().as_ref());
+    transcript.append_message(b"nonce", nonce.to_be_bytes().as_ref());
     transcript.challenge_bytes(b"signature proof of knowledge", &mut tmp);
     let challenge2 = Scalar::from_bytes_wide(&tmp);
     assert_eq!(challenge, challenge2);

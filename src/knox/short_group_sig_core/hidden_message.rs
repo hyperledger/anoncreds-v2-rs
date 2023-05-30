@@ -1,5 +1,5 @@
 use super::super::ecc_group::ScalarOps;
-use blsful::bls12_381_plus::ff::PrimeField;
+use blsful::inner_types::ff::PrimeField;
 
 /// Two types of hidden messages
 #[derive(Copy, Clone, Debug)]
