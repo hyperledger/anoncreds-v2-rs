@@ -46,7 +46,7 @@ fn generate_fr(salt: &[u8], ikm: Option<&[u8]>, mut rng: impl RngCore + CryptoRn
 
 fn hash_to_g1<I: AsRef<[u8]>>(data: I) -> G1Projective {
     const DST: &[u8] = b"BLS12381G1_XMD:SHA-256_SSWU_RO_VB_ACCUMULATOR:1_0_0";
-    G1Projective::hash_to_curve(data.as_ref(), DST, &[])
+    G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(data.as_ref(), DST)
 }
 
 /// dA(x) and dD(x)

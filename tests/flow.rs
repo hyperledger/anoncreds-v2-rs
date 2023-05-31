@@ -106,15 +106,13 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
     let comm_st = CommitmentStatement {
         id: random_string(16, rand::thread_rng()),
         reference_id: sig_st.id.clone(),
-        message_generator: G1Projective::hash_to_curve(
+        message_generator: G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(
             b"message generator",
             b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
-            &[],
         ),
-        blinder_generator: G1Projective::hash_to_curve(
+        blinder_generator: G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(
             b"blinder generator",
             b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
-            &[],
         ),
         claim: 3,
     };
@@ -248,15 +246,13 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
     let comm_st = CommitmentStatement {
         id: random_string(16, rand::thread_rng()),
         reference_id: sig_st.id.clone(),
-        message_generator: G1Projective::hash_to_curve(
+        message_generator: G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(
             b"message generator",
             b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
-            &[],
         ),
-        blinder_generator: G1Projective::hash_to_curve(
+        blinder_generator: G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(
             b"blinder generator",
             b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
-            &[],
         ),
         claim: 3,
     };

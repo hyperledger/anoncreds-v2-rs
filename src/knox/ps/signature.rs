@@ -62,7 +62,8 @@ impl Signature {
         }
 
         let m_tick = Self::compute_m_tick(msgs);
-        let sigma_1 = G1Projective::hash_to_curve(&m_tick.to_be_bytes()[..], Self::DST, &[]);
+        let sigma_1 =
+            G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(&m_tick.to_be_bytes()[..], Self::DST);
         let mut exp = sk.x + sk.w * m_tick;
 
         for (ski, m) in msgs.iter().zip(sk.y.iter()) {
