@@ -18,7 +18,7 @@ serde_json = "1"
 serde_regex = "1"
 sha2 = "0.10"
 sha3 = "0.10"
-blsful = "2.3"
+blsful = { version = "2.3", default-features = false, features = ["rust"] }
 subtle = "2.4.1"
 uint-zigzag = { version = "0.2", features = ["std"] }
 zeroize = "1"
