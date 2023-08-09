@@ -1,3 +1,4 @@
+use std::time::Instant;
 use blsful::inner_types::*;
 use credx::blind::BlindCredentialRequest;
 use credx::claim::{
@@ -70,7 +71,9 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
     ];
     let cred_schema = CredentialSchema::new(Some(LABEL), Some(DESCRIPTION), &[], &schema_claims)?;
 
+    let before = Instant::now();
     let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
+    println!("key generation time = {:?}", before.elapsed());
 
     let before = std::time::Instant::now();
     let credential = issuer.sign_credential(&[
@@ -79,8 +82,7 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
         HashedClaim::from("P Sherman 42 Wallaby Way Sydney").into(),
         NumberClaim::from(30303).into(),
     ])?;
-    let after = std::time::Instant::now();
-    println!("{:?}", after - before);
+    println!("sign credential {:?}", before.elapsed());
 
     let dummy_sk = MembershipSigningKey::new(None);
     let dummy_vk = MembershipVerificationKey::from(&dummy_sk);
@@ -152,8 +154,12 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
         mem_st.into(),
     ]);
     // println!("{}", serde_json::to_string(&presentation_schema).unwrap());
+    let before = Instant::now();
     let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
+    println!("proof generation: {:?}", before.elapsed());
     presentation.verify(&presentation_schema, &nonce)?;
+    let before = Instant::now();
+    println!("proof verification: {:?}", before.elapsed());
     let proof_data = serde_bare::to_vec(&presentation).unwrap();
     let presentation: Presentation = serde_bare::from_slice(&proof_data).unwrap();
     println!("proof size = {}", proof_data.len());

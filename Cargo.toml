@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 bulletproofs = { version = "4.0.0", git = "https://github.com/cryptidtech/bulletproofs" }
 hex = "0.4"
-indexmap = "1"
+indexmap = "2"
 merlin = "3"
 rand = "0.8"
 rand_chacha = "0.3"
@@ -18,7 +18,7 @@ serde_json = "1"
 serde_regex = "1"
 sha2 = "0.10"
 sha3 = "0.10"
-blsful = { version = "2.3", default-features = false, features = ["rust"] }
+blsful = "2.4"
 subtle = "2.4.1"
 uint-zigzag = { version = "0.2", features = ["std"] }
 zeroize = "1"
