@@ -1,0 +1,68 @@
+name: anoncreds-v2-rs
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: full
+  RUST_LOG: debug
+  RUST_LOG_STYLE: always
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install latest stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.72.1
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache cargo resources
+        uses: Swatinem/rust-cache@v2
+
+      - name: Cargo check
+        run: cargo check
+
+      - name: Cargo format
+        run: cargo fmt --all -- --check
+
+      - name: Cargo clippy
+        run: cargo clippy -- -Dwarnings
+
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install 1.72.1
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.72.1
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache cargo resources
+        uses: Swatinem/rust-cache@v2
+
+      - name: Cargo test
+        run: cargo test

@@ -108,10 +108,10 @@ impl MembershipProofCommitting {
         pubkey: PublicKey,
     ) -> Self {
         let message = y.get_message();
-        let mut rng = rand_core::OsRng;
+        let rng = rand_core::OsRng;
         // Randomly select σ, ρ
-        let sigma = generate_fr(SALT, None, &mut rng);
-        let rho = generate_fr(SALT, None, &mut rng);
+        let sigma = generate_fr(SALT, None, rng);
+        let rho = generate_fr(SALT, None, rng);
 
         // E_C = C + (σ + ρ)Z
         let e_c = proof_params.z * (sigma + rho) + witness.0;
@@ -131,11 +131,11 @@ impl MembershipProofCommitting {
         // Randomly pick r_σ,r_ρ,r_δσ,r_δρ
         // r_y is either generated randomly or supplied in case this proof is used to
         // bind to an external proof
-        let r_y = y.get_blinder(&mut rng).unwrap();
-        let r_sigma = generate_fr(SALT, None, &mut rng);
-        let r_rho = generate_fr(SALT, None, &mut rng);
-        let r_delta_sigma = generate_fr(SALT, None, &mut rng);
-        let r_delta_rho = generate_fr(SALT, None, &mut rng);
+        let r_y = y.get_blinder(rng).unwrap();
+        let r_sigma = generate_fr(SALT, None, rng);
+        let r_rho = generate_fr(SALT, None, rng);
+        let r_delta_sigma = generate_fr(SALT, None, rng);
+        let r_delta_rho = generate_fr(SALT, None, rng);
 
         // R_σ = r_σ X
         let cap_r_sigma = proof_params.x * r_sigma;
@@ -418,12 +418,12 @@ impl NonMembershipProofCommitting {
         pubkey: PublicKey,
         blinding_factor: Option<Element>,
     ) -> Self {
-        let mut rng = rand_core::OsRng;
+        let rng = rand_core::OsRng;
         // Randomly pick r_σ,r_ρ,r_δσ,r_δρ
 
         // Randomly select σ, ρ
-        let sigma = generate_fr(SALT, None, &mut rng);
-        let rho = generate_fr(SALT, None, &mut rng);
+        let sigma = generate_fr(SALT, None, rng);
+        let rho = generate_fr(SALT, None, rng);
 
         // E_C = C + (σ + ρ)Z
         let e_c = proof_params.z * (sigma + rho) + witness.c;
@@ -445,11 +445,11 @@ impl NonMembershipProofCommitting {
         // bind to an external proof
         let r_y = blinding_factor
             .map(|bf| bf.into())
-            .unwrap_or_else(|| generate_fr(SALT, None, &mut rng));
-        let r_sigma = generate_fr(SALT, None, &mut rng);
-        let r_rho = generate_fr(SALT, None, &mut rng);
-        let r_delta_sigma = generate_fr(SALT, None, &mut rng);
-        let r_delta_rho = generate_fr(SALT, None, &mut rng);
+            .unwrap_or_else(|| generate_fr(SALT, None, rng));
+        let r_sigma = generate_fr(SALT, None, rng);
+        let r_rho = generate_fr(SALT, None, rng);
+        let r_delta_sigma = generate_fr(SALT, None, rng);
+        let r_delta_rho = generate_fr(SALT, None, rng);
 
         // R_σ = r_σ X
         let cap_r_sigma = proof_params.x * r_sigma;
@@ -464,8 +464,8 @@ impl NonMembershipProofCommitting {
         let cap_r_delta_rho = cap_r(&[t_rho, -proof_params.y], &[r_y, r_delta_rho]);
 
         // Randomly pick \tau, \pi
-        let tau = generate_fr(SALT, None, &mut rng);
-        let pi = generate_fr(SALT, None, &mut rng);
+        let tau = generate_fr(SALT, None, rng);
+        let pi = generate_fr(SALT, None, rng);
 
         // E_d = d P + \tau K
         let e_d = cap_r(
@@ -480,9 +480,9 @@ impl NonMembershipProofCommitting {
         );
 
         // Randomly pick r_u,r_v,r_w
-        let r_u = generate_fr(SALT, None, &mut rng);
-        let r_v = generate_fr(SALT, None, &mut rng);
-        let r_w = generate_fr(SALT, None, &mut rng);
+        let r_u = generate_fr(SALT, None, rng);
+        let r_v = generate_fr(SALT, None, rng);
+        let r_w = generate_fr(SALT, None, rng);
 
         // R_A = r_u P + r_v K
         let cap_r_a = cap_r(&[G1Projective::GENERATOR, proof_params.k], &[r_u, r_v]);

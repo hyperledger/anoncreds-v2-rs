@@ -214,10 +214,9 @@ impl ClaimData {
                 Ok(ClaimData::Number(NumberClaim { value }))
             }
             SCALAR => {
-                let value =
-                    Option::<Scalar>::from(Scalar::from_be_hex(&s[4..])).ok_or_else(|| {
-                        Error::InvalidClaimData("unable to deserialize scalar claim hex string")
-                    })?;
+                let value = Option::<Scalar>::from(Scalar::from_be_hex(&s[4..])).ok_or({
+                    Error::InvalidClaimData("unable to deserialize scalar claim hex string")
+                })?;
                 Ok(ClaimData::Scalar(ScalarClaim { value }))
             }
             REVOCATION => {
