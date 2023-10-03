@@ -174,3 +174,13 @@ public information the holder used.
 presentation.verify(&presentation_schema, &nonce)?;
 ```
 
+Acknowledgement
+---------------
+
+A special thanks to Cryptid Technologies, Inc for sponsoring and collaboration in development of this library. 
+
+License
+-------
+
+Licensed under Apache License, Version 2.0, ([LICENSE](LICENSE) or https://www.apache.org/licenses/LICENSE-2.0)
+
