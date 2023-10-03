@@ -1,0 +1,44 @@
+name: windows
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: full
+  RUST_LOG: debug
+  RUST_LOG_STYLE: always
+
+jobs:
+  test:
+    runs-on: windows-latest
+    name: (${{ matrix.target }}, ${{ matrix.cfg_release_channel }})
+    env:
+      CFG_RELEASE_CHANNEL: ${{ matrix.cfg_release_channel }}
+    strategy:
+      max-parallel: 2
+      fail-fast: false
+      matrix:
+        target: [i686-pc-windows-msvc, x86_64-pc-windows-msvc]
+        cfg_release_channel: 1.72.1
+    steps:
+      - name: Disable git eol translation
+        run: git config --global core.autocrlf false
+      - name: Checkout
+        run: actions/checkout@v3
+      - name: Install 1.72.1
+        run: |
+          $ProgressPreference = "SilentlyContinue"
+          Invoke-WebRequest https://win.rustup.rs/ -OutFile rustup-init.exe
+          .\rustup-init.exe -y --default-host=x86_64-pc-windows-msvc --default-toolchain=none
+          del rustup-init.exe
+          rustup target add ${{ matrix.target }}
+        shell: powershell
+
+      - name: Cargo test
+        run: cargo test

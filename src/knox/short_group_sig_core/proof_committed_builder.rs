@@ -98,7 +98,9 @@ mod test {
         pb.commit(G1Projective::IDENTITY, Scalar::from(2u64));
 
         pb.add_challenge_contribution(b"test", &mut transcript);
-        let proof = pb.generate_proof(challenge, &[Scalar::from(1337u64)]).unwrap();
+        let proof = pb
+            .generate_proof(challenge, &[Scalar::from(1337u64)])
+            .unwrap();
         assert!(!proof.is_empty());
     }
 }

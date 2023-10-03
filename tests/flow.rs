@@ -1,4 +1,3 @@
-use std::time::Instant;
 use blsful::inner_types::*;
 use credx::blind::BlindCredentialRequest;
 use credx::claim::{
@@ -23,6 +22,7 @@ use rand::thread_rng;
 use rand_core::RngCore;
 use regex::Regex;
 use sha2;
+use std::time::Instant;
 
 #[test]
 fn presentation_1_credential_works() {
