@@ -33,7 +33,7 @@ Concretely, AnonCreds v2:
 - Supports additional kinds of ZKP presentation capabilities, including:
   - Signed integer expressions
   - Range proof
-  - Domain proof
+  - Domain proof (also known as a per verifier credential identifier)
   - Set membership
   - Verified encryption
   - Blinded secret
