@@ -1,16 +1,80 @@
-CredX
------
+# AnonCreds v2
 
+This repository contains the basis for the AnonCreds v2 implementation, an
+evolution of the AnonCreds v1 open [specification] and open source
+[implementation] that has been widely used around the world since 2017.  The
+goal of AnonCreds v2 is to retain and extend the privacy-preserving features of
+AnonCreds v1, while improving capabilities, performance, extensibility, and
+security.
 
-Credential Exchange (CredX) is a library for issuing, presenting and verifying credentials.
+> Want to help with AnonCreds v2? Check out the [To Do Items] to extend this
+implementation from a starting point to where it can be used in production
+solutions.
 
-Claims
-------
+[specification]: https://hyperledger.github.io/anoncreds-spec/
+[implementation]: https://github.com/hyperledger/anoncreds-rs
+
+Concretely, AnonCreds v2:
+
+- Is intended to retain the objects from AnonCreds v1 -- the credential schema,
+  credential definition, presentation request, and presentation.
+  - Although none of the objects are identical to those in AnonCreds v1, the interactions with the objects are the same. This will enable a path for migrating implementations from AnonCreds v1 to v2.
+- Substantially increases the information included in the [credential
+  schema](#credential-schema) about the claim types such that the encoding and
+  cryptographic handling of the claims can be enhanced to provide more:
+  - capabilities - additional ZKP presentation options and different, swapable signature schemes
+  - performance - via support for different signature schemes
+  - extensibility - additional ZKP presentation options and different, swapable signature schemes
+  - security - support for more secure signature schemes
+- Supports [PS Signatures] in the current implementation and can be updated to support [BBS+ Signatures]
+  - The [BBS+ Signatures] support has been tested in this implementation in the past, but is not part of the current codebase.
+  - [CL Signatures] could be used.
+  - PS Signatures have a [post-quantum option] that will be experimented with in the context of AnonCreds v2.
+- Supports additional kinds of ZKP presentation capabilities, including:
+  - Signed integer expressions
+  - Range proof
+  - Domain proof (also known as a per verifier credential identifier)
+  - Set membership
+  - Verified encryption
+  - Blinded secret
+  - Equality proof of claims from different credentials
+  - Revocation
+- Supports revocation in a substantially simpler and more scalable way using the [ALLOSAUR] revocation scheme
+  - Other techniques for revocation are being considered for AnonCreds v2.
+
+[PS Signatures]: https://eprint.iacr.org/2015/525.pdf
+[BBS+ Signatures]: https://datatracker.ietf.org/doc/draft-irtf-cfrg-bbs-signatures
+[CL Signatures]: https://eprint.iacr.org/2001/019.pdf
+[ALLOSAUR]: https://eprint.iacr.org/2022/1362
+[post-quantum option]: https://eprint.iacr.org/2022/509
+
+## To Do for AnonCreds v2
+
+AnonCreds v2 is not yet ready for use. This repository is but an initial
+(thorough but incomplete) implementation. The issues contain a list of the
+labelled [To Do Items] (open and closed) that we envision are needed for a
+complete implementation. We are now seeking collaborators to help with the
+implementation to knock off the [To Do Items].
+
+[To Do Items]: https://github.com/hyperledger/anoncreds-v2-rs/issues?q=label%3A%22AnonCreds+v2+To+Do%22+
+
+Some of the [To Do Items] are focused around making AnonCreds v2 sufficiently
+opinionated to enable interoperability. The success to date of AnonCreds to now
+has been because of its ZKP-capabilities combined with its opinionated
+specification that makes it obvious to all parties in an AnonCreds verifiable
+credential ecosystem to know what is required of each other. Comparable
+opinionated specifications are needed in AnonCreds v2 to simplify deployments.
+
+## Implementation Overview
+
+The following is an overview of the current AnonCreds v2 implementation.
+
+### Claims
 
 Credentials are composed of claims. Claims are a tuple of information consisting of a _label_, _type_, and _value_. The _label_ is distinct per credential
 allowing a reference to the claim by a user-friendly name. For each type there is a mapping from the content
 value to the cryptographic value–the form that can be used by the cryptographic algorithms.
-CredX supports the following types: integers, dates, enumerations, raw cryptographic material like
+AnonCreds v2 supports the following types: integers, dates, enumerations, raw cryptographic material like
 secret keys or pseudonyms, and arbitrary length data like strings, images and biometrics. Arbitrary length
 data and enumerations are mapped using a hash function, integers are restricted to 64 bits and do not require
 mapping. Dates are mapped to integers based on the resolution needed. For example, birthdays could be
@@ -40,12 +104,10 @@ Claims can also be checked against a set of validators which can be zero or more
 4. `AnyOne` check if a claim value matches any value in the list.
    - _values_(required) The fixed set of values.
 
-
 The _label_, _type_, _value_, and _validators_ are combined into a `ClaimSchema`. An ordered list of `ClaimSchema`'s
 can be used to create a `CredentialSchema`
 
-Credential Schema
------------------
+### Credential Schema
 
 The schema is data definition and layout for the credential. The schema defines what data is included in the
 credential, how it should be interpreted, what rules the data must follow to be well formed, and which claims
@@ -65,12 +127,14 @@ let cred_schema = CredentialSchema::new(Some(LABEL), Some(DESCRIPTION), &[], &sc
 
 Once a schema has been created, any number of issuers can be created.
 
-Issuer setup
-------------
-The issuer manages a set of keys for signing credentials, decrypting verifiable encryptions, and updating revoca-
-tion registries. The secret keys are never communicated or disclosed and should be stored in secure vaults. The
-public keys contain cryptographic information for verification. The public keys should be accessible for holders
-and verifiers to use and trust. These keys can be anchored to a blockchain, S3 bucket, IPFS, or CDN.
+### Issuer setup
+
+The issuer manages a set of keys for signing credentials, decrypting verifiable
+encryptions, and updating revocation registries. The secret keys are never
+communicated or disclosed and should be stored in secure vaults. The public keys
+contain cryptographic information for verification. The public keys should be
+accessible for holders and verifiers to use and trust. These keys can be
+anchored to a blockchain, S3 bucket, IPFS, or CDN.
 
 ```rust
 let (issuer_public, issuer) = Issuer::new(&cred_schema);
@@ -80,8 +144,7 @@ In the code example above, the `issuer_public` can be given to anyone while `iss
 `issuer_public` allows anyone to verify the credential (or presentation) was signed by the issuer.
 `issuer` contains the secret signing keys and should be protected.
 
-Credential Issuance
--------------------
+### Credential Issuance
 
 This protocol has a Holder role, executed by the end user, and the Issuer role, executed by an organization (e.g.
 business or government). During the issuance protocol, the Issuer and Holder interactively create a signature
@@ -104,8 +167,8 @@ credential schema otherwise issuance will fail.
     ])?;
 ```
 
-Credential Revocation
----------------------
+### Credential Revocation
+
 This protocol is executed by the Issuer role. When Issuers revoke a credential, the revocation registry update
 is published and all existing revocation handles become stale—holders cannot show that their credential has
 not been revoked for the newer version–thus users need to update their handles. Users can request an updated
@@ -118,15 +181,16 @@ requires no such check. Instead, users use their handles to prove they are not r
 only needs the revocation verifying key and registry value to validate the proof. Issuers revoke a credential with
 Remove and publish the updated accumulator value.
 
-Revocation Handle Update
-------------------------
+### Revocation Handle Update
 
-This protocol is executed between the Holder and the Issuer roles. After publishing an updated accumulator,
-the Holder’s revocation handle will be stale. The Issuer checks revocation handle claim to see if it's still in the non-revoked set. If successful, Witness generation is used to
-create and return a new witness handle for the Holder.
+This protocol is executed between the Holder and the Issuer roles. After
+publishing an updated accumulator, the Holder’s revocation handle will be stale.
+The Issuer checks revocation handle claim to see if it's still in the
+non-revoked set. If successful, Witness generation is used to create and return
+a new witness handle for the Holder.
 
-Presentation Schema
--------------------
+### Presentation Schema
+
 A presentation schema is similar to a credential schema in that it defines a set of statements and conditions that a user must satisfy for the verifier to be convinced about the
 veracity of the user’s interaction. Statements indicate what must be proved. A credential from a specific issuer
 or a revocation check are examples of statements. Each statement contains a unique identifier, the statement
@@ -144,9 +208,9 @@ Hidden claims can be unrevealed completely or partially revealed in predicate st
 All statements except signatures represent predicate statements. Predicates can prove a claim is in a set, in a range
 equal to a previously sent but different message, or encrypted in a ciphertext.
 
-Statements
-----------
-CredX supports the following statement types:
+#### Presentation Statements
+
+AnonCreds v2 supports the following presentation statement types:
 
 1. `SignatureStatement` defines which issuer a signature must come from and which claims must be disclosed.
 2. `AccumulatorSetMembershipStatement` defines a proof where the claim is a member of the set. The claim is not disclosed, only if it is a member of the set.
@@ -155,8 +219,7 @@ CredX supports the following statement types:
 5. `RangeStatement` defines a proof where a claim is in a range. Requires a commitment statement for the specified claim.
 6. `VerifiableEncryptionStatement` defines a proof where a claim is proven to be encrypted in a ciphertext.
 
-Presentation
-------------
+### Presentation
 
 A presentation can be created by taking a list of credentials and a presentation schema.
 A unique presentation id called a nonce should also be included to prevent a holder from
@@ -174,13 +237,24 @@ public information the holder used.
 presentation.verify(&presentation_schema, &nonce)?;
 ```
 
-Acknowledgement
----------------
+## Getting Started
+
+To run the `cargo` tests for AnonCreds, fork/clone this repository and in the root folder,
+execute the following. Rust must be installed on your system. The code currently compiles
+into a crate called `credx`.
+
+``` bash
+cargo tests
+```
+
+Take a look at [tests/flow.rs](./tests/flow.rs) to see the objects in AnonCreds
+v2, especially the issuance input [credential schema](#credential-schema) and
+[presentation statements](#presentation-statements).
+
+## Acknowledgement
 
 A special thanks to Cryptid Technologies, Inc for sponsoring and collaboration in development of this library. 
 
-License
--------
+## License
 
 Licensed under Apache License, Version 2.0, ([LICENSE](LICENSE) or https://www.apache.org/licenses/LICENSE-2.0)
-
