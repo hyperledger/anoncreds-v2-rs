@@ -312,6 +312,7 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
 
 #[test]
 fn blind_sign_request() {
+    setup();
     let res = test_blind_sign_request();
     assert!(res.is_ok(), "{:?}", res);
 }
