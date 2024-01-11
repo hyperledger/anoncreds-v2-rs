@@ -1,4 +1,5 @@
 use super::*;
+use log::debug;
 
 impl Presentation {
     /// Create a new presentation composed of 1 to many proofs
@@ -206,11 +207,12 @@ impl Presentation {
             let proof = builder.gen_proof(challenge);
             proofs.insert(proof.id().clone(), proof);
         }
-
-        Ok(Self {
+        let presentation = Self {
             proofs,
             challenge,
             disclosed_messages,
-        })
+        };
+        debug!("Presentation: {}", serde_json::to_string(&presentation).unwrap());
+        Ok(presentation)
     }
 }

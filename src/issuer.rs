@@ -10,6 +10,7 @@ use crate::{random_string, CredxResult};
 use blsful::{inner_types::*, *};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use log::debug;
 
 /// An issuer of a credential
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -155,7 +156,7 @@ impl Issuer {
             .insert(revocation_claim.value.clone());
         let signature = ps::Signature::new(&self.signing_key, &attributes)
             .map_err(|_| Error::InvalidSigningOperation)?;
-        Ok(CredentialBundle {
+        let credential_bundle = CredentialBundle {
             issuer: IssuerPublic::from(self),
             credential: Credential {
                 claims: claims.to_vec(),
@@ -163,7 +164,9 @@ impl Issuer {
                 revocation_handle: witness,
                 revocation_index: revocation_element_index,
             },
-        })
+        };
+        debug!("Signed Credential: {}", serde_json::to_string_pretty(&credential_bundle).unwrap());
+        Ok(credential_bundle)
     }
 
     /// Blind sign a credential where only a subset of the claims are known
@@ -254,8 +257,7 @@ impl Issuer {
             request.nonce,
         )
         .map_err(|_| Error::InvalidSigningOperation)?;
-
-        Ok(BlindCredentialBundle {
+        let blind_credential_bundle = BlindCredentialBundle {
             issuer: IssuerPublic::from(self),
             credential: BlindCredential {
                 claims: claims.clone(),
@@ -263,7 +265,9 @@ impl Issuer {
                 revocation_handle: witness,
                 revocation_label,
             },
-        })
+        };
+        debug!("Blind Signed Credential: {}", serde_json::to_string_pretty(&blind_credential_bundle).unwrap());
+        Ok(blind_credential_bundle)
     }
 
     /// Update a revocation handle
