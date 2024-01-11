@@ -1,6 +1,7 @@
 use crate::random_string;
 use crate::{statement::Statements, utils::*};
 use indexmap::IndexMap;
+use log::debug;
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
 
@@ -22,7 +23,9 @@ impl PresentationSchema {
     pub fn new(statements: &[Statements]) -> Self {
         let id = random_string(16, rand::thread_rng());
         let statements = statements.iter().map(|s| (s.id(), s.clone())).collect();
-        Self { id, statements }
+        let presentation_schema = Self { id, statements };
+        debug!("Presentation Schema: {}", serde_json::to_string_pretty(&presentation_schema).unwrap());
+        presentation_schema
     }
 
     /// Add challenge contribution

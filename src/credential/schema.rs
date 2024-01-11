@@ -4,6 +4,7 @@ use crate::{random_string, utils::*, CredxResult};
 use indexmap::IndexSet;
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
+use log::debug;
 
 /// A credential schema
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -62,14 +63,16 @@ impl CredentialSchema {
             }
         }
         let blind_claims = blind_claims.iter().map(|b| b.to_string()).collect();
-        Ok(Self {
+        let schema = Self {
             id,
             blind_claims,
             claims,
             claim_indices,
             label: label.map(|l| l.to_string()),
             description: description.map(|d| d.to_string()),
-        })
+        };
+        debug!("Credential Schema: {}", serde_json::to_string_pretty(&schema).unwrap());
+        Ok(schema)
     }
     /// Add data to the transcript
     pub fn add_challenge_contribution(&self, transcript: &mut merlin::Transcript) {
