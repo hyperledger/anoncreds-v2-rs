@@ -8,9 +8,9 @@ use crate::knox::{
 };
 use crate::{random_string, CredxResult};
 use blsful::{inner_types::*, *};
+use log::debug;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use log::debug;
 
 /// An issuer of a credential
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -165,7 +165,10 @@ impl Issuer {
                 revocation_index: revocation_element_index,
             },
         };
-        debug!("Signed Credential: {}", serde_json::to_string_pretty(&credential_bundle).unwrap());
+        debug!(
+            "Signed Credential: {}",
+            serde_json::to_string_pretty(&credential_bundle).unwrap()
+        );
         Ok(credential_bundle)
     }
 
@@ -266,7 +269,10 @@ impl Issuer {
                 revocation_label,
             },
         };
-        debug!("Blind Signed Credential: {}", serde_json::to_string_pretty(&blind_credential_bundle).unwrap());
+        debug!(
+            "Blind Signed Credential: {}",
+            serde_json::to_string_pretty(&blind_credential_bundle).unwrap()
+        );
         Ok(blind_credential_bundle)
     }
 

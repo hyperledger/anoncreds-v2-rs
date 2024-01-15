@@ -212,7 +212,10 @@ impl Presentation {
             challenge,
             disclosed_messages,
         };
-        debug!("Presentation: {}", serde_json::to_string(&presentation).unwrap());
+        debug!(
+            "Presentation: {}",
+            serde_json::to_string(&presentation).unwrap()
+        );
         Ok(presentation)
     }
 }

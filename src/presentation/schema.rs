@@ -24,7 +24,10 @@ impl PresentationSchema {
         let id = random_string(16, rand::thread_rng());
         let statements = statements.iter().map(|s| (s.id(), s.clone())).collect();
         let presentation_schema = Self { id, statements };
-        debug!("Presentation Schema: {}", serde_json::to_string_pretty(&presentation_schema).unwrap());
+        debug!(
+            "Presentation Schema: {}",
+            serde_json::to_string_pretty(&presentation_schema).unwrap()
+        );
         presentation_schema
     }
 
