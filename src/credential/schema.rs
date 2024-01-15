@@ -2,9 +2,9 @@ use crate::claim::*;
 use crate::error::Error;
 use crate::{random_string, utils::*, CredxResult};
 use indexmap::IndexSet;
+use log::debug;
 use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
-use log::debug;
 
 /// A credential schema
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -71,7 +71,10 @@ impl CredentialSchema {
             label: label.map(|l| l.to_string()),
             description: description.map(|d| d.to_string()),
         };
-        debug!("Credential Schema: {}", serde_json::to_string_pretty(&schema).unwrap());
+        debug!(
+            "Credential Schema: {}",
+            serde_json::to_string_pretty(&schema).unwrap()
+        );
         Ok(schema)
     }
     /// Add data to the transcript
