@@ -70,24 +70,27 @@ impl Issuer {
         let (verifiable_encryption_key, verifiable_decryption_key) =
             Knox::new_bls381g2_keys(rand::thread_rng());
         let revocation_registry = RevocationRegistry::new(rand::thread_rng());
-        (
-            IssuerPublic {
-                id: id.clone(),
-                schema: schema.clone(),
-                verifying_key,
-                revocation_verifying_key,
-                verifiable_encryption_key,
-                revocation_registry: revocation_registry.value,
-            },
-            Issuer {
-                id,
-                schema: schema.clone(),
-                signing_key,
-                revocation_key,
-                verifiable_decryption_key,
-                revocation_registry,
-            },
-        )
+        let issuer_public = IssuerPublic {
+            id: id.clone(),
+            schema: schema.clone(),
+            verifying_key,
+            revocation_verifying_key,
+            verifiable_encryption_key,
+            revocation_registry: revocation_registry.value,
+        };
+        debug!(
+            "Credential Definition: {:}",
+            serde_json::to_string_pretty(&issuer_public).unwrap()
+        );
+        let issuer = Issuer {
+            id,
+            schema: schema.clone(),
+            signing_key,
+            revocation_key,
+            verifiable_decryption_key,
+            revocation_registry,
+        };
+        (issuer_public, issuer)
     }
 
     /// Sign the claims into a credential
