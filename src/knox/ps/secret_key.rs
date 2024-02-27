@@ -1,6 +1,9 @@
+use crate::knox::{
+    ps::PublicKey, short_group_sig_core::short_group_traits::SecretKey as SecretKeyTrait,
+};
 use blsful::inner_types::{
     ff::{Field, PrimeField},
-    Scalar,
+    G1Projective, G2Projective, Scalar,
 };
 use rand_chacha::ChaChaRng;
 use rand_core::{CryptoRng, RngCore, SeedableRng};
@@ -31,6 +34,22 @@ impl Default for SecretKey {
             x: Scalar::ZERO,
             y: Vec::new(),
         }
+    }
+}
+
+impl SecretKeyTrait for SecretKey {
+    type PublicKey = PublicKey;
+
+    fn public_key(&self) -> PublicKey {
+        let w = G2Projective::GENERATOR * self.w;
+        let x = G2Projective::GENERATOR * self.x;
+        let mut y = Vec::with_capacity(self.y.len());
+        let mut y_blinds = Vec::with_capacity(self.y.len());
+        for s_y in &self.y {
+            y.push(G2Projective::GENERATOR * s_y);
+            y_blinds.push(G1Projective::GENERATOR * s_y);
+        }
+        PublicKey { w, x, y, y_blinds }
     }
 }
 

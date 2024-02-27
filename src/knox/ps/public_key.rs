@@ -1,4 +1,7 @@
 use super::SecretKey;
+use crate::{
+    error::Error, knox::short_group_sig_core::short_group_traits::PublicKey as PublicKeyTrait,
+};
 use blsful::inner_types::*;
 use core::convert::TryFrom;
 use serde::{Deserialize, Serialize};
@@ -46,6 +49,55 @@ impl From<&SecretKey> for PublicKey {
             y_blinds.push(G1Projective::GENERATOR * s_y);
         }
         Self { w, x, y, y_blinds }
+    }
+}
+
+impl PublicKeyTrait for PublicKey {
+    type MessageGenerator = G2Projective;
+    type BlindMessageGenerator = G1Projective;
+}
+
+impl From<PublicKey> for Vec<u8> {
+    fn from(pk: PublicKey) -> Self {
+        Self::from(&pk)
+    }
+}
+
+impl From<&PublicKey> for Vec<u8> {
+    fn from(pk: &PublicKey) -> Self {
+        pk.to_bytes()
+    }
+}
+
+impl TryFrom<Vec<u8>> for PublicKey {
+    type Error = Error;
+
+    fn try_from(bytes: Vec<u8>) -> Result<Self, Self::Error> {
+        Self::try_from(bytes.as_slice())
+    }
+}
+
+impl TryFrom<&Vec<u8>> for PublicKey {
+    type Error = Error;
+
+    fn try_from(bytes: &Vec<u8>) -> Result<Self, Self::Error> {
+        Self::try_from(bytes.as_slice())
+    }
+}
+
+impl TryFrom<&[u8]> for PublicKey {
+    type Error = Error;
+
+    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        Self::from_bytes(bytes).ok_or(Error::General("Invalid public key"))
+    }
+}
+
+impl TryFrom<Box<[u8]>> for PublicKey {
+    type Error = Error;
+
+    fn try_from(bytes: Box<[u8]>) -> Result<Self, Self::Error> {
+        Self::try_from(bytes.as_ref())
     }
 }
 

@@ -58,7 +58,7 @@ impl<'a, 'b, 'c> ProofVerifier for EqualityVerifier<'a, 'b, 'c> {
                 _ => return Err(Error::InvalidPresentationData),
             }
         }
-        let first = messages.get(0).ok_or(Error::InvalidPresentationData)?;
+        let first = messages.first().ok_or(Error::InvalidPresentationData)?;
         for m in &messages[1..] {
             if first != m {
                 return Err(Error::InvalidPresentationData);
