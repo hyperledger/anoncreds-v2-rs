@@ -5,6 +5,7 @@ use crate::CredxResult;
 use blsful::inner_types::{Group, GroupEncoding, Scalar};
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
+use std::collections::BTreeMap;
 
 /// Trait for abstracting public keys
 pub trait PublicKey: Sized {
@@ -99,9 +100,8 @@ pub trait ProofOfSignatureKnowledge: Sized {
     /// Verify the signature proof of knowledge
     fn verify(
         &self,
-        public_key: &Self::PublicKey,
         revealed_messages: &[(usize, Scalar)],
-        challenge: Scalar,
+        public_key: &Self::PublicKey,
     ) -> CredxResult<()>;
 
     /// Get the hidden message proofs
@@ -109,5 +109,5 @@ pub trait ProofOfSignatureKnowledge: Sized {
         &self,
         public_key: &Self::PublicKey,
         revealed_messages: &[(usize, Scalar)],
-    ) -> Vec<(usize, Scalar)>;
+    ) -> CredxResult<BTreeMap<usize, Scalar>>;
 }

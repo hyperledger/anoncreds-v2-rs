@@ -1,4 +1,5 @@
 use crate::error::Error;
+use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledge;
 use crate::presentation::{PresentationProofs, PresentationSchema};
 use crate::statement::{EqualityStatement, Statements};
 use crate::verifier::ProofVerifier;

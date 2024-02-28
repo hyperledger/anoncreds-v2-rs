@@ -1,4 +1,5 @@
-use super::{SecretKey, Signature};
+use super::{PublicKey, SecretKey, Signature};
+use crate::knox::short_group_sig_core::short_group_traits::BlindSignature as BlindSignatureTrait;
 use crate::CredxResult;
 use blsful::inner_types::{G1Projective, Scalar};
 use serde::{Deserialize, Serialize};
@@ -13,6 +14,24 @@ use subtle::CtOption;
 /// so the signer only knows a subset of the messages to be signed
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct BlindSignature(pub(crate) Signature);
+
+impl BlindSignatureTrait for BlindSignature {
+    type SecretKey = SecretKey;
+    type PublicKey = PublicKey;
+    type Signature = Signature;
+
+    fn new(
+        commitment: G1Projective,
+        sk: &SecretKey,
+        msgs: &[(usize, Scalar)],
+    ) -> CredxResult<Self> {
+        Self::new(commitment, sk, msgs)
+    }
+
+    fn to_unblinded(self, blinding: Scalar) -> Signature {
+        self.to_unblinded(blinding)
+    }
+}
 
 impl BlindSignature {
     /// The size of the signature in bytes

@@ -1,5 +1,7 @@
 use super::{PokSignatureProof, PublicKey, Signature};
-use crate::knox::short_group_sig_core::*;
+use crate::knox::short_group_sig_core::{
+    short_group_traits::ProofOfSignatureKnowledgeContribution, *,
+};
 use crate::CredxResult;
 use blsful::inner_types::{ff::Field, group::Curve, G1Projective, G2Affine, G2Projective, Scalar};
 use merlin::Transcript;
@@ -15,9 +17,13 @@ pub struct PokSignature {
     sigma_2: G1Projective,
 }
 
-impl PokSignature {
+impl ProofOfSignatureKnowledgeContribution for PokSignature {
+    type Signature = Signature;
+    type PublicKey = PublicKey;
+    type ProofOfKnowledge = PokSignatureProof;
+
     /// Creates the initial proof data before a Fiat-Shamir calculation
-    pub fn init(
+    fn commit(
         signature: Signature,
         public_key: &PublicKey,
         messages: &[ProofMessage<Scalar>],
@@ -73,7 +79,7 @@ impl PokSignature {
     }
 
     /// Convert the committed values to bytes for the fiat-shamir challenge
-    pub fn add_proof_contribution(&mut self, transcript: &mut Transcript) {
+    fn add_proof_contribution(&self, transcript: &mut Transcript) {
         transcript.append_message(
             b"sigma_1",
             self.sigma_1.to_affine().to_compressed().as_ref(),
@@ -91,7 +97,7 @@ impl PokSignature {
     }
 
     /// Generate the Schnorr challenges for the selective disclosure proofs
-    pub fn generate_proof(self, challenge: Scalar) -> CredxResult<PokSignatureProof> {
+    fn generate_proof(self, challenge: Scalar) -> CredxResult<PokSignatureProof> {
         let proof = self
             .proof
             .generate_proof(challenge, self.secrets.as_ref())?;

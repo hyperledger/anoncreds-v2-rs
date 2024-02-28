@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledge;
 use crate::presentation::SignatureProof;
 use crate::statement::SignatureStatement;
 use crate::verifier::ProofVerifier;
@@ -33,7 +33,7 @@ impl<'a, 'b> ProofVerifier for SignatureVerifier<'a, 'b> {
         challenge: Scalar,
         transcript: &mut Transcript,
     ) -> CredxResult<()> {
-        self.signature_proof.pok.add_challenge_contribution(
+        self.signature_proof.pok.add_proof_contribution(
             &self.statement.issuer.verifying_key,
             &self.disclosed_messages,
             challenge,
@@ -43,13 +43,9 @@ impl<'a, 'b> ProofVerifier for SignatureVerifier<'a, 'b> {
     }
 
     fn verify(&self, _challenge: Scalar) -> CredxResult<()> {
-        if self.signature_proof.pok.verify(
+        self.signature_proof.pok.verify(
             &self.disclosed_messages,
             &self.statement.issuer.verifying_key,
-        ) {
-            Ok(())
-        } else {
-            Err(Error::InvalidSignatureProofData)
-        }
+        )
     }
 }
