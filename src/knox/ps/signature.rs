@@ -1,5 +1,6 @@
 use super::{PublicKey, SecretKey};
 use crate::error::Error;
+use crate::knox::short_group_sig_core::short_group_traits::Signature as SignatureTrait;
 use crate::CredxResult;
 use blsful::inner_types::{
     ff::PrimeField,
@@ -38,6 +39,23 @@ impl ConditionallySelectable for Signature {
             sigma_1,
             sigma_2,
             m_tick,
+        }
+    }
+}
+
+impl SignatureTrait for Signature {
+    type SecretKey = SecretKey;
+    type PublicKey = PublicKey;
+
+    fn create(sk: &Self::SecretKey, msgs: &[Scalar]) -> CredxResult<Self> {
+        Self::new(sk, msgs)
+    }
+
+    fn verify(&self, pk: &Self::PublicKey, msgs: &[Scalar]) -> CredxResult<()> {
+        if self.verify(pk, msgs).into() {
+            Ok(())
+        } else {
+            Err(Error::General("Invalid signature"))
         }
     }
 }

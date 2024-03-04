@@ -1,4 +1,5 @@
 use super::{BlindSignatureContext, PokSignature, PublicKey, Signature};
+use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledgeContribution;
 use crate::knox::short_group_sig_core::*;
 use crate::CredxResult;
 use blsful::inner_types::{ff::Field, group::Curve, G1Affine, G1Projective, Scalar};
@@ -71,7 +72,7 @@ impl Prover {
         messages: &[ProofMessage<Scalar>],
         rng: impl RngCore + CryptoRng,
     ) -> CredxResult<PokSignature> {
-        PokSignature::init(signature, public_key, messages, rng)
+        PokSignature::commit(signature, public_key, messages, rng)
     }
 }
 

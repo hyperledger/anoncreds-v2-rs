@@ -40,7 +40,7 @@ impl RevocationRegistry {
     pub fn revoke(&mut self, sk: &SecretKey, elements: &[String]) -> CredxResult<()> {
         let mut removals = Vec::new();
         for e in elements {
-            if !self.active.remove(e) {
+            if !self.active.shift_remove(e) {
                 return Err(Error::InvalidRevocationRegistryRevokeOperation);
             }
             removals.push(Element::hash(e.as_bytes()));

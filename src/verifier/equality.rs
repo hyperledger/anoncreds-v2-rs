@@ -1,4 +1,5 @@
 use crate::error::Error;
+use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledge;
 use crate::presentation::{PresentationProofs, PresentationSchema};
 use crate::statement::{EqualityStatement, Statements};
 use crate::verifier::ProofVerifier;
@@ -58,7 +59,7 @@ impl<'a, 'b, 'c> ProofVerifier for EqualityVerifier<'a, 'b, 'c> {
                 _ => return Err(Error::InvalidPresentationData),
             }
         }
-        let first = messages.get(0).ok_or(Error::InvalidPresentationData)?;
+        let first = messages.first().ok_or(Error::InvalidPresentationData)?;
         for m in &messages[1..] {
             if first != m {
                 return Err(Error::InvalidPresentationData);

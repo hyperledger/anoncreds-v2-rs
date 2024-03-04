@@ -1,5 +1,6 @@
 use super::*;
 use crate::knox::ps::{PokSignature, PokSignatureProof, Signature as PsSignature};
+use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledgeContribution;
 use crate::knox::short_group_sig_core::ProofMessage;
 use crate::statement::SignatureStatement;
 use crate::{error::Error, utils::*, CredxResult};
@@ -40,9 +41,9 @@ impl<'a> SignatureBuilder<'a> {
         rng: impl RngCore + CryptoRng,
         transcript: &mut Transcript,
     ) -> CredxResult<Self> {
-        match PokSignature::init(signature, &statement.issuer.verifying_key, messages, rng) {
+        match PokSignature::commit(signature, &statement.issuer.verifying_key, messages, rng) {
             Err(_) => Err(Error::InvalidSignatureProofData),
-            Ok(mut poksig) => {
+            Ok(poksig) => {
                 let disclosed_messages = messages
                     .iter()
                     .enumerate()
