@@ -38,7 +38,7 @@ impl Verifier {
 fn pok_sig_proof_works() {
     use super::{Issuer, PokSignature};
     use crate::knox::short_group_sig_core::{
-        *, short_group_traits::ProofOfSignatureKnowledgeContribution
+        short_group_traits::ProofOfSignatureKnowledgeContribution, *,
     };
 
     let mut rng = rand_core::OsRng;
