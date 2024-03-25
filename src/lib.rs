@@ -63,6 +63,8 @@ pub mod prelude {
 }
 
 mod mapping {
+    #![allow(dead_code)]
+    #![allow(unused_assignments)]
     pub mod map_credential;
     pub mod map_presentation;
 }
