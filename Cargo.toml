@@ -23,6 +23,10 @@ subtle = "2.5"
 uint-zigzag = { version = "0.2", features = ["std"] }
 zeroize = "1"
 log = "0.4.20"
+base64 = "0.13.0"
+rmp-serde = "0.15.4"
+chrono = "0.4.35"
+maplit = "1"
 
 [dev-dependencies]
 lazy_static = "1.4.0"
