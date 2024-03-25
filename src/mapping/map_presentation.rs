@@ -17,18 +17,17 @@ use indexmap::indexmap;
 use maplit::btreeset;
 use rand::thread_rng;
 use rand_core::RngCore;
-use rmp_serde::{decode, encode::write, Deserializer};
+use rmp_serde::{encode::write, Deserializer};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, to_value, Map, Value};
 use std::collections::HashMap;
 use std::error::Error;
 
-pub fn base64_encode(val: &[u8]) -> String {
-    let encoded = base64::encode_config(val, base64::URL_SAFE_NO_PAD);
-    encoded
+fn base64_encode(val: &[u8]) -> String {
+    base64::encode_config(val, base64::URL_SAFE_NO_PAD)
 }
 
-pub fn base64_decode(val: &str) -> Result<Vec<u8>, base64::DecodeError> {
+fn base64_decode(val: &str) -> Result<Vec<u8>, base64::DecodeError> {
     let padlen = 4 - val.len() % 4;
     let padded = if padlen > 2 {
         val.to_string()
@@ -38,30 +37,30 @@ pub fn base64_decode(val: &str) -> Result<Vec<u8>, base64::DecodeError> {
     base64::decode_config(padded, base64::URL_SAFE_NO_PAD)
 }
 
-pub fn encode_identifier(id: &str) -> String {
-    format!("did:key:{}", id.replace(" ", "%20"))
+fn encode_identifier(id: &str) -> String {
+    format!("did:key:{}", id.replace(' ', "%20"))
 }
 
-pub fn decode_identifier(id: &str) -> String {
+fn decode_identifier(id: &str) -> String {
     id.replace("%20", " ")
         .trim_start_matches("did:key:")
         .to_string()
 }
 
-pub fn encode_proofs<T: Serialize>(context: &str, proofs: &T) -> Result<String, Box<dyn Error>> {
+fn encode_proofs<T: Serialize>(context: &str, proofs: &T) -> Result<String, Box<dyn Error>> {
     let mut buf = Vec::new();
     write(&mut buf, &(context, proofs))?;
     Ok("u".to_string() + &base64_encode(&buf))
 }
 
-pub fn decode_proofs<T: for<'de> Deserialize<'de>>(proofs: &str) -> Result<T, Box<dyn Error>> {
+fn decode_proofs<T: for<'de> Deserialize<'de>>(proofs: &str) -> Result<T, Box<dyn Error>> {
     let decoded = base64_decode(&proofs[1..])?;
     let mut de = Deserializer::new(&decoded[..]);
     let obj: T = Deserialize::deserialize(&mut de)?;
     Ok(obj)
 }
 
-pub fn create_presentation() -> CredxResult<(Presentation, PresentationSchema, [u8; 16])> {
+fn create_presentation() -> CredxResult<(Presentation, PresentationSchema, [u8; 16])> {
     const LABEL: &str = "Test Schema";
     const DESCRIPTION: &str = "This is a test presentation schema";
     const CRED_ID: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
@@ -185,7 +184,7 @@ pub fn create_presentation() -> CredxResult<(Presentation, PresentationSchema, [
     // presentation.verify(&presentation_schema, &nonce)?;
 }
 
-pub fn extract_related_statements(statements: &Value) -> Value {
+fn extract_related_statements(statements: &Value) -> Value {
     let mut sig_to_related = HashMap::new();
     let mut sig_def = HashMap::new();
 
@@ -352,48 +351,44 @@ pub fn extract_credential(request: &Value, proof: &Value) -> Vec<Value> {
                                 request["statements"][proof_key]["Signature"]["issuer"]["schema"]
                                     ["claims"]
                             );
-                        } else {
-                            if let Some(statement) = request
-                                .get("statements")
-                                .and_then(|sts| sts.as_object())
-                                .and_then(|obj| obj.get(proof_key))
-                            {
-                                let mut key = &Value::Null;
-                                let claim_idx = &statement[st_type]["claim"];
-                                let claim_int: usize = claim_idx.to_string().parse().unwrap();
-                                if &claims_schema[claim_int]["claim_type"] == "Revocation" {
-                                    key = &claims_schema[claim_int]["claim_type"];
-                                } else {
-                                    key = &claims_schema[claim_int]["label"];
-                                }
+                        } else if let Some(statement) = request
+                            .get("statements")
+                            .and_then(|sts| sts.as_object())
+                            .and_then(|obj| obj.get(proof_key))
+                        {
+                            let mut key = &Value::Null;
+                            let claim_idx = &statement[st_type]["claim"];
+                            let claim_int: usize = claim_idx.to_string().parse().unwrap();
+                            if &claims_schema[claim_int]["claim_type"] == "Revocation" {
+                                key = &claims_schema[claim_int]["claim_type"];
+                            } else {
+                                key = &claims_schema[claim_int]["label"];
+                            }
 
-                                if st_type == "Revocation" {
-                                    match cred_subject
-                                        .entry(key.as_str().unwrap_or_default().to_string())
-                                    {
-                                        std::collections::hash_map::Entry::Vacant(e) => {
-                                            let mut map = HashMap::new();
-                                            map.insert("Revoked".to_string(), "NO".to_string());
-                                            e.insert(map);
-                                        }
-                                        std::collections::hash_map::Entry::Occupied(mut e) => {
-                                            e.get_mut()
-                                                .insert("Revoked".to_string(), "NO".to_string());
-                                        }
+                            if st_type == "Revocation" {
+                                match cred_subject
+                                    .entry(key.as_str().unwrap_or_default().to_string())
+                                {
+                                    std::collections::hash_map::Entry::Vacant(e) => {
+                                        let mut map = HashMap::new();
+                                        map.insert("Revoked".to_string(), "NO".to_string());
+                                        e.insert(map);
                                     }
-                                } else {
-                                    match cred_subject
-                                        .entry(key.as_str().unwrap_or_default().to_string())
-                                    {
-                                        std::collections::hash_map::Entry::Vacant(e) => {
-                                            let mut map = HashMap::new();
-                                            map.insert(st_type.to_string(), "YES".to_string());
-                                            e.insert(map);
-                                        }
-                                        std::collections::hash_map::Entry::Occupied(mut e) => {
-                                            e.get_mut()
-                                                .insert(st_type.to_string(), "YES".to_string());
-                                        }
+                                    std::collections::hash_map::Entry::Occupied(mut e) => {
+                                        e.get_mut().insert("Revoked".to_string(), "NO".to_string());
+                                    }
+                                }
+                            } else {
+                                match cred_subject
+                                    .entry(key.as_str().unwrap_or_default().to_string())
+                                {
+                                    std::collections::hash_map::Entry::Vacant(e) => {
+                                        let mut map = HashMap::new();
+                                        map.insert(st_type.to_string(), "YES".to_string());
+                                        e.insert(map);
+                                    }
+                                    std::collections::hash_map::Entry::Occupied(mut e) => {
+                                        e.get_mut().insert(st_type.to_string(), "YES".to_string());
                                     }
                                 }
                             }
@@ -408,8 +403,8 @@ pub fn extract_credential(request: &Value, proof: &Value) -> Vec<Value> {
             "@context": contexts, // Assume CONTEXTS is available in this scope
             "type": ["VerifiableCredential", "AnonCredsPresentation"],
             "issuer": {
-                "id": encode_identifier(&issuer_info["issuer"]["id"].as_str().unwrap()),
-                "schema": encode_identifier(&issuer_info["issuer"]["schema"].as_str().unwrap()),
+                "id": encode_identifier(issuer_info["issuer"]["id"].as_str().unwrap()),
+                "schema": encode_identifier(issuer_info["issuer"]["schema"].as_str().unwrap()),
             },
             "issuanceDate": Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
             "credentialSubject": cred_subject,
@@ -425,7 +420,7 @@ pub fn extract_credential(request: &Value, proof: &Value) -> Vec<Value> {
     ret
 }
 
-pub fn to_w3c_presentation(request: &Value, proof: &Value) -> Value {
+fn to_w3c_presentation(request: &Value, proof: &Value) -> Value {
     let mut vocab_map = Map::new();
     vocab_map.insert(
         "@vocab".to_string(),
@@ -464,14 +459,13 @@ pub fn map_to_w3c_presentation(
     presentation
         .verify(presentation_schema, nonce)
         .expect("Verification should not fail");
-    let result = to_w3c_presentation(
-        &to_value(&presentation_schema).unwrap(),
-        &to_value(&presentation).unwrap(),
-    );
-    result
+    to_w3c_presentation(
+        &to_value(presentation_schema).unwrap(),
+        &to_value(presentation).unwrap(),
+    )
 }
 
-pub fn decode_credential_from_w3c(
+fn decode_credential_from_w3c(
     w3c_presentation: &Value,
 ) -> CredxResult<(Map<String, Value>, Map<String, Value>)> {
     let credential = &w3c_presentation["verifiableCredential"];
@@ -482,7 +476,7 @@ pub fn decode_credential_from_w3c(
     for c in credential_list {
         let credential_proof = &c["proof"]["proofValue"];
         let decode_proof: (String, HashMap<String, Value>) =
-            decode_proofs(&credential_proof.as_str().unwrap()).unwrap();
+            decode_proofs(credential_proof.as_str().unwrap()).unwrap();
         combined_proofs.extend(decode_proof.1.clone());
 
         let mut signature_id = String::new();
@@ -517,33 +511,30 @@ fn transform_disclosed_msg(input: &Map<String, Value>) -> Value {
         .map(|(key, value_map)| {
             json!([
                 key,
-                value_map.as_object().map_or_else(
-                    || vec![],
-                    |vm| {
-                        vm.iter()
-                            .map(|(inner_key, inner_value)| {
-                                json!([
-                                    inner_key,
-                                    {
-                                        "Hashed": {
-                                            "value": inner_value,
-                                            "print_friendly": true
-                                        }
+                value_map.as_object().map_or_else(std::vec::Vec::new, |vm| {
+                    vm.iter()
+                        .map(|(inner_key, inner_value)| {
+                            json!([
+                                inner_key,
+                                {
+                                    "Hashed": {
+                                        "value": inner_value,
+                                        "print_friendly": true
                                     }
-                                ])
-                            })
-                            .collect::<Vec<_>>()
-                    }
-                )
+                                }
+                            ])
+                        })
+                        .collect::<Vec<_>>()
+                })
             ])
         })
         .collect::<Vec<_>>()
         .into()
 }
 
-pub fn to_anonCreds_presentation(w3c_presentation: &Value) -> Value {
+pub fn to_anon_creds_presentation(w3c_presentation: &Value) -> Value {
     let challenge_proof = &w3c_presentation["proof"]["proofValue"];
-    let challenge: (String, String) = decode_proofs(&challenge_proof.as_str().unwrap()).unwrap();
+    let challenge: (String, String) = decode_proofs(challenge_proof.as_str().unwrap()).unwrap();
     // let presentation_schema_id = decode_identifier(&w3c_presentation["schema"].as_str().unwrap());
     let (disclosed_msg, proofs) = decode_credential_from_w3c(w3c_presentation).unwrap();
     json!({
@@ -553,19 +544,18 @@ pub fn to_anonCreds_presentation(w3c_presentation: &Value) -> Value {
     })
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
     use std::fs::File;
-    use std::io::Read;
     use std::io::Write;
 
     #[test]
     fn test_create_presentation() {
         // returns a list of presentation + presentation request
         let presentation = create_presentation().unwrap();
-        let mut file =
-            std::fs::File::create("./samples/presentations/anoncreds_presentation_list.json")
-                .expect("Failed to create file");
+        let mut file = File::create("./samples/presentations/anoncreds_presentation_list.json")
+            .expect("Failed to create file");
         file.write_all(
             serde_json::to_string_pretty(&presentation)
                 .expect("Failed to serialize")
@@ -663,9 +653,8 @@ mod tests {
         //     serde_json::from_str(&content).expect("Failed to parse the JSON content");
 
         let tmp_list = create_presentation().unwrap();
-        let mut file =
-            std::fs::File::create("./samples/presentations/anoncreds_presentation_list.json")
-                .expect("Failed to create file");
+        let mut file = File::create("./samples/presentations/anoncreds_presentation_list.json")
+            .expect("Failed to create file");
         file.write_all(
             serde_json::to_string_pretty(&tmp_list)
                 .expect("Failed to serialize")
@@ -700,7 +689,7 @@ mod tests {
 
         let w3c_presentation =
             map_to_w3c_presentation(&presentation_proof, &presentation_request, &nonce);
-        let mut file = std::fs::File::create("./samples/presentations/w3c_presentation.json")
+        let mut file = File::create("./samples/presentations/w3c_presentation.json")
             .expect("Failed to create file");
         file.write_all(
             serde_json::to_string_pretty(&w3c_presentation)
@@ -717,9 +706,8 @@ mod tests {
         let presentation_request = tmp_list.1.clone();
         let nonce: [u8; 16] = tmp_list.2.clone();
 
-        let mut file =
-            std::fs::File::create("./samples/presentations/anoncreds_presentation_list.json")
-                .expect("Failed to create file");
+        let mut file = File::create("./samples/presentations/anoncreds_presentation_list.json")
+            .expect("Failed to create file");
         file.write_all(
             serde_json::to_string_pretty(&tmp_list)
                 .expect("Failed to serialize")
@@ -729,7 +717,7 @@ mod tests {
 
         let w3c_presentation =
             map_to_w3c_presentation(&presentation_proof, &presentation_request, &nonce);
-        let mut file = std::fs::File::create("./samples/presentations/w3c_presentation.json")
+        let mut file = File::create("./samples/presentations/w3c_presentation.json")
             .expect("Failed to create file");
         file.write_all(
             serde_json::to_string_pretty(&w3c_presentation)
@@ -738,12 +726,12 @@ mod tests {
         )
         .expect("Failed to write to file");
 
-        let result = to_anonCreds_presentation(&w3c_presentation);
+        let result = to_anon_creds_presentation(&w3c_presentation);
         // match serde_json::to_string_pretty(&result) {
         //     Ok(pretty_json_str) => println!("{}", pretty_json_str),
         //     Err(e) => println!("Error serializing JSON: {}", e),
         // }
-        let mut file = std::fs::File::create("./samples/presentations/anoncreds_output.json")
+        let mut file = File::create("./samples/presentations/anoncreds_output.json")
             .expect("Failed to create file");
         file.write_all(
             serde_json::to_string_pretty(&result)

@@ -58,11 +58,12 @@ fn create_credential() -> CredxResult<CredentialBundle> {
     Ok(credential)
 }
 
+#[allow(dead_code)]
 fn base64_encode(val: &[u8]) -> String {
-    let encoded = base64::encode_config(val, base64::URL_SAFE_NO_PAD);
-    encoded
+    base64::encode_config(val, base64::URL_SAFE_NO_PAD)
 }
 
+#[allow(dead_code)]
 fn base64_decode(val: &str) -> Result<Vec<u8>, base64::DecodeError> {
     let padlen = 4 - val.len() % 4;
     let padded = if padlen > 2 {
@@ -74,7 +75,7 @@ fn base64_decode(val: &str) -> Result<Vec<u8>, base64::DecodeError> {
 }
 
 fn encode_identifier(id: &str) -> String {
-    format!("did:key:{}", id.replace(" ", "%20"))
+    format!("did:key:{}", id.replace(' ', "%20"))
 }
 
 fn decode_identifier(id: &str) -> String {
