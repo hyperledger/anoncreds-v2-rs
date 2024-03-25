@@ -61,3 +61,8 @@ pub mod prelude {
 
     pub use blsful;
 }
+
+mod mapping {
+    pub mod map_credential;
+    pub mod map_presentation;
+}
