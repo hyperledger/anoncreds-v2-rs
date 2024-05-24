@@ -1,5 +1,5 @@
 /// Errors created by this library
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Error {
     /// Bad Credential Schema
     InvalidCredentialSchema,
