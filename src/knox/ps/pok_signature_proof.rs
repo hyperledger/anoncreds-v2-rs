@@ -149,7 +149,9 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
             }
             let message = self
                 .proof
-                .get(i + 2)
+                // + 2 because ProofOfSignatureKnowledgeContribution.commit adds
+                // two secrets before adding secrets for attributes
+                .get(i + 2 - j)
                 .ok_or(Error::General("invalid proof"))?;
             hidden.insert(i, *message);
         }
