@@ -282,6 +282,15 @@ impl Presentation {
                 let ix1 = statement.get_claim_index(id1);
                 let map1 = proof_messages.get(id1).unwrap().clone();
                 let map2 = proof_messages.get_mut(id2).unwrap();
+                // NOTE: other unexpected combinations could be checked too,
+                // e.g., one ProofSpecificBlinding, one ExternalBlinding
+                if matches!(map1[ix1], ProofMessage::Revealed(_))
+                    || matches!(map2[ix2], ProofMessage::Revealed(_))
+                {
+                    return Err(Error::InvalidClaimData(
+                        "revealed claim cannot be used with equality proof",
+                    ));
+                }
                 map2[ix2] = map1[ix1];
             }
         }
