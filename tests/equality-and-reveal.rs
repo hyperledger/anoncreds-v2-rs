@@ -202,26 +202,32 @@ mod reveal_and_equality_tests {
         let mut nonce = [0u8; 16];
         thread_rng().fill_bytes(&mut nonce);
 
-        let credentials = indexmap! {
-            sig_st_a.id.clone() => credential_a.credential.into(),
-            sig_st_b.id.clone() => credential_b.credential.into() };
+        #[cfg_attr(rustfmt, rustfmt_skip)]
+        // when possible: #[rustmt::skip]
+        {
+            let credentials = indexmap! {
+                    sig_st_a.id.clone() => credential_a.credential.into(),
+                    sig_st_b.id.clone() => credential_b.credential.into()
+            };
 
-        let presentation_schema: PresentationSchema = match equality_index {
-            None => PresentationSchema::new(&[sig_st_a.into(), sig_st_b.into()]),
-            Some(i) => {
-                let eq_st = EqualityStatement {
-                    id: random_string(16, rand::thread_rng()),
-                    ref_id_claim_index: indexmap! {
-                        sig_st_a.id.clone() => i,
-                        sig_st_b.id.clone() => i },
-                };
-                PresentationSchema::new(&[sig_st_a.into(), sig_st_b.into(), eq_st.into()])
-            }
-        };
+            let presentation_schema: PresentationSchema = match equality_index {
+                None => PresentationSchema::new(&[sig_st_a.into(), sig_st_b.into()]),
+                Some(i) => {
+                    let eq_st = EqualityStatement {
+                        id: random_string(16, rand::thread_rng()),
+                        ref_id_claim_index: indexmap! {
+                            sig_st_a.id.clone() => i,
+                            sig_st_b.id.clone() => i
+                        },
+                    };
+                    PresentationSchema::new(&[sig_st_a.into(), sig_st_b.into(), eq_st.into()])
+                }
+            };
 
-        let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
-        presentation.verify(&presentation_schema, &nonce)?;
-        Ok(presentation.disclosed_messages)
+            let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
+            presentation.verify(&presentation_schema, &nonce)?;
+            Ok(presentation.disclosed_messages)
+        }
     }
 
     fn setup_issuer() -> (IssuerPublic, Issuer) {
