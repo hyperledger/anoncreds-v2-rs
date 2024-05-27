@@ -20,21 +20,21 @@ mod reveal_and_equality_tests {
     // -------------------------------------------------------------------------
     // Setup some names for readability
 
-    const SSN_IX:  usize = 0;
+    const SSN_IX: usize = 0;
     const NAME_IX: usize = 1;
 
-    const ID_LBL:   &str = "id";
+    const ID_LBL: &str = "id";
     const NAME_LBL: &str = "name";
-    const SSN_LBL:  &str = "social-security-number";
-    const SSN:      &str = "123-12-1234";
-    const SS_ID_A:  &str = "SignatureStatement ID A";
-    const SS_ID_B:  &str = "SignatureStatement ID B";
+    const SSN_LBL: &str = "social-security-number";
+    const SSN: &str = "123-12-1234";
+    const SS_ID_A: &str = "SignatureStatement ID A";
+    const SS_ID_B: &str = "SignatureStatement ID B";
 
     type DisclosureReqs = BTreeSet<String>;
 
     lazy_static! {
         static ref REV_NONE: DisclosureReqs = btreeset! {};
-        static ref REV_SSN:  DisclosureReqs = btreeset! {SSN_LBL.to_string()};
+        static ref REV_SSN: DisclosureReqs = btreeset! {SSN_LBL.to_string()};
     }
 
     /* -------------------------------------------------------------------------
@@ -166,11 +166,11 @@ mod reveal_and_equality_tests {
     type Disclosures = IndexMap<String, IndexMap<String, ClaimData>>;
 
     fn run_test(
-        issuer_public:  &IssuerPublic,
-        mut issuer:     Issuer,
-        name_b:         &str,
-        reveal_a:       &DisclosureReqs,
-        reveal_b:       &DisclosureReqs,
+        issuer_public: &IssuerPublic,
+        mut issuer: Issuer,
+        name_b: &str,
+        reveal_a: &DisclosureReqs,
+        reveal_b: &DisclosureReqs,
         equality_index: Option<usize>,
     ) -> CredxResult<Disclosures> {
         const CRED_ID_A: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
@@ -301,7 +301,7 @@ mod reveal_and_equality_tests {
     }
 
     fn validate_disclosures(
-        r:     Result<Disclosures, Error>,
+        r: Result<Disclosures, Error>,
         req_a: &DisclosureReqs,
         req_b: &DisclosureReqs,
     ) {
