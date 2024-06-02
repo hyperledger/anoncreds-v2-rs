@@ -209,14 +209,21 @@ mod reveal_and_equality_tests {
                     sig_st_a.id.clone() => credential_a.credential.into(),
                     sig_st_b.id.clone() => credential_b.credential.into()
             };
+            let pres_sch_id = random_string(16, rand::thread_rng());
 
             let (presentation_schema1, presentation_schema2): (
                 PresentationSchema,
                 PresentationSchema,
             ) = match equality_index {
                 None => (
-                    PresentationSchema::new(&[sig_st_a.clone().into(), sig_st_b.clone().into()]),
-                    PresentationSchema::new(&[sig_st_a        .into(), sig_st_b        .into()]),
+                    PresentationSchema::new_with_id(&[
+                        sig_st_a.clone().into(),
+                        sig_st_b.clone().into()
+                    ], &pres_sch_id),
+                    PresentationSchema::new_with_id(&[
+                        sig_st_a        .into(),
+                        sig_st_b        .into()
+                    ], &pres_sch_id),
                 ),
                 Some(i) => {
                     let eq_st = EqualityStatement {
@@ -227,12 +234,16 @@ mod reveal_and_equality_tests {
                         },
                     };
                     (
-                        PresentationSchema::new(&[
+                        PresentationSchema::new_with_id(&[
                             sig_st_a.clone().into(),
                             sig_st_b.clone().into(),
                             eq_st   .clone().into(),
-                        ]),
-                        PresentationSchema::new(&[sig_st_a.into(), sig_st_b.into(), eq_st.into()]),
+                        ], &pres_sch_id),
+                        PresentationSchema::new_with_id(&[
+                            sig_st_a.into(),
+                            sig_st_b.into(),
+                            eq_st   .into()
+                        ], &pres_sch_id),
                     )
                 }
             };
