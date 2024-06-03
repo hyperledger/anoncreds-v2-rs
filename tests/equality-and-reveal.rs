@@ -210,8 +210,14 @@ mod reveal_and_equality_tests {
                     sig_st_b.id.clone() => credential_b.credential.into()
             };
 
-            let presentation_schema: PresentationSchema = match equality_index {
-                None => PresentationSchema::new(&[sig_st_a.into(), sig_st_b.into()]),
+            let (presentation_schema1, presentation_schema2): (
+                PresentationSchema,
+                PresentationSchema,
+            ) = match equality_index {
+                None => (
+                    PresentationSchema::new(&[sig_st_a.clone().into(), sig_st_b.clone().into()]),
+                    PresentationSchema::new(&[sig_st_a        .into(), sig_st_b        .into()]),
+                ),
                 Some(i) => {
                     let eq_st = EqualityStatement {
                         id: random_string(16, rand::thread_rng()),
@@ -220,12 +226,20 @@ mod reveal_and_equality_tests {
                             sig_st_b.id.clone() => i
                         },
                     };
-                    PresentationSchema::new(&[sig_st_a.into(), sig_st_b.into(), eq_st.into()])
+                    (
+                        PresentationSchema::new(&[
+                            sig_st_a.clone().into(),
+                            sig_st_b.clone().into(),
+                            eq_st   .clone().into(),
+                        ]),
+                        PresentationSchema::new(&[sig_st_a.into(), sig_st_b.into(), eq_st.into()]),
+                    )
                 }
             };
 
-            let presentation = Presentation::create(&credentials, &presentation_schema, &nonce)?;
-            presentation.verify(&presentation_schema, &nonce)?;
+            // Prover and Verifier each use PresentationSchema generated independently
+            let presentation = Presentation::create(&credentials, &presentation_schema1, &nonce)?;
+            presentation.verify(&presentation_schema2, &nonce)?;
             Ok(presentation.disclosed_messages)
         }
     }
