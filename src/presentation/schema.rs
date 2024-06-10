@@ -19,9 +19,15 @@ pub struct PresentationSchema {
 }
 
 impl PresentationSchema {
-    /// Create a new presentation schema
+    /// Create a new presentation schema with random id
     pub fn new(statements: &[Statements]) -> Self {
         let id = random_string(16, rand::thread_rng());
+        Self::new_with_id(statements, &id)
+    }
+
+    /// Create a new presentation schema with given id
+    pub fn new_with_id(statements: &[Statements], pres_schema_id: &str) -> Self {
+        let id = pres_schema_id.into();
         let statements = statements.iter().map(|s| (s.id(), s.clone())).collect();
         let presentation_schema = Self { id, statements };
         debug!(
