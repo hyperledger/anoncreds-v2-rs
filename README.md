@@ -50,7 +50,7 @@ Concretely, AnonCreds v2:
 
 ## To Do for AnonCreds v2
 
-AnonCreds v2 is not yet ready for use. This repository is but an initial
+AnonCreds v2 is currently in production and ready for use. This repository is but an initial
 (thorough but incomplete) implementation. The issues contain a list of the
 labelled [To Do Items] (open and closed) that we envision are needed for a
 complete implementation. We are now seeking collaborators to help with the
