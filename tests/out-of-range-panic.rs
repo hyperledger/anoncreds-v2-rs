@@ -1,9 +1,7 @@
 use blsful::inner_types::*;
-use credx::claim::{
-    ClaimType, NumberClaim, RevocationClaim,
-};
-use credx::error;
+use credx::claim::{ClaimType, NumberClaim, RevocationClaim};
 use credx::credential::{ClaimSchema, CredentialSchema};
+use credx::error;
 use credx::prelude::Issuer;
 use credx::presentation::{Presentation, PresentationSchema};
 use credx::statement::{
@@ -85,7 +83,7 @@ fn test_out_of_range_panic() -> CredxResult<()> {
         signature_id: sig_st.id.clone(),
         claim: 1,
         lower: Some(0),
-        upper: Some(3),  // SIGNED VALUE OF 5 IS OUT OF THE REQUESTED RANGE
+        upper: Some(3), // SIGNED VALUE OF 5 IS OUT OF THE REQUESTED RANGE
     };
 
     let credentials = indexmap! { sig_st.id.clone() => credential.credential.into() };

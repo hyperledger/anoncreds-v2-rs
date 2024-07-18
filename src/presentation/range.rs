@@ -129,13 +129,18 @@ impl<'a> RangeBuilder<'a> {
             return Err(Error::InvalidPresentationData);
         }
         {
-            let lower = match statement.lower { Some(lower) => lower, None=> isize::MIN};
-            let upper = match statement.upper { Some(upper) => upper, None=> isize::MAX};
+            let lower = match statement.lower {
+                Some(lower) => lower,
+                None => isize::MIN,
+            };
+            let upper = match statement.upper {
+                Some(upper) => upper,
+                None => isize::MAX,
+            };
             if message < lower || message > upper {
                 return Err(Error::InvalidPresentationData);
             }
         }
-
         transcript.append_message(b"", statement.id.as_bytes());
         transcript.append_message(
             b"used commitment",
