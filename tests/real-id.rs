@@ -371,6 +371,7 @@ fn create_dos_passport_statements_for_realid(
 
 fn create_soc_sec_statements_for_realid(vdr: &HashMap<String, IssuerPublic>) -> [Statements; 3] {
     let ssa_public = vdr.get(&SSA_DID.to_string()).unwrap();
+    let schema = ssa_public.schema.clone();
 
     let soc_sec_sig_st = SignatureStatement {
         id: random_string(16, rand::thread_rng()),
@@ -383,7 +384,7 @@ fn create_soc_sec_statements_for_realid(vdr: &HashMap<String, IssuerPublic>) -> 
         reference_id: soc_sec_sig_st.id.clone(),
         accumulator: ssa_public.revocation_registry,
         verification_key: ssa_public.revocation_verifying_key,
-        claim: SOC_SEC_ID_IDX,
+        claim: schema.claim_indices.get_index_of("identifier").unwrap(),
     };
 
     let soc_sec_verenc_st = VerifiableEncryptionStatement {
@@ -391,7 +392,7 @@ fn create_soc_sec_statements_for_realid(vdr: &HashMap<String, IssuerPublic>) -> 
         reference_id: soc_sec_sig_st.id.clone(),
         message_generator: G1Projective::GENERATOR,
         encryption_key: ssa_public.verifiable_encryption_key,
-        claim: SOC_SEC_NUMBER_IDX,
+        claim: schema.claim_indices.get_index_of("soc_sec_number").unwrap(),
     };
 
     let soc_sec_statements: [Statements; 3] = [
@@ -507,10 +508,6 @@ fn define_soc_sec_claims_schemas() -> Vec<ClaimSchema> {
     ];
     schema_claims.to_vec()
 }
-
-const SOC_SEC_ID_IDX: usize = 0;
-const SOC_SEC_NUMBER_IDX: usize = 1;
-const SOC_SEC_FIRST_LAST_NAME_IDX: usize = 2;
 
 fn define_passport_claims_schemas() -> Vec<ClaimSchema> {
     let schema_claims = [
