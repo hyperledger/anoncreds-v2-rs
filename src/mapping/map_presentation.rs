@@ -11,6 +11,7 @@ use crate::statement::{
     VerifiableEncryptionStatement,
 };
 use crate::{random_string, CredxResult};
+use base64::Engine;
 use blsful::inner_types::*;
 use chrono::Utc;
 use indexmap::indexmap;
@@ -24,7 +25,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 fn base64_encode(val: &[u8]) -> String {
-    base64::encode_config(val, base64::URL_SAFE_NO_PAD)
+    base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(val)
 }
 
 fn base64_decode(val: &str) -> Result<Vec<u8>, base64::DecodeError> {
@@ -34,7 +35,7 @@ fn base64_decode(val: &str) -> Result<Vec<u8>, base64::DecodeError> {
     } else {
         format!("{}{}", val, "=".repeat(padlen))
     };
-    base64::decode_config(padded, base64::URL_SAFE_NO_PAD)
+    base64::prelude::BASE64_URL_SAFE_NO_PAD.decode(padded)
 }
 
 fn encode_identifier(id: &str) -> String {
@@ -294,7 +295,7 @@ pub fn extract_credential(request: &Value, proof: &Value) -> Vec<Value> {
                         if let Some(message_detail) = message
                             .get(1)
                             .and_then(Value::as_array)
-                            .and_then(|arr| arr.get(0))
+                            .and_then(|arr| arr.first())
                         {
                             let field_name = message_detail
                                 .get(0)
@@ -511,7 +512,7 @@ fn transform_disclosed_msg(input: &Map<String, Value>) -> Value {
         .map(|(key, value_map)| {
             json!([
                 key,
-                value_map.as_object().map_or_else(std::vec::Vec::new, |vm| {
+                value_map.as_object().map_or_else(Vec::new, |vm| {
                     vm.iter()
                         .map(|(inner_key, inner_value)| {
                             json!([

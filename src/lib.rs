@@ -1,11 +1,4 @@
-//!
-#![warn(missing_docs)]
-#![deny(
-    trivial_casts,
-    trivial_numeric_casts,
-    unused_import_braces,
-    unused_qualifications
-)]
+//! A map implementation
 
 use rand_core::{CryptoRng, RngCore};
 

@@ -287,7 +287,6 @@ mod tests {
         assert_ne!(acc.0, G1Projective::GENERATOR);
     }
 
-    #[cfg(feature = "std")]
     #[allow(non_snake_case)]
     #[test]
     fn new_accumulator_10K() {
@@ -299,7 +298,6 @@ mod tests {
         assert_ne!(acc.0, G1Projective::GENERATOR);
     }
 
-    #[cfg(feature = "std")]
     #[allow(non_snake_case)]
     #[ignore = "this takes a looooog time"]
     #[test]
@@ -312,7 +310,6 @@ mod tests {
         assert_ne!(acc.0, G1Projective::GENERATOR);
     }
 
-    #[cfg(feature = "std")]
     #[ignore]
     #[test]
     fn one_year_updates() {
@@ -328,7 +325,9 @@ mod tests {
         let y = items.last().unwrap().clone();
         let mut witness = MembershipWitness::new(y, acc, &key);
         let params = ProofParams::new(pk, None);
-        let proof_message = ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(y.0));
+        let proof_message = crate::knox::short_group_sig_core::ProofMessage::Hidden(
+            crate::knox::short_group_sig_core::HiddenMessage::ProofSpecificBlinding(y.0),
+        );
         let committing = MembershipProofCommitting::new(proof_message, witness, params, pk);
 
         let mut transcript = merlin::Transcript::new(b"one_year_updates");
@@ -342,7 +341,7 @@ mod tests {
         let challenge2 = Element::from_transcript(b"challenge", &mut transcript);
         assert_eq!(challenge2, challenge);
 
-        let mut deltas = alloc::vec::Vec::with_capacity(DAYS);
+        let mut deltas = Vec::with_capacity(DAYS);
         for i in 0..DAYS {
             let additions: Vec<Element> = (0..1000).map(|_| Element::random()).collect();
             let (deletions, titems) = items.split_at(600);
