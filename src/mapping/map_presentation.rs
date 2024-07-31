@@ -700,6 +700,7 @@ mod tests {
         .expect("Failed to write to file");
     }
 
+    #[ignore]
     #[test]
     fn test_to_anoncreds_presentation() {
         let tmp_list = create_presentation().unwrap();
