@@ -127,12 +127,15 @@ fn create_real_id_presentation_with_selective_disclosure(
 fn create_real_id_presentation_schema(vdr: &HashMap<String, IssuerPublic>) -> PresentationSchema {
     // Claims needed from Social Security Card issued by SSA
     let ssa_soc_sec_statements = create_soc_sec_statements_for_realid(&vdr);
+    let soc_security_schema = vdr.get(SSA_DID).unwrap().schema.clone();
 
     // Claims needed from passport issued by DoS
     let dos_passport_statements = create_dos_passport_statements_for_realid(&vdr);
+    let passport_schema = vdr.get(DOS_DID).unwrap().schema.clone();
 
     // Claims need from Bank Statement
     let bank_statement_statements = create_bank_statement_statements_for_realid(&vdr);
+    let bank_statement_schema = vdr.get(BANK_DID).unwrap().schema.clone();
 
     // EqualityStatement is used to check that a non-disclosed claim is the same across multiple other statements.
     // name check
@@ -143,9 +146,9 @@ fn create_real_id_presentation_schema(vdr: &HashMap<String, IssuerPublic>) -> Pr
     let real_id_eq_st_name = EqualityStatement {
         id: random_string(16, rand::thread_rng()),
         ref_id_claim_index: indexmap! {
-            soc_sec_sig_st_id.clone() => SOC_SEC_FIRST_LAST_NAME_IDX,
-            dos_passport_sig_st_id.clone() => PASSPORT_FIRST_LAST_NAME_IDX,
-            bank_statement_sig_st_id.clone() => BANK_STMT_FIRST_LAST_NAME_IDX,
+            soc_sec_sig_st_id.clone() => soc_security_schema.claim_indices.get_index_of("first_last_name").unwrap(),
+            dos_passport_sig_st_id.clone() => passport_schema.claim_indices.get_index_of("first_last_name").unwrap(),
+            bank_statement_sig_st_id.clone() => bank_statement_schema.claim_indices.get_index_of("first_last_name").unwrap(),
         },
     };
 
@@ -166,6 +169,7 @@ fn create_bank_statement_statements_for_realid(
 ) -> [Statements; 5] {
     let bank_public = vdr.get(&BANK_DID.to_string()).unwrap();
     let current_date = Local::now().date_naive();
+    let schema = bank_public.schema.clone();
 
     // Undisclosed or hidden attributes: Account Number, Full Name, Start Date, End Date,
     // No further action is needed.
@@ -189,7 +193,7 @@ fn create_bank_statement_statements_for_realid(
         reference_id: bank_statement_sig_st.id.clone(),
         accumulator: bank_public.revocation_registry,
         verification_key: bank_public.revocation_verifying_key,
-        claim: BANK_STMT_ID_IDX,
+        claim: schema.claim_indices.get_index_of("identifier").unwrap(),
     };
 
     // CommtimentStatement creates a unique value based on a claim. Is also used to link to range statements.
@@ -204,7 +208,7 @@ fn create_bank_statement_statements_for_realid(
             b"blinder generator",
             b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
         ),
-        claim: BANK_STMT_START_DATE_IDX,
+        claim: schema.claim_indices.get_index_of("start_date").unwrap(),
     };
 
     // RangeStatement defines a proof where a claim is in a range. Requires a commitment statement for the specified claim.
@@ -220,7 +224,7 @@ fn create_bank_statement_statements_for_realid(
         id: random_string(16, rand::thread_rng()),
         reference_id: bank_statement_comm_st_start_date.id.clone(),
         signature_id: bank_statement_sig_st.id.clone(),
-        claim: BANK_STMT_START_DATE_IDX,
+        claim: schema.claim_indices.get_index_of("start_date").unwrap(),
         lower: Some(start_date_lower.try_into().unwrap()),
         upper: Some(start_date_upper.try_into().unwrap()),
     };
@@ -233,7 +237,7 @@ fn create_bank_statement_statements_for_realid(
         reference_id: bank_statement_sig_st.id.clone(),
         message_generator: G1Projective::GENERATOR,
         encryption_key: bank_public.verifiable_encryption_key,
-        claim: BANK_STMT_ACCOUNT_NUMBER_IDX,
+        claim: schema.claim_indices.get_index_of("account_number").unwrap(),
     };
 
     let bank_statement_statements: [Statements; 5] = [
@@ -251,6 +255,7 @@ fn create_dos_passport_statements_for_realid(
     vdr: &HashMap<String, IssuerPublic>,
 ) -> [Statements; 7] {
     let dos_public = vdr.get(&DOS_DID.to_string()).unwrap();
+    let schema = dos_public.schema.clone();
     let current_date = Local::now().date_naive();
 
     // Undisclosed or hidden attributes: full name, nationality, sex, place of birth, date of issue, authority.
@@ -270,7 +275,7 @@ fn create_dos_passport_statements_for_realid(
         reference_id: dos_passport_sig_st.id.clone(),
         accumulator: dos_public.revocation_registry,
         verification_key: dos_public.revocation_verifying_key,
-        claim: PASSPORT_ID_IDX,
+        claim: schema.claim_indices.get_index_of("identifier").unwrap(),
     };
 
     // CommtimentStatement creates a unique value based on a claim. Is also used to link to range statements.
@@ -285,7 +290,7 @@ fn create_dos_passport_statements_for_realid(
             b"blinder generator",
             b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
         ),
-        claim: PASSPORT_DOB_IDX,
+        claim: schema.claim_indices.get_index_of("dob").unwrap(),
     };
 
     let dos_passport_comm_st_date_of_expiration = CommitmentStatement {
@@ -299,7 +304,7 @@ fn create_dos_passport_statements_for_realid(
             b"blinder generator",
             b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
         ),
-        claim: PASSPORT_DATE_OF_EXPIRATION_IDX,
+        claim: schema.claim_indices.get_index_of("date_of_expiration").unwrap(),
     };
 
     // RangeStatement defines a proof where a claim is in a range. Requires a commitment statement for the specified claim.
@@ -317,7 +322,7 @@ fn create_dos_passport_statements_for_realid(
         id: random_string(16, rand::thread_rng()),
         reference_id: dos_passport_comm_st_dob.id.clone(),
         signature_id: dos_passport_sig_st.id.clone(),
-        claim: PASSPORT_DOB_IDX,
+        claim: schema.claim_indices.get_index_of("dob").unwrap(),
         lower: Some(dob_lower.try_into().unwrap()),
         upper: Some(dob_upper.try_into().unwrap()),
     };
@@ -335,7 +340,7 @@ fn create_dos_passport_statements_for_realid(
         id: random_string(16, rand::thread_rng()),
         reference_id: dos_passport_comm_st_date_of_expiration.id.clone(),
         signature_id: dos_passport_sig_st.id.clone(),
-        claim: PASSPORT_DATE_OF_EXPIRATION_IDX,
+        claim: schema.claim_indices.get_index_of("date_of_expiration").unwrap(),
         lower: Some(date_of_expiration_lower_since_1900.try_into().unwrap()),
         upper: Some(date_of_expiration_upper_since_1900.try_into().unwrap()),
     };
@@ -348,7 +353,7 @@ fn create_dos_passport_statements_for_realid(
         reference_id: dos_passport_sig_st.id.clone(),
         message_generator: G1Projective::GENERATOR,
         encryption_key: dos_public.verifiable_encryption_key,
-        claim: PASSPORT_NUMBER_IDX,
+        claim: schema.claim_indices.get_index_of("passport_number").unwrap(),
     };
 
     let dos_passport_statements: [Statements; 7] = [
@@ -573,17 +578,6 @@ fn define_passport_claims_schemas() -> Vec<ClaimSchema> {
     schema_claims.to_vec()
 }
 
-const PASSPORT_ID_IDX: usize = 0;
-const PASSPORT_NUMBER_IDX: usize = 1;
-const PASSPORT_FIRST_LAST_NAME_IDX: usize = 2;
-const PASSPORT_NATIONALITY_IDX: usize = 3;
-const PASSPORT_DOB_IDX: usize = 4;
-const PASSPORT_SEX_IDX: usize = 5;
-const PASSPORT_PLACE_OF_BIRTH_IDX: usize = 6;
-const PASSPORT_DATE_OF_ISSUE_IDX: usize = 7;
-const PASSPORT_DATE_OF_EXPIRATION_IDX: usize = 8;
-const PASSPORT_CLAIM_ISSUING_AUTHORITY_IDX: usize = 9;
-
 fn define_bank_statement_claims_schemas() -> Vec<ClaimSchema> {
     let schema_claims = [
         ClaimSchema {
@@ -643,16 +637,6 @@ fn define_bank_statement_claims_schemas() -> Vec<ClaimSchema> {
     ];
     schema_claims.to_vec()
 }
-
-const BANK_STMT_ID_IDX: usize = 0;
-const BANK_STMT_ACCOUNT_NUMBER_IDX: usize = 1;
-const BANK_STMT_FIRST_LAST_NAME_IDX: usize = 2;
-const BANK_STMT_START_DATE_IDX: usize = 3;
-const BANK_STMT_END_DATE_IDX: usize = 4;
-const BANK_STMT_ADDRESS_LINE1_IDX: usize = 5;
-const BANK_STMT_ADDRESS_LINE2_IDX: usize = 6;
-const BANK_STMT_ADDRESS_STATE_IDX: usize = 7;
-const BANK_STMT_ADDRESS_ZIP_IDX: usize = 8;
 
 fn request_bank_statement_credential(
     bank_wallet: HashMap<String, Issuer>,
