@@ -306,7 +306,7 @@ impl Issuer {
         let verifying_key = ps::PublicKey::from(&self.signing_key);
         let revocation_verifying_key = vb20::PublicKey::from(&self.revocation_key);
         let verifiable_encryption_key =
-            blsful::PublicKey::<Bls12381G2Impl>::from(&self.verifiable_decryption_key);
+            PublicKey::<Bls12381G2Impl>::from(&self.verifiable_decryption_key);
         IssuerPublic {
             id: self.id.clone(),
             schema: self.schema.clone(),

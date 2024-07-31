@@ -70,16 +70,9 @@ const SALT: &[u8] = b"VB-ACC-HASH-SALT-";
 pub struct PolynomialG1(pub Vec<G1Projective>);
 
 impl PolynomialG1 {
-    #[cfg(any(feature = "std", feature = "alloc"))]
     /// Initialize this polynomial with the expected capacity
     pub fn with_capacity(size: usize) -> Self {
         Self(Vec::with_capacity(size))
-    }
-
-    #[cfg(not(any(feature = "std", feature = "alloc")))]
-    /// Initialize this polynomial with the expected capacity
-    pub fn with_capacity(_size: usize) -> Self {
-        Self(Vec::new())
     }
 
     /// Return the result of evaluating the polynomial with the specified point
@@ -127,16 +120,9 @@ impl core::ops::MulAssign<Scalar> for PolynomialG1 {
 pub struct Polynomial(pub Vec<Scalar>);
 
 impl Polynomial {
-    #[cfg(any(feature = "std", feature = "alloc"))]
     /// Initialize this polynomial with the expected capacity
     pub fn with_capacity(size: usize) -> Self {
         Self(Vec::with_capacity(size))
-    }
-
-    #[cfg(not(any(feature = "std", feature = "alloc")))]
-    /// Initialize this polynomial with the expected capacity
-    pub fn with_capacity(_size: usize) -> Self {
-        Self(Vec::new())
     }
 
     /// Add the scalar to the end of the polynomial
