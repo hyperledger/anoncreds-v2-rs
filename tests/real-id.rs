@@ -304,7 +304,10 @@ fn create_dos_passport_statements_for_realid(
             b"blinder generator",
             b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
         ),
-        claim: schema.claim_indices.get_index_of("date_of_expiration").unwrap(),
+        claim: schema
+            .claim_indices
+            .get_index_of("date_of_expiration")
+            .unwrap(),
     };
 
     // RangeStatement defines a proof where a claim is in a range. Requires a commitment statement for the specified claim.
@@ -340,7 +343,10 @@ fn create_dos_passport_statements_for_realid(
         id: random_string(16, rand::thread_rng()),
         reference_id: dos_passport_comm_st_date_of_expiration.id.clone(),
         signature_id: dos_passport_sig_st.id.clone(),
-        claim: schema.claim_indices.get_index_of("date_of_expiration").unwrap(),
+        claim: schema
+            .claim_indices
+            .get_index_of("date_of_expiration")
+            .unwrap(),
         lower: Some(date_of_expiration_lower_since_1900.try_into().unwrap()),
         upper: Some(date_of_expiration_upper_since_1900.try_into().unwrap()),
     };
@@ -353,7 +359,10 @@ fn create_dos_passport_statements_for_realid(
         reference_id: dos_passport_sig_st.id.clone(),
         message_generator: G1Projective::GENERATOR,
         encryption_key: dos_public.verifiable_encryption_key,
-        claim: schema.claim_indices.get_index_of("passport_number").unwrap(),
+        claim: schema
+            .claim_indices
+            .get_index_of("passport_number")
+            .unwrap(),
     };
 
     let dos_passport_statements: [Statements; 7] = [
