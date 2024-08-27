@@ -1,6 +1,7 @@
 use super::{Claim, ClaimType};
-use crate::utils::get_num_scalar;
+use crate::{error::Error, utils::get_num_scalar};
 use blsful::inner_types::Scalar;
+use chrono::Datelike;
 use core::{
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},
@@ -65,5 +66,60 @@ impl Claim for NumberClaim {
 
     fn get_value(&self) -> Self::Value {
         self.value
+    }
+}
+
+impl NumberClaim {
+    /// RFC3339 dates are in the format of `YYYY-MM-DD` and are treated
+    /// as a number claim with the value of `YYYYMMDD`.
+    pub fn parse_rfc3339_date<S: AsRef<str>>(date: S) -> Result<Self, Error> {
+        // Use chrono to check whether the date is valid.
+        // Invalid dates include days greater than 31, months greater than 12, etc.
+        // and checks whether the month even supports the number of days specified
+        // like February 30th is never valid.
+        let dt = chrono::NaiveDate::parse_from_str(date.as_ref(), "%Y-%m-%d")
+            .map_err(|_| Error::InvalidClaimData("Invalid RFC3339 date"))?;
+        // There's no need to zero center unless we're dealing with a dates BC
+        let mut value = dt.year().to_string();
+        if dt.month() < 10 {
+            value.push('0');
+        }
+        value.push_str(&dt.month().to_string());
+        if dt.day() < 10 {
+            value.push('0');
+        }
+        value.push_str(&dt.day().to_string());
+        Ok(Self::from(value.parse::<isize>().map_err(|_| {
+            Error::InvalidClaimData("Invalid RFC3339 date")
+        })?))
+    }
+
+    /// RFC3339 DateTimes are in the format of `YYYY-MM-DDTHH:MM:SSZ` and are treated
+    /// as a number claim representing the number of seconds since the Unix epoch.
+    pub fn parse_rfc3339_datetime<S: AsRef<str>>(datetime: S) -> Result<Self, Error> {
+        let dt = chrono::DateTime::parse_from_rfc3339(datetime.as_ref())
+            .map_err(|_| Error::InvalidClaimData("Invalid RFC3339 datetime"))?;
+        // There's no need to zero center unless we're dealing with a dates BC
+        Ok(Self::from(dt.timestamp() as isize))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rfc3339_date() {
+        let claim = NumberClaim::parse_rfc3339_date("2021-01-01").unwrap();
+        assert_eq!(claim.value, 20210101);
+
+        let claim = NumberClaim::parse_rfc3339_date("1982-12-31").unwrap();
+        assert_eq!(claim.value, 19821231);
+    }
+
+    #[test]
+    fn test_rfc3339_datetime() {
+        let claim = NumberClaim::parse_rfc3339_datetime("2021-01-01T00:00:00Z").unwrap();
+        assert_eq!(claim.value, 1609459200);
     }
 }
