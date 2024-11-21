@@ -152,7 +152,12 @@ pub enum TestStep {
         HashMap<HolderLabel, api::DataValue>,
         Vec<api::DataValue>,
     ),
-    ReceiveInitialAccumulatorWitness(HolderLabel, IssuerLabel, api::CredAttrIndex),
+    UpdateAccumulatorWitness(
+        HolderLabel,
+        IssuerLabel,
+        api::CredAttrIndex,
+        api::AccumulatorBatchSeqNo,
+    ),
     Reveal(HolderLabel, IssuerLabel, Vec<api::CredAttrIndex>),
     InRange(
         HolderLabel,
@@ -174,12 +179,6 @@ pub enum TestStep {
         Vec<(IssuerLabel, api::CredAttrIndex)>,
     ),
     CreateAndVerifyProof(HolderLabel, CreateVerifyExpectation),
-    UpdateAccumulatorWitness(
-        HolderLabel,
-        IssuerLabel,
-        api::CredAttrIndex,
-        api::AccumulatorBatchSeqNo,
-    ),
     CreateAuthority(api::AuthorityLabel),
     EncryptFor(
         HolderLabel,

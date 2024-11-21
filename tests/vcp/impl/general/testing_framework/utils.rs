@@ -76,8 +76,8 @@ pub fn extend_test(
                     (*step_accumulator_add_remove(platform_api, i_lbl, a_idx,
                                                   adds, removes))(t_st)?
                 }
-                TestStep::ReceiveInitialAccumulatorWitness(h_lbl, i_lbl, a_idx) => {
-                    (*step_receive_initial_accumulator_witness(platform_api, h_lbl, i_lbl, a_idx))(t_st)?
+                TestStep::UpdateAccumulatorWitness(h_lbl, i_lbl, a_idx, seq_no) => {
+                    (*step_update_accumulator_witness(platform_api, h_lbl, i_lbl, a_idx, seq_no))(t_st)?
                 }
                 TestStep::Reveal(h_lbl, i_lbl, idxs) => {
                     (*step_reveal(platform_api, h_lbl, i_lbl, idxs))(t_st)?
@@ -93,9 +93,6 @@ pub fn extend_test(
                 }
                 TestStep::CreateAndVerifyProof(h_lbl, test_exp) => {
                     (*step_create_and_verify_proof(platform_api, h_lbl, test_exp))(t_st)?
-                }
-                TestStep::UpdateAccumulatorWitness(h_lbl, i_lbl, a_idx, seq_no) => {
-                    (*step_update_accumulator_witness(platform_api, h_lbl, i_lbl, a_idx, seq_no))(t_st)?
                 }
                 TestStep::CreateAuthority(a_lbl) => {
                     (*step_create_authority(platform_api, a_lbl))(t_st)?
