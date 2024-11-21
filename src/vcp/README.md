@@ -1,95 +1,50 @@
 <!--- DO NOT EDIT.  GENERATED FROM README.org --->
-<!--- DO NOT EDIT.  GENERATED FROM README.org --->
 
 # Table of Contents
 
-1.  [Introduction](#org8962b82)
-2.  [Caveats](#org0c3b378)
-3.  [User abstraction](#org840564b)
-4.  [The test framework](#org8abd6d4)
-    1.  [JSON test file naming and contents](#org8066a94)
-    2.  [Overview of test framework](#org3a6415a)
-    3.  [An example](#org65475a5)
-    4.  [TestSteps](#orgb35a8ef)
-        1.  [CreateIssuer](#org4ad4aa7)
-            1.  [Effects](#orgc5cf2d8)
-            2.  [Arguments](#orgaf16ad8)
-            3.  [API method(s) invoked](#org6c81094)
-        2.  [Sign](#org03a3979)
-            1.  [Effects](#org763c089)
-            2.  [Arguments](#orgca34567)
-            3.  [API method(s) invoked](#orgc6751e3)
-        3.  [CreateAccumulators](#orga1b1e83)
-            1.  [Effects](#org3777e8d)
-            2.  [Arguments](#orgfcdf514)
-            3.  [API method(s) invoked](#org79f2898)
-        4.  [AccumulatorAddRemove](#org3c745ee)
-            1.  [Effects](#orgf8fcb41)
-            2.  [Arguments](#orgee8dba6)
-            3.  [API method(s) invoked](#org038a32d)
-        5.  [UpdateAccumulatorWitness](#orgd528240)
-            1.  [Effects](#org538517a)
-            2.  [Comments](#org22de16e)
-            3.  [Arguments](#org63e2a38)
-            4.  [API method(s) invoked](#orgee2f062)
-        6.  [Reveal](#org5529836)
-            1.  [Effects](#org4146c01)
-            2.  [Arguments](#org7955af9)
-            3.  [API method(s) invoked](#org68a74f9)
-        7.  [InRange](#org4cad7c0)
-            1.  [Effects](#org01f23d8)
-            2.  [Arguments](#orgb940514)
-            3.  [Comments](#org82171e2)
-            4.  [API method(s) invoked](#orgc792322)
-        8.  [InAccum](#org6a76eea)
-            1.  [Effects](#orgaeeb48b)
-            2.  [Arguments](#org84c8fa0)
-            3.  [API method(s) invoked](#org3159f33)
-        9.  [Equality](#org83fdddf)
-            1.  [Effects](#org8b9f134)
-            2.  [Arguments](#org058871f)
-            3.  [Comments](#orga8b0a86)
-            4.  [API method(s) invoked](#org57a4f3f)
-        10. [CreateAuthority](#org5048f01)
-            1.  [Arguments](#org57e3f90)
-            2.  [API method(s) invoked](#org2ee76b4)
-        11. [EncryptFor](#org7065983)
-            1.  [Effects](#orgf5d56e6)
-            2.  [Arguments](#org5c437db)
-            3.  [API method(s) invoked](#orgefaefa7)
-        12. [Decrypt](#orgb4e2107)
-            1.  [Effects](#orgb04c998)
-            2.  [Arguments](#org99fffcc)
-            3.  [API method(s) invoked](#org59aaf28)
-        13. [CreateAndVerifyProof](#orgf20be5f)
-            1.  [Effects](#orgb63f0e3)
-            2.  [Arguments](#org28bcff3)
-            3.  [API method(s) invoked](#org7c3833b)
-        14. [VerifyDecryption](#orgdebbee7)
-            1.  [Effects](#orga5d5777)
-            2.  [Arguments](#orgb597045)
-            3.  [API method(s) invoked](#org3a9e50f)
-    5.  [Overriding tests](#orgbedff39)
-5.  [The VCP architecture](#orgb6c439a)
-    1.  [General](#orgeae9329)
-    2.  [Specific](#orgbadbb87)
-6.  [Guide to `src/vcp` code](#org17d630e)
-    1.  [Directory structure](#orgd1ac1fc)
-    2.  [Example of connecting a specific crypto library to `PlatformApi`](#orgba88aa8)
-    3.  [Creating an Issuer's public and secret data (e.g., keys)](#org040b2f8)
-    4.  [Issuer signing a credential](#org732b93d)
-    5.  [Creating a proof](#org31bebf7)
-    6.  [Verifying a proof](#org77f0be3)
-    7.  [Proofs with revealed values](#orgb666167)
-    8.  [Proofs with range proofs](#org8b9d6e9)
-    9.  [Proofs with verifiable encryption](#org1361ab2)
-    10. [Proofs with equalities between credentials](#org97ada09)
-    11. [Proofs with accumulators](#orgf53ba02)
-    12. [Accumulator functions](#org1a4fdbf)
+1.  [Introduction](#org40bcc41)
+2.  [Caveats](#org14b63d2)
+3.  [User abstraction](#orgb420ad9)
+4.  [The test framework](#org5249764)
+    1.  [JSON test file naming and contents](#org255520c)
+    2.  [Overview of test framework](#org4200c9f)
+    3.  [An example](#orgc2b7d82)
+    4.  [TestSteps](#org663431d)
+        1.  [CreateIssuer](#org51abac3)
+        2.  [CreateAccumulators](#org62f975c)
+        3.  [SignCredential](#orgcf63d43)
+        4.  [AccumulatorAddRemove](#org886e415)
+        5.  [UpdateAccumulatorWitness](#org50caf53)
+        6.  [Reveal](#org964b060)
+        7.  [InRange](#orgc497a8a)
+        8.  [InAccum](#org2119a90)
+        9.  [Equality](#orged9b547)
+        10. [CreateAndVerifyProof](#orgec63d18)
+        11. [CreateAuthority](#orgc6ccbc7)
+        12. [EncryptFor](#org79ba33a)
+        13. [Decrypt](#org5a69059)
+        14. [VerifyDecryption](#org6e27e97)
+    5.  [Overriding tests](#orgb0843c0)
+5.  [The VCP architecture](#orga5c0404)
+    1.  [General](#org27d77cf)
+    2.  [Specific](#org7c7243b)
+6.  [Guide to `src/vcp` code](#org8d10bcf)
+    1.  [Directory structure](#orgc79f62d)
+    2.  [Example of connecting a specific crypto library to `PlatformApi`](#org971a06d)
+    3.  [Creating an Issuer's public and secret data (e.g., keys)](#orga10c2e3)
+    4.  [Issuer signing a credential](#orgb8da9fa)
+    5.  [Creating a proof](#org7e4be50)
+    6.  [Verifying a proof](#org83e786c)
+    7.  [Proofs with revealed values](#org9f422ab)
+    8.  [Proofs with range proofs](#org0caaa29)
+    9.  [Proofs with verifiable encryption](#org3a335e8)
+    10. [Proofs with equalities between credentials](#org64e1d57)
+    11. [Proofs with accumulators](#orgfbe9676)
+    12. [Accumulator functions](#org345600c)
 
 
 
-<a id="org8962b82"></a>
+<a id="org40bcc41"></a>
 
 # Introduction
 
@@ -112,7 +67,7 @@ This work is by [Harold Carr](https://github.com/haroldcarr) and [Mark Moir](htt
 of the University of Maryland at College Park, during his Summer 2024 internship at Oracle Labs.
 
 
-<a id="org0c3b378"></a>
+<a id="org14b63d2"></a>
 
 # Caveats
 
@@ -135,7 +90,7 @@ exploration.  In particular,
     feedback and engagement towards something that we can offer as a contribution.
 
 
-<a id="org840564b"></a>
+<a id="orgb420ad9"></a>
 
 # User abstraction
 
@@ -144,7 +99,7 @@ From an application/user perspective, our abstraction is defined by the
 
 -   By using the `implement_platform_api_using` function in [./api_utils.rs](./api_utils.rs) and providing an instance of
     `CryptoInterface`, such as `CRYPTO_INTERFACE_AC2C` (defined in [./impl/ac2c/impl_ac2c.rs](./impl/ac2c/impl_ac2c.rs)), and calling
-    its methods directly.  See [6.3](#orgc9b7737) for more details.
+    its methods directly.  See [6.1](#orgf6130d9) for more details.
 -   By accessing the functionality via a Swagger/OpenAPI interface. We have previously built an HTTP
     server serving such an interface built automatically from our Haskell prototype. However,
     this is internal work, and is not up-to-date.  Future work may include doing similar in Rust.
@@ -160,7 +115,7 @@ are less general, more historic, less well organised, etc.  We recommend focusin
 that are run by the test framework.
 
 
-<a id="org8abd6d4"></a>
+<a id="org5249764"></a>
 
 # The test framework
 
@@ -176,7 +131,7 @@ test it is necessary to ensure recompilation, using these steps, for example:
     make test
 
 
-<a id="org8066a94"></a>
+<a id="org255520c"></a>
 
 ## JSON test file naming and contents
 
@@ -201,7 +156,7 @@ to run only the test described in the next section:
     cargo test example_single_issuer_and_credential_in_accum_no_update
 
 
-<a id="org3a6415a"></a>
+<a id="org4200c9f"></a>
 
 ## Overview of test framework
 
@@ -220,7 +175,7 @@ We make the simplifying assumption that each Holder can possess at most one cred
 each Issuer. This enables referring to credentials by the label of the Issuer that signed them.
 
 
-<a id="org65475a5"></a>
+<a id="orgc2b7d82"></a>
 
 ## An example
 
@@ -270,501 +225,369 @@ as the one signed in the relevant credential, and (in examples involving decrypt
 decrypted values match the original signed values.
 
 
-<a id="orgb35a8ef"></a>
+<a id="org663431d"></a>
 
 ## TestSteps
 
 
-<a id="org4ad4aa7"></a>
+<a id="org51abac3"></a>
 
 ### CreateIssuer
 
+1.  Effects
 
-<a id="orgc5cf2d8"></a>
+    -   Creates new Issuer with associated `SignerData`
 
-#### Effects
+2.  Arguments
 
--   Creates new Issuer with associated `SignerData`
+    -   `IssuerLabel`: label to identify new Issuer
+    -   `[ ClaimType ]`: schema for new Issuer
 
+3.  API method(s) invoked
 
-<a id="orgaf16ad8"></a>
-
-#### Arguments
-
--   `IssuerLabel`: label to identify new Issuer
--   `[ ClaimType ]`: schema for new Issuer
+    -   `create_signer_data`
 
 
-<a id="org6c81094"></a>
-
-#### API method(s) invoked
-
--   `create_signer_data`
-
-
-<a id="org03a3979"></a>
-
-### Sign
-
-
-<a id="org763c089"></a>
-
-#### Effects
-
--   Creates new credential (`SignatureAndRelatedData`) signed by specified Issuer with specified
-    `DataValue` s for specified `Holder` ("related data" includes `DataValue` s signed and an empty map
-    that will be used to store `AccumulatorMembershipWitness` es when they are created by an
-    `AccumulatorAddRemove` step).
-
-
-<a id="orgca34567"></a>
-
-#### Arguments
-
--   `IssuerLabel`: label identifying previously created Issuer
--   `HolderLabel`: label identifying Holder
--   `[ DataValue ]`: list of values to be signed, one for each attribute of Issuer's schema
-
-
-<a id="orgc6751e3"></a>
-
-#### API method(s) invoked
-
--   `sign`
-
-
-<a id="orga1b1e83"></a>
+<a id="org62f975c"></a>
 
 ### CreateAccumulators
 
+1.  Effects
 
-<a id="org3777e8d"></a>
+    -   Creates `AccumulatorData` for each `CTAccumulatorMember` attribute in specified Issuer's schema
 
-#### Effects
+2.  Arguments
 
--   Creates `AccumulatorData` for each `CTAccumulatorMember` attribute in specified Issuer's schema
+    -   `IssuerLabel`
 
+3.  API method(s) invoked
 
-<a id="orgfcdf514"></a>
-
-#### Arguments
-
--   `IssuerLabel`
+    -   `create_accumulator_data` (once for each created accumulator)
 
 
-<a id="org79f2898"></a>
+<a id="orgcf63d43"></a>
 
-#### API method(s) invoked
+### SignCredential
 
--   `create_accumulator_data` (once for each created accumulator)
+1.  Effects
+
+    -   Creates new credential (`SignatureAndRelatedData`) signed by specified Issuer with specified
+        `DataValue` s for specified `Holder` ("related data" includes `DataValue` s signed and an empty map
+        that will be used to store `AccumulatorMembershipWitness` es when they are created by an
+        `AccumulatorAddRemove` step).
+
+2.  Arguments
+
+    -   `IssuerLabel`: label identifying previously created Issuer
+    -   `HolderLabel`: label identifying Holder
+    -   `[ DataValue ]`: list of values to be signed, one for each attribute of Issuer's schema
+
+3.  API method(s) invoked
+
+    -   `sign`
 
 
-<a id="org3c745ee"></a>
+<a id="org886e415"></a>
 
 ### AccumulatorAddRemove
 
+1.  Effects
 
-<a id="orgf8fcb41"></a>
+    -   Add some `DataValue` s to and remove some `DataValue` s from accumulator associated with specified
+        Issuer and attribute.
+    -   Each `DataValue` added generates an `AccumulatorMembershipWitness` for the new accumulator value,
+        which is stored in the `SignatureAndRelatedData` associated with specified Holder and the
+        `AccumlatorBatchSeqNo` of this batch of additions and removals.  This information can be used by
+        subsequent `UpdateAccumulatorWitness` and `CreateAndVerify` steps.
+    -   Stores "update information" associated with updating `Accumulatormembershipwitness` es
+        from previous `AccumulatorBatchSeqNo` to new one,for use by subsequent `UpdateAccumulatorWitness` steps
 
-#### Effects
+2.  Arguments
 
--   Add some `DataValue` s to and remove some `DataValue` s from accumulator associated with specified
-    Issuer and attribute.
--   Each `DataValue` added generates an `AccumulatorMembershipWitness` for the new accumulator value,
-    which is stored in the `SignatureAndRelatedData` associated with specified Holder and the
-    `AccumlatorBatchSeqNo` of this batch of additions and removals.  This information can be used by
-    subsequent `UpdateAccumulatorWitness` and `CreateAndVerify` steps.
--   Stores "update information" associated with updating `Accumulatormembershipwitness` es
-    from previous `AccumulatorBatchSeqNo` to new one,for use by subsequent `UpdateAccumulatorWitness` steps
+    -   `IssuerLabel`
+    -   `CredAttrIndex`: attribute index identifying relevant accumulator associated with specified Issuer
+    -   `Map HolderLabel DataValue`: `DataValue` s to be added to specified accumulator and Holders to
+        receive respective generated witnesses
+    -   `[ DataValue ]`: `DataValue` s to be removed from specified accumulator
 
+3.  API method(s) invoked
 
-<a id="orgee8dba6"></a>
-
-#### Arguments
-
--   `IssuerLabel`
--   `CredAttrIndex`: attribute index identifying relevant accumulator associated with specified Issuer
--   `Map HolderLabel DataValue`: `DataValue` s to be added to specified accumulator and Holders to
-    receive respective generated witnesses
--   `[ DataValue ]`: `DataValue` s to be removed from specified accumulator
+    -   `accumulator_add_remove`
 
 
-<a id="org038a32d"></a>
-
-#### API method(s) invoked
-
--   `accumulator_add_remove`
-
-
-<a id="orgd528240"></a>
+<a id="org50caf53"></a>
 
 ### UpdateAccumulatorWitness
 
+1.  Effects
 
-<a id="org538517a"></a>
+    -   Attempts to ensure that specified Holder has an `AccumulatorMembershipWitness` for accumulator
+        identified by specified Issuer and attribute index.
+    -   This is possible only if
+        -   a) specified Holder already has an `AccumulatorMembershipWitness` for identified accumulator for
+            an `AccumulatorBatchSeqNo` that is at most the target `AccumulatorBatchSeqNo`, and
+        -   b) there have been sufficient `AccumulatorAddRemove` steps performed that "update information"
+            has been stored to enable updating to specified `AccumulatorBatchSeqNo`.
+    -   An error is generated if these conditions do not hold.
+    -   When successful, generates and stores `AccumulatorMembershipWitness` for each `AccumlatorBatchSeqNo`
+        between the largest `AccumlatorBatchSeqNo` less than the target `AccumulatorBatchSeqNo` for which
+        specified Holder already has an `AccumulatorMembershipWitness`.
 
-#### Effects
+2.  Comments
 
--   Attempts to ensure that specified Holder has an `AccumulatorMembershipWitness` for accumulator
-    identified by specified Issuer and attribute index.
--   This is possible only if
-    -   a) specified Holder already has an `AccumulatorMembershipWitness` for identified accumulator for
-        an `AccumulatorBatchSeqNo` that is at most the target `AccumulatorBatchSeqNo`, and
-    -   b) there have been sufficient `AccumulatorAddRemove` steps performed that "update information"
-        has been stored to enable updating to specified `AccumulatorBatchSeqNo`.
--   An error is generated if these conditions do not hold.
--   When successful, generates and stores `AccumulatorMembershipWitness` for each `AccumlatorBatchSeqNo`
-    between the largest `AccumlatorBatchSeqNo` less than the target `AccumulatorBatchSeqNo` for which
-    specified Holder already has an `AccumulatorMembershipWitness`.
+    -   Currently, a Holder will always have an `AccumulatorMembershipWitness` for every
+        `AccumlatorBatchSeqNo` from the one at which its `AccumulatorMembershipWitness` was added and the
+        highest `AccumlatorBatchSeqNo` to which it has ever updated.
+    -   In practice, Holders would likely
+        discard `AccumulatorMembershipWitness` es considered "too old".  The test framework does not
+        currently support such "garbage collection".
+    -   If it did, Holders could always regenerate discarded `AccumulatorMembershipWitness` es **provided**
+        they retain one with `AccumlatorBatchSeqNo` at or before any future target.  If not, they would
+        have to request a new `AccumulatorMembershipWitness` from the relevant Revocation Manager; the test
+        framework also does not currently support this.
 
+3.  Arguments
 
-<a id="org22de16e"></a>
+    -   `HolderLabel`
+    -   `IssuerLabel`
+    -   `CredAttrIndex`
+    -   `AccumulatorBatchSeqNo`: target `AccumulatorBatchSeqNo` to ensure specified Holder
 
-#### Comments
+4.  API method(s) invoked
 
--   Currently, a Holder will always have an `AccumulatorMembershipWitness` for every
-    `AccumlatorBatchSeqNo` from the one at which its `AccumulatorMembershipWitness` was added and the
-    highest `AccumlatorBatchSeqNo` to which it has ever updated.
--   In practice, Holders would likely
-    discard `AccumulatorMembershipWitness` es considered "too old".  The test framework does not
-    currently support such "garbage collection".
--   If it did, Holders could always regenerate discarded `AccumulatorMembershipWitness` es **provided**
-    they retain one with `AccumlatorBatchSeqNo` at or before any future target.  If not, they would
-    have to request a new `AccumulatorMembershipWitness` from the relevant Revocation Manager; the test
-    framework also does not currently support this.
-
-
-<a id="org63e2a38"></a>
-
-#### Arguments
-
--   `HolderLabel`
--   `IssuerLabel`
--   `CredAttrIndex`
--   `AccumulatorBatchSeqNo`: target `AccumulatorBatchSeqNo` to ensure specified Holder
+    -   `update_accumulator_witness`, potentially multiple times as described above
 
 
-<a id="orgee2f062"></a>
-
-#### API method(s) invoked
-
--   `update_accumulator_witness`, potentially multiple times as described above
-
-
-<a id="org5529836"></a>
+<a id="org964b060"></a>
 
 ### Reveal
 
+1.  Effects
 
-<a id="org4146c01"></a>
+    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+        requiring that it reveals attributes with specified indexes from its credential
+        signed by specified Issuer
+    -   generates error if:
+        -   specified Holder or Issuer does not exist, or
+        -   no credential has been signed for specified Holder by specified Issuer, or
+        -   any of specified attribute indexes is out of range established by Issuer's schema
 
-#### Effects
+2.  Arguments
 
--   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-    requiring that it reveals attributes with specified indexes from its credential
-    signed by specified Issuer
--   generates error if:
-    -   specified Holder or Issuer does not exist, or
-    -   no credential has been signed for specified Holder by specified Issuer, or
-    -   any of specified attribute indexes is out of range established by Issuer's schema
+    -   `HolderLabel`
+    -   `IssuerLabel`
+    -   `[ CredAttrIndex ]`: list of indexes for attributes to be revealed
 
+3.  API method(s) invoked
 
-<a id="org7955af9"></a>
-
-#### Arguments
-
--   `HolderLabel`
--   `IssuerLabel`
--   `[ CredAttrIndex ]`: list of indexes for attributes to be revealed
+    -   none
 
 
-<a id="org68a74f9"></a>
-
-#### API method(s) invoked
-
--   none
-
-
-<a id="org4cad7c0"></a>
+<a id="orgc497a8a"></a>
 
 ### InRange
 
+1.  Effects
 
-<a id="org01f23d8"></a>
+    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+        requiring that it proves that specified attribute in a credential signed by specified Issuer
+        for specified Holder is within range specified by minimum and maximum values
+    -   note that there is no step for creating a `RangeProvingKey` because one is automatically
+        created when an `InRange` step is first encountered, and the same one is used for any subsequent
+        `InRange` requirements
 
-#### Effects
+2.  Arguments
 
--   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-    requiring that it proves that specified attribute in a credential signed by specified Issuer
-    for specified Holder is within range specified by minimum and maximum values
--   note that there is no step for creating a `RangeProvingKey` because one is automatically
-    created when an `InRange` step is first encountered, and the same one is used for any subsequent
-    `InRange` requirements
+    -   `HolderLabel`
+    -   `IssuerLabel`
+    -   `CredAttrIndex`
+    -   `i64`: the minimum value in the range
+    -   `i64`: the maximum value in the range
 
+3.  Comments
 
-<a id="orgb940514"></a>
+    -   Step does **not** generate an error if specified attribute is out of range, because we want to be
+        able to test that `CreateAndVerifyProof` does not succeed in this case
 
-#### Arguments
+4.  API method(s) invoked
 
--   `HolderLabel`
--   `IssuerLabel`
--   `CredAttrIndex`
--   `i64`: the minimum value in the range
--   `i64`: the maximum value in the range
-
-
-<a id="org82171e2"></a>
-
-#### Comments
-
--   Step does **not** generate an error if specified attribute is out of range, because we want to be
-    able to test that `CreateAndVerifyProof` does not succeed in this case
+    -   none
 
 
-<a id="orgc792322"></a>
-
-#### API method(s) invoked
-
--   none
-
-
-<a id="org6a76eea"></a>
+<a id="org2119a90"></a>
 
 ### InAccum
 
+1.  Effects
 
-<a id="orgaeeb48b"></a>
+    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+        requiring that it proves that specified attribute in a credential signed by specified Issuer
+        for specified Holder is in the accumulator associated with specified Issuer and CredAttrIndex,
+        as of specified `AccumulatorBatchSeqNo`
 
-#### Effects
+2.  Arguments
 
--   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-    requiring that it proves that specified attribute in a credential signed by specified Issuer
-    for specified Holder is in the accumulator associated with specified Issuer and CredAttrIndex,
-    as of specified `AccumulatorBatchSeqNo`
+    -   `HolderLabel`
+    -   `IssuerLabel`
+    -   `CredAttrIndex`
+    -   `AccumulatorBatchSeqNo`: the "batch number" for which the proof is required; enables requiring
+        proof of membership in accumulator for older or newer accumulator versions
 
+3.  API method(s) invoked
 
-<a id="org84c8fa0"></a>
-
-#### Arguments
-
--   `HolderLabel`
--   `IssuerLabel`
--   `CredAttrIndex`
--   `AccumulatorBatchSeqNo`: the "batch number" for which the proof is required; enables requiring
-    proof of membership in accumulator for older or newer accumulator versions
+    -   none
 
 
-<a id="org3159f33"></a>
-
-#### API method(s) invoked
-
--   none
-
-
-<a id="org83fdddf"></a>
+<a id="orged9b547"></a>
 
 ### Equality
 
+1.  Effects
 
-<a id="org8b9f134"></a>
+    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+        requiring that it proves that specified attribute in a credential signed by specified Issuer is
+        equal to each attribute specified in each "other" credentials (identified by specified Issuer)
 
-#### Effects
+2.  Arguments
 
--   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-    requiring that it proves that specified attribute in a credential signed by specified Issuer is
-    equal to each attribute specified in each "other" credentials (identified by specified Issuer)
+    -   `HolderLabel`
+    -   `IssuerLabel`: identifies Issuer who signed a credential
+    -   `CredAttrIndex`: identifies an attribute in that credential
+    -   `[(IssuerLabel, CredAttrIndex)]`: a list of attributes in other credentials required to be equal
+        to specified attribute
 
+3.  Comments
 
-<a id="org058871f"></a>
+    -   It would have been cleaner to specify the equivalence class of `(Issuer,CredAttrIndex)` pairs,
+        rather than singling on of them out
+    -   Step does **not** generate an error if specified attributes are not equal, because we want to be
+        able to test that `CreateAndVerifyProof` does not succeed in this case
 
-#### Arguments
+4.  API method(s) invoked
 
--   `HolderLabel`
--   `IssuerLabel`: identifies Issuer who signed a credential
--   `CredAttrIndex`: identifies an attribute in that credential
--   `[(IssuerLabel, CredAttrIndex)]`: a list of attributes in other credentials required to be equal
-    to specified attribute
-
-
-<a id="orga8b0a86"></a>
-
-#### Comments
-
--   It would have been cleaner to specify the equivalence class of `(Issuer,CredAttrIndex)` pairs,
-    rather than singling on of them out
--   Step does **not** generate an error if specified attributes are not equal, because we want to be
-    able to test that `CreateAndVerifyProof` does not succeed in this case
+    -   none
 
 
-<a id="org57a4f3f"></a>
+<a id="orgec63d18"></a>
 
-#### API method(s) invoked
+### CreateAndVerifyProof
 
--   none
+1.  Effects
+
+    -   Attempts to create and then verify a proof satisfying all requirements added previously for
+        specified Holder, and checks that the outcome is consistent with specified `CreateVerifyExpectation`.
+    -   An error is generated if specified Holder cannot satisfy previously added requirements because,
+        for example, specified Holder does not have a credential signed by an Issuer for a previously
+        added requirement, does not have an `AccumulatorMembershipWitness` for a required
+        `AccumlatorBatchSeqNo`, etc.
+    -   note that, if previous steps include `Decrypt` requirements for specified Holder, subsequent
+        `CreateAndVerifyProof` steps model an `Authority` verifying a proof created by specified Holder,
+        rather than a generic Verifier; this is because the decryption requires `AuthoritySecretData` for
+        each attribute to be decrypted.  If there are decryption requirements for multiple Authorities,
+        the step models Verifier having `AuthoritySecretData` for all of them.  While this is not
+        particularly realistic, it is useful for testing generality.
+
+2.  Arguments
+
+    -   `HolderLabel`
+    -   `CreateVerifyExpectation`: expected outcome for attempt to create and then verify a proof
+        consistent with established requirement.  Possible values are currently:
+        -   `BothSucceedNoWarnings`: expects both proof creation and proof verification to succeed and
+            issue no warnings.  In this case, revealed and decrypted values are checked to ensure that
+            they are for exactly the requested attributes and furthermore that the values are equal to
+            those signed in specified credentials.
+        -   `CreateProofFails`: requires that proof creation fails
+        -   `VerifyProofFails`: requires that proof creation succeeds and then verification fails
+        -   `CreateOrVerifyFails`: requires that, either proof creation fails, or it succeeds but
+            verification of the generated proof fails.  This expectation is sometimes useful when it is
+            required that a proof is not successfully created and then verified, but it does not matter
+            which step fails.  In some cases, some underlying cryptography libraries fail to generate a
+            proof, while others generate a proof that does not verify successfully.  This
+            `CreateVerifyExpectation` is useful in such cases.
+
+3.  API method(s) invoked
+
+    -   `create_proof`
+    -   `verify_proof`
 
 
-<a id="org5048f01"></a>
+<a id="orgc6ccbc7"></a>
 
 ### CreateAuthority
 
 -   Creates new Authority with associated `AuthorityData`
 
+1.  Arguments
 
-<a id="org57e3f90"></a>
+    -   `AuthorityLabel`: label to identify new Authority
 
-#### Arguments
+2.  API method(s) invoked
 
--   `AuthorityLabel`: label to identify new Authority
-
-
-<a id="org2ee76b4"></a>
-
-#### API method(s) invoked
-
--   `create_authority_data`
+    -   `create_authority_data`
 
 
-<a id="org7065983"></a>
+<a id="org79ba33a"></a>
 
 ### EncryptFor
 
+1.  Effects
 
-<a id="orgf5d56e6"></a>
+    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+        requiring that it encrypts (for specified Authority) specified attribute from credential
+        signed by specified Issuer
 
-#### Effects
+2.  Arguments
 
--   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-    requiring that it encrypts (for specified Authority) specified attribute from credential
-    signed by specified Issuer
+    -   `HolderLabel`
+    -   `IssuerLabel`
+    -   `CredAttrIndex`:
+    -   `AuthorityLabel`: label identifying `Authority` for whom specified attribute is to be encrypted
 
+3.  API method(s) invoked
 
-<a id="org5c437db"></a>
-
-#### Arguments
-
--   `HolderLabel`
--   `IssuerLabel`
--   `CredAttrIndex`:
--   `AuthorityLabel`: label identifying `Authority` for whom specified attribute is to be encrypted
+    -   none
 
 
-<a id="orgefaefa7"></a>
-
-#### API method(s) invoked
-
--   none
-
-
-<a id="orgb4e2107"></a>
+<a id="org5a69059"></a>
 
 ### Decrypt
 
+1.  Effects
 
-<a id="orgb04c998"></a>
+    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+        requiring that specified attribute from credential signed by specified Issuer is decrypted
 
-#### Effects
+2.  Arguments
 
--   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-    requiring that specified attribute from credential signed by specified Issuer is decrypted
+    -   `HolderLabel`
+    -   `IssuerLabel`
+    -   `CredAttrIndex`
+    -   `AuthorityLabel`: label identifying `Authority` to decrypt specified attribute
 
+3.  API method(s) invoked
 
-<a id="org99fffcc"></a>
-
-#### Arguments
-
--   `HolderLabel`
--   `IssuerLabel`
--   `CredAttrIndex`
--   `AuthorityLabel`: label identifying `Authority` to decrypt specified attribute
+    -   none
 
 
-<a id="org59aaf28"></a>
-
-#### API method(s) invoked
-
--   none
-
-
-<a id="orgf20be5f"></a>
-
-### CreateAndVerifyProof
-
-
-<a id="orgb63f0e3"></a>
-
-#### Effects
-
--   Attempts to create and then verify a proof satisfying all requirements added previously for
-    specified Holder, and checks that the outcome is consistent with specified `CreateVerifyExpectation`.
--   An error is generated if specified Holder cannot satisfy previously added requirements because,
-    for example, specified Holder does not have a credential signed by an Issuer for a previously
-    added requirement, does not have an `AccumulatorMembershipWitness` for a required
-    `AccumlatorBatchSeqNo`, etc.
--   note that, if previous steps include `Decrypt` requirements for specified Holder, subsequent
-    `CreateAndVerifyProof` steps model an `Authority` verifying a proof created by specified Holder,
-    rather than a generic Verifier; this is because the decryption requires `AuthoritySecretData` for
-    each attribute to be decrypted.  If there are decryption requirements for multiple Authorities,
-    the step models Verifier having `AuthoritySecretData` for all of them.  While this is not
-    particularly realistic, it is useful for testing generality.
-
-
-<a id="org28bcff3"></a>
-
-#### Arguments
-
--   `HolderLabel`
--   `CreateVerifyExpectation`: expected outcome for attempt to create and then verify a proof
-    consistent with established requirement.  Possible values are currently:
-    -   `BothSucceedNoWarnings`: expects both proof creation and proof verification to succeed and
-        issue no warnings.  In this case, revealed and decrypted values are checked to ensure that
-        they are for exactly the requested attributes and furthermore that the values are equal to
-        those signed in specified credentials.
-    -   `CreateProofFails`: requires that proof creation fails
-    -   `VerifyProofFails`: requires that proof creation succeeds and then verification fails
-    -   `CreateOrVerifyFails`: requires that, either proof creation fails, or it succeeds but
-        verification of the generated proof fails.  This expectation is sometimes useful when it is
-        required that a proof is not successfully created and then verified, but it does not matter
-        which step fails.  In some cases, some underlying cryptography libraries fail to generate a
-        proof, while others generate a proof that does not verify successfully.  This
-        `CreateVerifyExpectation` is useful in such cases.
-
-
-<a id="org7c3833b"></a>
-
-#### API method(s) invoked
-
--   `create_proof`
--   `verify_proof`
-
-
-<a id="orgdebbee7"></a>
+<a id="org6e27e97"></a>
 
 ### VerifyDecryption
 
+1.  Effects
 
-<a id="orga5d5777"></a>
+    -   Verifies correct decryption for each `DecryptResponse` generated by most recent `CreateAndProof`
+        step by specified Holder
 
-#### Effects
+2.  Arguments
 
--   Verifies correct decryption for each `DecryptResponse` generated by most recent `CreateAndProof`
-    step by specified Holder
+    -   `HolderLabel`
 
+3.  API method(s) invoked
 
-<a id="orgb597045"></a>
-
-#### Arguments
-
--   `HolderLabel`
+    -   `verify_decryption`
 
 
-<a id="org3a9e50f"></a>
-
-#### API method(s) invoked
-
--   `verify_decryption`
-
-
-<a id="orgbedff39"></a>
+<a id="orgb0843c0"></a>
 
 ## Overriding tests
 
@@ -795,7 +618,7 @@ the `Makefile` is configured to exclude tests with `_overridden_to_fail` in thei
 tests are not reported as failed.
 
 
-<a id="orgb6c439a"></a>
+<a id="orga5c0404"></a>
 
 # The VCP architecture
 
@@ -842,7 +665,7 @@ VCP is comprised of three main parts
         verify) for a specific underlying cryptography library (so far, only AC2C)
 
 
-<a id="orgeae9329"></a>
+<a id="org27d77cf"></a>
 
 ## General
 
@@ -868,7 +691,7 @@ Both the general `create_proof` and `verify_proof` then pass that info to "speci
 create and verify.  The AC2C versions are shown in the above diagram.
 
 
-<a id="orgbadbb87"></a>
+<a id="org7c7243b"></a>
 
 ## Specific
 
@@ -886,12 +709,12 @@ That proof is then converted to an opaque `Proof` and included in the `DataForVe
 to verify the proof.
 
 
-<a id="org17d630e"></a>
+<a id="org8d10bcf"></a>
 
 # Guide to `src/vcp` code
 
 
-<a id="orgd1ac1fc"></a>
+<a id="orgc79f62d"></a>
 
 ## Directory structure
 
@@ -961,10 +784,10 @@ The directory structure for the AC2C implementation of `CryptoInterface` is:
             |
             └── to_from_api.rs                : functions to convert between API data types and AC2C data types
 
-<a id="org1165b3a"></a>
+<a id="orgf6130d9"></a>
 
 
-<a id="orgba88aa8"></a>
+<a id="org971a06d"></a>
 
 ## Example of connecting a specific crypto library to `PlatformApi`
 
@@ -983,7 +806,7 @@ An example of making this connection can be seen in the `run_json_test_ac2c` fun
 [../../tests/vcp/impl/general/testing_framework/utils.rs](../../tests/vcp/impl/general/testing_framework/utils.rs).
 
 
-<a id="org040b2f8"></a>
+<a id="orga10c2e3"></a>
 
 ## Creating an Issuer's public and secret data (e.g., keys)
 
@@ -998,7 +821,7 @@ It takes
     -   this is the "schema" for credentials that will be issued and signed by the Issuer
 
 Assuming the AC2C implementation of primitives are connected to `PlatformApi`,
-as described in <a id="orgc9b7737"></a>,
+as described in <a id="orgfbcb666"></a>,
 then `create_signer_data` (in [./impl/ac2c/signer.rs](./impl/ac2c/signer.rs)) is invoked.
 
 The `create_signer_data` implementation
@@ -1018,7 +841,7 @@ The `create_signer_data` implementation
 An Issuer would securely store the private data and make the public data available.
 
 
-<a id="org732b93d"></a>
+<a id="orgb8da9fa"></a>
 
 ## Issuer signing a credential
 
@@ -1040,7 +863,7 @@ That `sign` implementation
 -   returns a `Signature` (an opaque representation of an AC2C signature)
 
 
-<a id="org31bebf7"></a>
+<a id="org7e4be50"></a>
 
 ## Creating a proof
 
@@ -1087,7 +910,7 @@ The AC2C `specific_prover` (named `specific_prover_ac2c` in [./impl/ac2c/proof.r
 -   returns `DataForVerifier` that contains the VCP proof and any warnings
 
 
-<a id="org77f0be3"></a>
+<a id="org83e786c"></a>
 
 ## Verifying a proof
 
@@ -1108,7 +931,7 @@ converts the VCP information and data into formats used by AC2C, and then calls
 the AC2C `Presentation:verify` to verify the proof.
 
 
-<a id="orgb666167"></a>
+<a id="org9f422ab"></a>
 
 ## Proofs with revealed values
 
@@ -1164,7 +987,7 @@ In the `specific_verifier_ac2c` case, it calls `anoncreds-v2-rs` `Presentation::
 the `PresentationSchema` to verify the proof.
 
 
-<a id="org8b9d6e9"></a>
+<a id="org0caaa29"></a>
 
 ## Proofs with range proofs
 
@@ -1201,7 +1024,7 @@ which creates two `anoncreds-v2-rs` statements:
 Those statements are then used to create and verify proofs
 
 
-<a id="org1361ab2"></a>
+<a id="org3a335e8"></a>
 
 ## Proofs with verifiable encryption
 
@@ -1228,7 +1051,7 @@ which creates a `anoncreds-v2-rs` `VerifiableEncryptionStatement`
 TODO `verify_decryption`
 
 
-<a id="org97ada09"></a>
+<a id="org64e1d57"></a>
 
 ## Proofs with equalities between credentials
 
@@ -1253,7 +1076,7 @@ where each `EqualityReq` is a list of pairs that point to values that should be 
 `EqualityStatement` for each equality.
 
 
-<a id="orgf53ba02"></a>
+<a id="orgfbe9676"></a>
 
 ## Proofs with accumulators
 
@@ -1282,7 +1105,7 @@ The AC2C implementation then transforms that `ResolvedDisclosure` into
 which creates a `anoncreds-v2-rs` `MembershipStatement`
 
 
-<a id="org1a4fdbf"></a>
+<a id="org345600c"></a>
 
 ## Accumulator functions
 
