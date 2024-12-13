@@ -40,13 +40,13 @@ pub(crate) enum ProofVerifiers<'a, 'b, 'c> {
     Membership(Box<MembershipVerifier<'a, 'b>>),
 }
 
-impl<'a, 'b, 'c> From<SignatureVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+impl<'a, 'b> From<SignatureVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, '_> {
     fn from(s: SignatureVerifier<'a, 'b>) -> Self {
         Self::Signature(Box::new(s))
     }
 }
 
-impl<'a, 'b, 'c> From<RevocationVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+impl<'a, 'b> From<RevocationVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, '_> {
     fn from(a: RevocationVerifier<'a, 'b>) -> Self {
         Self::Revocation(Box::new(a))
     }
@@ -58,13 +58,13 @@ impl<'a, 'b, 'c> From<EqualityVerifier<'a, 'b, 'c>> for ProofVerifiers<'a, 'b, '
     }
 }
 
-impl<'a, 'b, 'c> From<CommitmentVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+impl<'a, 'b> From<CommitmentVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, '_> {
     fn from(a: CommitmentVerifier<'a, 'b>) -> Self {
         Self::Commitment(Box::new(a))
     }
 }
 
-impl<'a, 'b, 'c> From<VerifiableEncryptionVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+impl<'a, 'b> From<VerifiableEncryptionVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, '_> {
     fn from(a: VerifiableEncryptionVerifier<'a, 'b>) -> Self {
         Self::VerifiableEncryption(Box::new(a))
     }
@@ -76,13 +76,13 @@ impl<'a, 'b, 'c> From<RangeProofVerifier<'a, 'b, 'c>> for ProofVerifiers<'a, 'b,
     }
 }
 
-impl<'a, 'b, 'c> From<MembershipVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, 'c> {
+impl<'a, 'b> From<MembershipVerifier<'a, 'b>> for ProofVerifiers<'a, 'b, '_> {
     fn from(a: MembershipVerifier<'a, 'b>) -> Self {
         Self::Membership(Box::new(a))
     }
 }
 
-impl<'a, 'b, 'c> ProofVerifiers<'a, 'b, 'c> {
+impl ProofVerifiers<'_, '_, '_> {
     /// Verify any additional proof material
     pub fn verify(&self, challenge: Scalar) -> CredxResult<()> {
         match self {

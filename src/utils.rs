@@ -1,7 +1,5 @@
-use blsful::inner_types::{
-    group::{Group, GroupEncoding},
-    Scalar,
-};
+use blsful::inner_types::Scalar;
+use elliptic_curve::group::{Group, GroupEncoding};
 use indexmap::{IndexMap, IndexSet};
 use serde::{
     de::{DeserializeOwned, Error as DError, MapAccess, SeqAccess, Unexpected, Visitor},
@@ -47,9 +45,7 @@ pub fn deserialize_point<
         _marker: PhantomData<PP>,
     }
 
-    impl<'de, PP: Group + GroupEncoding + Serialize + DeserializeOwned> Visitor<'de>
-        for PointVisitor<PP>
-    {
+    impl<PP: Group + GroupEncoding + Serialize + DeserializeOwned> Visitor<'_> for PointVisitor<PP> {
         type Value = PP;
 
         fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {

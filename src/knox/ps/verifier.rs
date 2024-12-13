@@ -1,6 +1,7 @@
 use super::{PokSignatureProof, PublicKey};
 use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledge;
-use blsful::inner_types::{ff::Field, Scalar};
+use blsful::inner_types::Scalar;
+use elliptic_curve::Field;
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 

@@ -8,7 +8,7 @@ pub(crate) struct EqualityBuilder<'a> {
     reference_statement: &'a EqualityStatement,
 }
 
-impl<'a> PresentationBuilder for EqualityBuilder<'a> {
+impl PresentationBuilder for EqualityBuilder<'_> {
     fn gen_proof(self, _challenge: Scalar) -> PresentationProofs {
         EqualityProof {
             id: self.reference_statement.id(),

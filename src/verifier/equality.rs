@@ -14,7 +14,7 @@ pub struct EqualityVerifier<'a, 'b, 'c> {
     pub proofs: &'c IndexMap<String, PresentationProofs>,
 }
 
-impl<'a, 'b, 'c> ProofVerifier for EqualityVerifier<'a, 'b, 'c> {
+impl ProofVerifier for EqualityVerifier<'_, '_, '_> {
     fn add_challenge_contribution(
         &self,
         _challenge: Scalar,

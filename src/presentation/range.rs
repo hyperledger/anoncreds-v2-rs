@@ -3,8 +3,9 @@ use crate::presentation::{CommitmentBuilder, PresentationBuilder, PresentationPr
 use crate::statement::RangeStatement;
 use crate::utils::*;
 use crate::CredxResult;
-use blsful::inner_types::{group::Curve, Scalar};
+use blsful::inner_types::Scalar;
 use bulletproofs::RangeProof as RangeProofBulletproof;
+use elliptic_curve::group::Curve;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +16,7 @@ pub(crate) struct RangeBuilder<'a> {
     adjusted_upper: Option<u64>,
 }
 
-impl<'a> PresentationBuilder for RangeBuilder<'a> {
+impl PresentationBuilder for RangeBuilder<'_> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         let pedersen_gen = bulletproofs::PedersenGens {
             B: self.commitment_builder.statement.message_generator,

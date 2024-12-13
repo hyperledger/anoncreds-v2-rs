@@ -27,7 +27,7 @@ impl<'a, 'b> SignatureVerifier<'a, 'b> {
     }
 }
 
-impl<'a, 'b> ProofVerifier for SignatureVerifier<'a, 'b> {
+impl ProofVerifier for SignatureVerifier<'_, '_> {
     fn add_challenge_contribution(
         &self,
         challenge: Scalar,

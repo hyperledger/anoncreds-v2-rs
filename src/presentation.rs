@@ -25,7 +25,8 @@ pub use verifiable_encryption::*;
 use crate::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
 use crate::verifier::*;
 use crate::{claim::ClaimData, error::Error, statement::Statements, utils::*, CredxResult};
-use blsful::inner_types::{ff::Field, group::prime::PrimeCurveAffine, G1Affine, G2Affine, Scalar};
+use blsful::inner_types::{G1Affine, G2Affine, Scalar};
+use elliptic_curve::{ff::Field, group::prime::PrimeCurveAffine};
 use indexmap::{IndexMap, IndexSet};
 use merlin::Transcript;
 use rand_core::{CryptoRng, OsRng, RngCore};
@@ -49,7 +50,7 @@ pub(crate) enum PresentationBuilders<'a> {
     Membership(Box<MembershipProofBuilder<'a>>),
 }
 
-impl<'a> PresentationBuilders<'a> {
+impl PresentationBuilders<'_> {
     /// Convert to proofs
     pub fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         match self {

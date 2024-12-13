@@ -22,9 +22,9 @@ Concretely, AnonCreds v2:
 - Substantially increases the information included in the [credential
   schema](#credential-schema) about the claim types such that the encoding and
   cryptographic handling of the claims can be enhanced to provide more:
-  - capabilities - additional ZKP presentation options and different, swapable signature schemes
+  - capabilities - additional ZKP presentation options and different, swappable signature schemes
   - performance - via support for different signature schemes
-  - extensibility - additional ZKP presentation options and different, swapable signature schemes
+  - extensibility - additional ZKP presentation options and different, swappable signature schemes
   - security - support for more secure signature schemes
 - Supports [PS Signatures] in the current implementation and can be updated to support [BBS+ Signatures]
   - The [BBS+ Signatures] support has been tested in this implementation in the past, but is not part of the current codebase.

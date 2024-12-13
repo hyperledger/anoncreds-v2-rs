@@ -1,7 +1,8 @@
 use super::SecretKey;
 use crate::CredxResult;
-use blsful::inner_types::{group::Curve, G1Affine, G1Projective, Scalar};
+use blsful::inner_types::{G1Affine, G1Projective, Scalar};
 use core::convert::TryFrom;
+use elliptic_curve::group::Curve;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;

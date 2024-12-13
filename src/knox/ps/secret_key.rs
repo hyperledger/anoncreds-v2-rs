@@ -1,10 +1,8 @@
 use crate::knox::{
     ps::PublicKey, short_group_sig_core::short_group_traits::SecretKey as SecretKeyTrait,
 };
-use blsful::inner_types::{
-    ff::{Field, PrimeField},
-    G1Projective, G2Projective, Scalar,
-};
+use blsful::inner_types::{G1Projective, G2Projective, Scalar};
+use elliptic_curve::{Field, PrimeField};
 use rand_chacha::ChaChaRng;
 use rand_core::{CryptoRng, RngCore, SeedableRng};
 use serde::{Deserialize, Serialize};

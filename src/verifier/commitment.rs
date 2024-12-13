@@ -2,7 +2,8 @@ use crate::presentation::CommitmentProof;
 use crate::statement::CommitmentStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use blsful::inner_types::{group::Curve, G1Projective, Scalar};
+use blsful::inner_types::{G1Projective, Scalar};
+use elliptic_curve::group::Curve;
 use merlin::Transcript;
 
 pub struct CommitmentVerifier<'a, 'b> {
@@ -10,7 +11,7 @@ pub struct CommitmentVerifier<'a, 'b> {
     pub proof: &'b CommitmentProof,
 }
 
-impl<'a, 'b> ProofVerifier for CommitmentVerifier<'a, 'b> {
+impl ProofVerifier for CommitmentVerifier<'_, '_> {
     fn add_challenge_contribution(
         &self,
         challenge: Scalar,

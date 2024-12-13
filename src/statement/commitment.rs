@@ -1,6 +1,6 @@
 use crate::statement::Statement;
 use crate::utils::*;
-use blsful::inner_types::group::{Group, GroupEncoding};
+use elliptic_curve::group::{Group, GroupEncoding};
 use merlin::Transcript;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uint_zigzag::Uint;

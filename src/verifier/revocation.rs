@@ -27,7 +27,7 @@ impl<'a, 'b> RevocationVerifier<'a, 'b> {
     }
 }
 
-impl<'a, 'b> ProofVerifier for RevocationVerifier<'a, 'b> {
+impl ProofVerifier for RevocationVerifier<'_, '_> {
     fn add_challenge_contribution(
         &self,
         challenge: Scalar,

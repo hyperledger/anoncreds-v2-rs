@@ -15,7 +15,7 @@ pub(crate) struct RevocationProofBuilder<'a> {
     committing: MembershipProofCommitting,
 }
 
-impl<'a> PresentationBuilder for RevocationProofBuilder<'a> {
+impl PresentationBuilder for RevocationProofBuilder<'_> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         let proof = self.committing.gen_proof(Element(challenge));
         RevocationProof {

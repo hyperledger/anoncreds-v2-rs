@@ -19,7 +19,7 @@ pub(crate) struct SignatureBuilder<'a> {
     pok_sig: PokSignature,
 }
 
-impl<'a> PresentationBuilder for SignatureBuilder<'a> {
+impl PresentationBuilder for SignatureBuilder<'_> {
     /// Finalize proofs
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         // PS signature generate_proof can't fail, okay to unwrap

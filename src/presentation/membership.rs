@@ -15,7 +15,7 @@ pub(crate) struct MembershipProofBuilder<'a> {
     committing: MembershipProofCommitting,
 }
 
-impl<'a> PresentationBuilder for MembershipProofBuilder<'a> {
+impl PresentationBuilder for MembershipProofBuilder<'_> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
         let proof = self.committing.gen_proof(Element(challenge));
         MembershipProof {
