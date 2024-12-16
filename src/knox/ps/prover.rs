@@ -7,7 +7,7 @@ use elliptic_curve::{group::Curve, Field};
 use merlin::Transcript;
 use rand_core::*;
 
-/// A Prover is whomever receives signatures or uses them to generate proofs.
+/// A Prover is whoever receives signatures or uses them to generate proofs.
 /// Provided are methods for 2PC where some are only known to the prover and a blind signature
 /// is created, unblinding signatures, verifying signatures, and creating signature proofs of knowledge
 /// with selective disclosure proofs
@@ -22,7 +22,6 @@ impl Prover {
         nonce: Scalar,
         mut rng: impl RngCore + CryptoRng,
     ) -> CredxResult<(BlindSignatureContext, Scalar)> {
-        // Very uncommon to blind more than 1 or 2, so 16 should be plenty
         let mut points = Vec::new();
         let mut secrets = Vec::new();
         let mut committing = ProofCommittedBuilder::<G1Projective, G1Affine, Scalar>::new(

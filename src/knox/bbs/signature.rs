@@ -1,4 +1,4 @@
-use super::{MessageGenerators, PublicKey, SecretKey};
+use super::{ExpandedPublicKey, MessageGenerators, PublicKey, SecretKey};
 use crate::error::Error;
 use crate::knox::short_group_sig_core::short_group_traits::Signature as SignatureTrait;
 use crate::CredxResult;
@@ -62,8 +62,8 @@ impl Signature {
         let msgs = msgs.as_ref();
         let msg_count = NonZeroUsize::new(msgs.len()).ok_or(Error::General("No messages"))?;
         let pub_key = PublicKey::from(sk);
-        let msg_generators = MessageGenerators::with_api_id(msg_count, Some(&pub_key.to_bytes()));
-        let domain = domain_calculation(&pub_key, &msg_generators);
+        let expanded_pub_key = ExpandedPublicKey::new(pub_key, msg_count);
+        let domain = domain_calculation(&pub_key, &expanded_pub_key.y);
         let mut e_input_bytes = Vec::with_capacity(32 * msgs.len() + 2);
         e_input_bytes.extend_from_slice(&sk.to_bytes());
         for msg in msgs {
@@ -78,7 +78,7 @@ impl Signature {
             return Err(Error::General("Invalid signature"));
         }
 
-        let b = G1Projective::GENERATOR + G1Projective::sum_of_products(&msg_generators.0, msgs);
+        let b = G1Projective::GENERATOR + G1Projective::sum_of_products(&expanded_pub_key.y, msgs);
 
         let a = b * ske.expect("a valid scalar");
 
@@ -139,12 +139,12 @@ impl Signature {
     }
 }
 
-fn domain_calculation(pk: &PublicKey, msg_generators: &MessageGenerators) -> Scalar {
-    let mut bytes = Vec::with_capacity(8 + 96 + 48 * msg_generators.0.len());
+fn domain_calculation(pk: &PublicKey, msg_generators: &[G1Projective]) -> Scalar {
+    let mut bytes = Vec::with_capacity(8 + 96 + 48 * msg_generators.len());
     bytes.extend_from_slice(&pk.to_bytes());
-    bytes.extend_from_slice(&((msg_generators.0.len() + 1) as u64).to_be_bytes());
+    bytes.extend_from_slice(&((msg_generators.len() + 1) as u64).to_be_bytes());
     bytes.extend_from_slice(&G1Projective::GENERATOR.to_compressed());
-    for gen in &msg_generators.0 {
+    for gen in msg_generators {
         bytes.extend_from_slice(&gen.to_compressed());
     }
     bytes.extend_from_slice(&[0u8; 8]);

@@ -1,9 +1,10 @@
-use super::SecretKey;
+use super::{MessageGenerators, SecretKey};
 use crate::{
     error::Error, knox::short_group_sig_core::short_group_traits::PublicKey as PublicKeyTrait,
 };
 use blsful::inner_types::*;
 use serde::{Deserialize, Serialize};
+use std::num::NonZeroUsize;
 use subtle::Choice;
 
 /// BBS public key
@@ -19,7 +20,7 @@ impl From<&SecretKey> for PublicKey {
 }
 
 impl PublicKeyTrait for PublicKey {
-    type MessageGenerator = G2Projective;
+    type MessageGenerator = G1Projective;
     type BlindMessageGenerator = G1Projective;
 }
 
@@ -85,5 +86,41 @@ impl PublicKey {
         }
         let bytes = bytes.try_into().ok()?;
         Option::from(G2Projective::from_compressed(&bytes).map(Self))
+    }
+}
+
+/// Expanded public key which includes the y generators for each message
+#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
+pub struct ExpandedPublicKey {
+    pub(crate) y: Vec<G1Projective>,
+    pub(crate) w: G2Projective,
+}
+
+impl PublicKeyTrait for ExpandedPublicKey {
+    type MessageGenerator = G1Projective;
+    type BlindMessageGenerator = G1Projective;
+}
+
+impl From<&ExpandedPublicKey> for PublicKey {
+    fn from(pk: &ExpandedPublicKey) -> Self {
+        Self(pk.w)
+    }
+}
+
+impl ExpandedPublicKey {
+    /// Create a new expanded public key
+    pub fn new(public_key: PublicKey, message_count: NonZeroUsize) -> Self {
+        let y = MessageGenerators::with_api_id(message_count, Some(&public_key.to_bytes())).0;
+        Self { y, w: public_key.0 }
+    }
+
+    /// Check if this public key is invalid
+    pub fn is_invalid(&self) -> Choice {
+        self.w.is_identity()
+            | self
+                .y
+                .iter()
+                .map(|y| y.is_identity())
+                .fold(Choice::from(0u8), |acc, x| acc | x)
     }
 }
