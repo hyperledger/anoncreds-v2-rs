@@ -1,6 +1,7 @@
 use crate::knox::accumulator::vb20::{
     Element, MembershipProof as Vb20MembershipProof, MembershipProofCommitting, ProofParams,
 };
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::knox::short_group_sig_core::ProofMessage;
 use crate::prelude::MembershipCredential;
 use crate::presentation::{PresentationBuilder, PresentationProofs};
@@ -15,8 +16,8 @@ pub(crate) struct MembershipProofBuilder<'a> {
     committing: MembershipProofCommitting,
 }
 
-impl PresentationBuilder for MembershipProofBuilder<'_> {
-    fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
+impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for MembershipProofBuilder<'_> {
+    fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
         let proof = self.committing.gen_proof(Element(challenge));
         MembershipProof {
             id: self.id.clone(),

@@ -10,6 +10,7 @@ blsful = "3.0.0-pre8"
 bulletproofs = { version = "4.0.0", git = "https://github.com/cryptidtech/bulletproofs" }
 chrono = "0.4"
 elliptic-curve = { version = "0.13", features = ["hash2curve"] }
+elliptic-curve-tools = "0.1"
 hex = "0.4"
 indexmap = "2"
 log = "0.4"

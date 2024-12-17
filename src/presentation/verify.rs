@@ -1,8 +1,8 @@
 use super::*;
 
-impl Presentation {
+impl<S: ShortGroupSignatureScheme> Presentation<S> {
     /// Verify this presentation
-    pub fn verify(&self, schema: &PresentationSchema, nonce: &[u8]) -> CredxResult<()> {
+    pub fn verify(&self, schema: &PresentationSchema<S>, nonce: &[u8]) -> CredxResult<()> {
         let mut transcript = Transcript::new(b"credx presentation");
         Self::add_curve_parameters_challenge_contribution(&mut transcript);
         transcript.append_message(b"nonce", nonce);
@@ -10,7 +10,7 @@ impl Presentation {
 
         let (signature_statements, predicate_statements) = Self::split_statements(schema);
 
-        let mut verifiers = Vec::<ProofVerifiers>::with_capacity(schema.statements.len());
+        let mut verifiers = Vec::<ProofVerifiers<S>>::with_capacity(schema.statements.len());
         for (id, sig_statement) in &signature_statements {
             match (sig_statement, self.proofs.get(*id)) {
                 (Statements::Signature(ss), Some(PresentationProofs::Signature(proof))) => {

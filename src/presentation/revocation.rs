@@ -2,6 +2,7 @@ use crate::credential::Credential;
 use crate::knox::accumulator::vb20::{
     Element, MembershipProof, MembershipProofCommitting, ProofParams,
 };
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::knox::short_group_sig_core::ProofMessage;
 use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::RevocationStatement;
@@ -15,8 +16,8 @@ pub(crate) struct RevocationProofBuilder<'a> {
     committing: MembershipProofCommitting,
 }
 
-impl PresentationBuilder for RevocationProofBuilder<'_> {
-    fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
+impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for RevocationProofBuilder<'_> {
+    fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
         let proof = self.committing.gen_proof(Element(challenge));
         RevocationProof {
             id: self.id.clone(),
@@ -28,9 +29,9 @@ impl PresentationBuilder for RevocationProofBuilder<'_> {
 
 impl<'a> RevocationProofBuilder<'a> {
     /// Create a new accumulator set membership proof builder
-    pub fn commit(
+    pub fn commit<S: ShortGroupSignatureScheme>(
         statement: &'a RevocationStatement,
-        credential: &Credential,
+        credential: &Credential<S>,
         message: ProofMessage<Scalar>,
         nonce: &[u8],
         transcript: &mut Transcript,

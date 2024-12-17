@@ -1,4 +1,5 @@
 use crate::error::Error;
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::presentation::{CommitmentBuilder, PresentationBuilder, PresentationProofs};
 use crate::statement::RangeStatement;
 use crate::utils::*;
@@ -16,8 +17,8 @@ pub(crate) struct RangeBuilder<'a> {
     adjusted_upper: Option<u64>,
 }
 
-impl PresentationBuilder for RangeBuilder<'_> {
-    fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
+impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for RangeBuilder<'_> {
+    fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
         let pedersen_gen = bulletproofs::PedersenGens {
             B: self.commitment_builder.statement.message_generator,
             B_blinding: self.commitment_builder.statement.blinder_generator,

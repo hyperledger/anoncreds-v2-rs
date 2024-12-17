@@ -1,6 +1,7 @@
 use crate::claim::{ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim};
 use crate::credential::{ClaimSchema, CredentialSchema};
 use crate::issuer::Issuer;
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::prelude::{
     MembershipClaim, MembershipCredential, MembershipRegistry, MembershipSigningKey,
     MembershipStatement, MembershipVerificationKey,
@@ -61,7 +62,8 @@ fn decode_proofs<T: for<'de> Deserialize<'de>>(proofs: &str) -> Result<T, Box<dy
     Ok(obj)
 }
 
-fn create_presentation() -> CredxResult<(Presentation, PresentationSchema, [u8; 16])> {
+fn create_presentation<S: ShortGroupSignatureScheme>(
+) -> CredxResult<(Presentation<S>, PresentationSchema<S>, [u8; 16])> {
     const LABEL: &str = "Test Schema";
     const DESCRIPTION: &str = "This is a test presentation schema";
     const CRED_ID: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
@@ -452,9 +454,9 @@ fn to_w3c_presentation(request: &Value, proof: &Value) -> Value {
     })
 }
 
-pub fn map_to_w3c_presentation(
-    presentation: &Presentation,
-    presentation_schema: &PresentationSchema,
+pub fn map_to_w3c_presentation<S: ShortGroupSignatureScheme>(
+    presentation: &Presentation<S>,
+    presentation_schema: &PresentationSchema<S>,
     nonce: &[u8; 16],
 ) -> Value {
     presentation
@@ -548,13 +550,14 @@ pub fn to_anon_creds_presentation(w3c_presentation: &Value) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::knox::ps::PsScheme;
     use std::fs::File;
     use std::io::Write;
 
     #[test]
     fn test_create_presentation() {
         // returns a list of presentation + presentation request
-        let presentation = create_presentation().unwrap();
+        let presentation = create_presentation::<PsScheme>().unwrap();
         let mut file = File::create("./samples/presentations/anoncreds_presentation_list.json")
             .expect("Failed to create file");
         file.write_all(
@@ -605,7 +608,7 @@ mod tests {
 
     #[test]
     fn test_extract_credential() {
-        let tmp_list = create_presentation().unwrap();
+        let tmp_list = create_presentation::<PsScheme>().unwrap();
 
         let presentation_proof = tmp_list.0.clone();
         let presentation_request = tmp_list.1.clone();
@@ -653,7 +656,7 @@ mod tests {
         // let presentation: Value =
         //     serde_json::from_str(&content).expect("Failed to parse the JSON content");
 
-        let tmp_list = create_presentation().unwrap();
+        let tmp_list = create_presentation::<PsScheme>().unwrap();
         let mut file = File::create("./samples/presentations/anoncreds_presentation_list.json")
             .expect("Failed to create file");
         file.write_all(
@@ -683,7 +686,7 @@ mod tests {
 
     #[test]
     fn test_map_to_w3c_presentation() {
-        let tmp_list = create_presentation().unwrap();
+        let tmp_list = create_presentation::<PsScheme>().unwrap();
         let presentation_proof = tmp_list.0.clone();
         let presentation_request = tmp_list.1.clone();
         let nonce: [u8; 16] = tmp_list.2.clone();
@@ -703,7 +706,7 @@ mod tests {
     #[ignore]
     #[test]
     fn test_to_anoncreds_presentation() {
-        let tmp_list = create_presentation().unwrap();
+        let tmp_list = create_presentation::<PsScheme>().unwrap();
         let presentation_proof = tmp_list.0.clone();
         let presentation_request = tmp_list.1.clone();
         let nonce: [u8; 16] = tmp_list.2.clone();

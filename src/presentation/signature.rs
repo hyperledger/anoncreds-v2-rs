@@ -1,6 +1,7 @@
 use super::*;
-use crate::knox::ps::{PokSignature, PokSignatureProof, Signature as PsSignature};
-use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledgeContribution;
+use crate::knox::short_group_sig_core::short_group_traits::{
+    ProofOfSignatureKnowledgeContribution, ShortGroupSignatureScheme,
+};
 use crate::knox::short_group_sig_core::ProofMessage;
 use crate::statement::SignatureStatement;
 use crate::{error::Error, utils::*, CredxResult};
@@ -10,18 +11,18 @@ use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
 
 /// A builder for creating signature presentations
-pub(crate) struct SignatureBuilder<'a> {
+pub(crate) struct SignatureBuilder<'a, S: ShortGroupSignatureScheme> {
     /// The statement identifier
     id: &'a String,
     /// The messages that belong to this signature
     disclosed_messages: IndexMap<usize, Scalar>,
     /// The signature proof of knowledge builder
-    pok_sig: PokSignature,
+    pok_sig: S::ProofOfSignatureKnowledgeContribution,
 }
 
-impl PresentationBuilder for SignatureBuilder<'_> {
+impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for SignatureBuilder<'_, S> {
     /// Finalize proofs
-    fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
+    fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
         // PS signature generate_proof can't fail, okay to unwrap
         SignatureProof {
             id: self.id.clone(),
@@ -32,16 +33,21 @@ impl PresentationBuilder for SignatureBuilder<'_> {
     }
 }
 
-impl<'a> SignatureBuilder<'a> {
+impl<'a, S: ShortGroupSignatureScheme> SignatureBuilder<'a, S> {
     /// Create a new signature builder
     pub fn commit(
-        statement: &'a SignatureStatement,
-        signature: PsSignature,
+        statement: &'a SignatureStatement<S>,
+        signature: &S::Signature,
         messages: &[ProofMessage<Scalar>],
         rng: impl RngCore + CryptoRng,
         transcript: &mut Transcript,
     ) -> CredxResult<Self> {
-        match PokSignature::commit(signature, &statement.issuer.verifying_key, messages, rng) {
+        match S::ProofOfSignatureKnowledgeContribution::commit(
+            signature,
+            &statement.issuer.verifying_key,
+            messages,
+            rng,
+        ) {
             Err(_) => Err(Error::InvalidSignatureProofData),
             Ok(poksig) => {
                 let disclosed_messages = messages
@@ -65,7 +71,7 @@ impl<'a> SignatureBuilder<'a> {
 
 /// A signature proof that can be presented
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SignatureProof {
+pub struct SignatureProof<S: ShortGroupSignatureScheme> {
     /// The statement identifier
     pub id: String,
     /// The disclosed message scalars
@@ -75,5 +81,5 @@ pub struct SignatureProof {
     )]
     pub disclosed_messages: IndexMap<usize, Scalar>,
     /// The proof
-    pub pok: PokSignatureProof,
+    pub pok: S::ProofOfSignatureKnowledge,
 }

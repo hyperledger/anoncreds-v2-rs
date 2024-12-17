@@ -25,7 +25,7 @@ impl ProofOfSignatureKnowledgeContribution for PokSignature {
 
     /// Creates the initial proof data before a Fiat-Shamir calculation
     fn commit(
-        signature: Signature,
+        signature: &Signature,
         public_key: &PublicKey,
         messages: &[ProofMessage<Scalar>],
         mut rng: impl RngCore + CryptoRng,

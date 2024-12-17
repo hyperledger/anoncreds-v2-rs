@@ -15,6 +15,7 @@ pub use signature::*;
 use std::fmt::Formatter;
 pub use verifiable_encryption::*;
 
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use blsful::inner_types::G1Projective;
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -33,9 +34,13 @@ pub trait Statement {
 
 /// The various statement types
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub enum Statements {
+pub enum Statements<S: ShortGroupSignatureScheme> {
     /// Signature statements
-    Signature(Box<SignatureStatement>),
+    #[serde(bound(
+        serialize = "SignatureStatement<S>: Serialize",
+        deserialize = "SignatureStatement<S>: Deserialize<'de>"
+    ))]
+    Signature(Box<SignatureStatement<S>>),
     /// Equality statements
     Equality(Box<EqualityStatement>),
     /// Revocation statements
@@ -50,49 +55,51 @@ pub enum Statements {
     Membership(Box<MembershipStatement>),
 }
 
-impl From<SignatureStatement> for Statements {
-    fn from(s: SignatureStatement) -> Self {
+impl<S: ShortGroupSignatureScheme> From<SignatureStatement<S>> for Statements<S> {
+    fn from(s: SignatureStatement<S>) -> Self {
         Self::Signature(Box::new(s))
     }
 }
 
-impl From<EqualityStatement> for Statements {
+impl<S: ShortGroupSignatureScheme> From<EqualityStatement> for Statements<S> {
     fn from(e: EqualityStatement) -> Self {
         Self::Equality(Box::new(e))
     }
 }
 
-impl From<RevocationStatement> for Statements {
+impl<S: ShortGroupSignatureScheme> From<RevocationStatement> for Statements<S> {
     fn from(a: RevocationStatement) -> Self {
         Self::Revocation(Box::new(a))
     }
 }
 
-impl From<CommitmentStatement<G1Projective>> for Statements {
+impl<S: ShortGroupSignatureScheme> From<CommitmentStatement<G1Projective>> for Statements<S> {
     fn from(c: CommitmentStatement<G1Projective>) -> Self {
         Self::Commitment(Box::new(c))
     }
 }
 
-impl From<VerifiableEncryptionStatement<G1Projective>> for Statements {
+impl<S: ShortGroupSignatureScheme> From<VerifiableEncryptionStatement<G1Projective>>
+    for Statements<S>
+{
     fn from(c: VerifiableEncryptionStatement<G1Projective>) -> Self {
         Self::VerifiableEncryption(Box::new(c))
     }
 }
 
-impl From<RangeStatement> for Statements {
+impl<S: ShortGroupSignatureScheme> From<RangeStatement> for Statements<S> {
     fn from(c: RangeStatement) -> Self {
         Self::Range(Box::new(c))
     }
 }
 
-impl From<MembershipStatement> for Statements {
+impl<S: ShortGroupSignatureScheme> From<MembershipStatement> for Statements<S> {
     fn from(m: MembershipStatement) -> Self {
         Self::Membership(Box::new(m))
     }
 }
 
-impl Statements {
+impl<S: ShortGroupSignatureScheme> Statements<S> {
     /// Return the statement id
     pub fn id(&self) -> String {
         match self {

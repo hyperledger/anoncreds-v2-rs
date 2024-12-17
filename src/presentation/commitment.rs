@@ -1,3 +1,4 @@
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::CommitmentStatement;
 use crate::CredxResult;
@@ -16,8 +17,8 @@ pub(crate) struct CommitmentBuilder<'a> {
     pub(crate) r: Scalar,
 }
 
-impl PresentationBuilder for CommitmentBuilder<'_> {
-    fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
+impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for CommitmentBuilder<'_> {
+    fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
         let message_proof = self.b + challenge * self.message;
         let blinder_proof = self.r + challenge * self.b;
         CommitmentProof {

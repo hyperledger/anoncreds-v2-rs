@@ -1,16 +1,15 @@
-use super::{ExpandedPublicKey, MessageGenerators, PublicKey, SecretKey};
+use super::{PublicKey, SecretKey};
 use crate::error::Error;
 use crate::knox::short_group_sig_core::short_group_traits::Signature as SignatureTrait;
 use crate::CredxResult;
 use blsful::inner_types::{
     multi_miller_loop, Curve, Field, G1Projective, G2Affine, G2Prepared, G2Projective, Group,
-    MillerLoopResult, PrimeField, Scalar,
+    MillerLoopResult, Scalar,
 };
 use elliptic_curve::{group::prime::PrimeCurveAffine, hash2curve::ExpandMsgXmd};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
-use std::num::NonZeroUsize;
-use subtle::{Choice, ConditionallySelectable, CtOption};
+use subtle::{Choice, ConditionallySelectable};
 
 const DST: &[u8] = b"H2S_";
 
@@ -60,25 +59,21 @@ impl Signature {
         }
 
         let msgs = msgs.as_ref();
-        let msg_count = NonZeroUsize::new(msgs.len()).ok_or(Error::General("No messages"))?;
-        let pub_key = PublicKey::from(sk);
-        let expanded_pub_key = ExpandedPublicKey::new(pub_key, msg_count);
-        let domain = domain_calculation(&pub_key, &expanded_pub_key.y);
-        let mut e_input_bytes = Vec::with_capacity(32 * msgs.len() + 2);
-        e_input_bytes.extend_from_slice(&sk.to_bytes());
-        for msg in msgs {
-            e_input_bytes.extend_from_slice(msg.to_repr().as_ref());
+        if msgs.len() > sk.max_messages {
+            return Err(Error::General("Too many messages"));
         }
-        e_input_bytes.extend_from_slice(domain.to_repr().as_ref());
-        let e = Scalar::hash::<ExpandMsgXmd<Sha256>>(&e_input_bytes, DST);
 
-        let ske = (sk.0 + e).invert();
+        let pub_key = PublicKey::from(sk);
+        let domain = domain_calculation(&pub_key);
+        let e = compute_e(sk, msgs, domain);
+
+        let ske = (sk.x + e).invert();
         if ske.is_none().into() {
             // only fails if sk + e is zero
             return Err(Error::General("Invalid signature"));
         }
 
-        let b = G1Projective::GENERATOR + G1Projective::sum_of_products(&expanded_pub_key.y, msgs);
+        let b = G1Projective::GENERATOR + G1Projective::sum_of_products(&pub_key.y, msgs);
 
         let a = b * ske.expect("a valid scalar");
 
@@ -94,14 +89,12 @@ impl Signature {
             return Choice::from(0);
         }
         let msgs = msgs.as_ref();
-        if msgs.is_empty() {
+        if msgs.is_empty() || msgs.len() > pk.y.len() {
             return Choice::from(0);
         }
-        let msg_count = NonZeroUsize::new(msgs.len()).expect("at least 1 message");
-        let msg_generators = MessageGenerators::with_api_id(msg_count, Some(&pk.to_bytes()));
 
-        let b = G1Projective::GENERATOR + G1Projective::sum_of_products(&msg_generators.0, msgs);
-        let lhs_pk = G2Projective::GENERATOR * self.e + pk.0;
+        let b = G1Projective::GENERATOR + G1Projective::sum_of_products(&pk.y, msgs);
+        let lhs_pk = G2Projective::GENERATOR * self.e + pk.w;
 
         multi_miller_loop(&[
             (&self.a.to_affine(), &G2Prepared::from(lhs_pk.to_affine())),
@@ -117,34 +110,32 @@ impl Signature {
     }
 
     /// Convert the signature to bytes
-    pub fn to_bytes(&self) -> [u8; Self::BYTES] {
-        let mut bytes = [0u8; Self::BYTES];
-        bytes[..G1Projective::COMPRESSED_BYTES].copy_from_slice(&self.a.to_compressed());
-        bytes[G1Projective::COMPRESSED_BYTES..].copy_from_slice(&self.e.to_be_bytes());
-        bytes
+    pub fn to_bytes(&self) -> Vec<u8> {
+        serde_bare::to_vec(self).expect("to serialize Signature")
     }
 
     /// Convert bytes to a signature
-    pub fn from_bytes(bytes: &[u8]) -> CtOption<Self> {
-        let a_bytes = (&bytes[..G1Projective::COMPRESSED_BYTES])
-            .try_into()
-            .expect("Invalid length");
-        let a = G1Projective::from_compressed(&a_bytes);
-        let e_bytes = (&bytes[G1Projective::COMPRESSED_BYTES..])
-            .try_into()
-            .expect("Invalid length");
-        let e = Scalar::from_be_bytes(&e_bytes);
-
-        a.and_then(|a| e.map(|e| Self { a, e }))
+    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
+        serde_bare::from_slice(bytes).ok()
     }
 }
 
-fn domain_calculation(pk: &PublicKey, msg_generators: &[G1Projective]) -> Scalar {
-    let mut bytes = Vec::with_capacity(8 + 96 + 48 * msg_generators.len());
-    bytes.extend_from_slice(&pk.to_bytes());
-    bytes.extend_from_slice(&((msg_generators.len() + 1) as u64).to_be_bytes());
+pub(crate) fn compute_e(sk: &SecretKey, msgs: &[Scalar], domain: Scalar) -> Scalar {
+    let mut bytes = Vec::with_capacity(32 * msgs.len() + 64);
+    bytes.extend_from_slice(&sk.to_bytes());
+    for msg in msgs {
+        bytes.extend_from_slice(&msg.to_be_bytes());
+    }
+    bytes.extend_from_slice(&domain.to_be_bytes());
+    Scalar::hash::<ExpandMsgXmd<Sha256>>(&bytes, DST)
+}
+
+pub(crate) fn domain_calculation(pk: &PublicKey) -> Scalar {
+    let mut bytes = Vec::with_capacity(8 + 96 + 48 * pk.y.len());
+    bytes.extend_from_slice(&pk.w.to_compressed());
+    bytes.extend_from_slice(&((pk.y.len() + 1) as u64).to_be_bytes());
     bytes.extend_from_slice(&G1Projective::GENERATOR.to_compressed());
-    for gen in msg_generators {
+    for gen in &pk.y {
         bytes.extend_from_slice(&gen.to_compressed());
     }
     bytes.extend_from_slice(&[0u8; 8]);

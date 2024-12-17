@@ -1,4 +1,6 @@
-use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledge;
+use crate::knox::short_group_sig_core::short_group_traits::{
+    ProofOfSignatureKnowledge, ShortGroupSignatureScheme,
+};
 use crate::presentation::SignatureProof;
 use crate::statement::SignatureStatement;
 use crate::verifier::ProofVerifier;
@@ -6,14 +8,17 @@ use crate::CredxResult;
 use blsful::inner_types::Scalar;
 use merlin::Transcript;
 
-pub struct SignatureVerifier<'a, 'b> {
-    statement: &'a SignatureStatement,
-    signature_proof: &'b SignatureProof,
+pub struct SignatureVerifier<'a, 'b, S: ShortGroupSignatureScheme> {
+    statement: &'a SignatureStatement<S>,
+    signature_proof: &'b SignatureProof<S>,
     disclosed_messages: Vec<(usize, Scalar)>,
 }
 
-impl<'a, 'b> SignatureVerifier<'a, 'b> {
-    pub fn new(statement: &'a SignatureStatement, signature_proof: &'b SignatureProof) -> Self {
+impl<'a, 'b, S: ShortGroupSignatureScheme> SignatureVerifier<'a, 'b, S> {
+    pub fn new(
+        statement: &'a SignatureStatement<S>,
+        signature_proof: &'b SignatureProof<S>,
+    ) -> Self {
         let disclosed_messages: Vec<(usize, Scalar)> = signature_proof
             .disclosed_messages
             .iter()
@@ -27,7 +32,7 @@ impl<'a, 'b> SignatureVerifier<'a, 'b> {
     }
 }
 
-impl ProofVerifier for SignatureVerifier<'_, '_> {
+impl<S: ShortGroupSignatureScheme> ProofVerifier for SignatureVerifier<'_, '_, S> {
     fn add_challenge_contribution(
         &self,
         challenge: Scalar,

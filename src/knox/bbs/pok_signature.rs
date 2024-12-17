@@ -1,4 +1,4 @@
-use crate::knox::bbs::{ExpandedPublicKey, PokSignatureProof, Signature};
+use crate::knox::bbs::{PokSignatureProof, PublicKey, Signature};
 use crate::knox::short_group_sig_core::{
     short_group_traits::ProofOfSignatureKnowledgeContribution, *,
 };
@@ -20,11 +20,11 @@ pub struct PokSignature {
 
 impl ProofOfSignatureKnowledgeContribution for PokSignature {
     type Signature = Signature;
-    type PublicKey = ExpandedPublicKey;
+    type PublicKey = PublicKey;
     type ProofOfKnowledge = PokSignatureProof;
 
     fn commit(
-        signature: Self::Signature,
+        signature: &Self::Signature,
         public_key: &Self::PublicKey,
         messages: &[ProofMessage<Scalar>],
         mut rng: impl RngCore + CryptoRng,

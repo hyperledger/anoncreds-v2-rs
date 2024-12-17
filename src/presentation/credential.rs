@@ -1,22 +1,27 @@
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// The types of credentials to pass in
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum PresentationCredential {
+pub enum PresentationCredential<S: ShortGroupSignatureScheme> {
     /// A signature credential
-    Signature(Box<Credential>),
+    #[serde(bound(
+        serialize = "Credential<S>: Serialize",
+        deserialize = "Credential<S>: Deserialize<'de>"
+    ))]
+    Signature(Box<Credential<S>>),
     /// A membership check credential
     Membership(Box<MembershipCredential>),
 }
 
-impl From<Credential> for PresentationCredential {
-    fn from(value: Credential) -> Self {
+impl<S: ShortGroupSignatureScheme> From<Credential<S>> for PresentationCredential<S> {
+    fn from(value: Credential<S>) -> Self {
         Self::Signature(Box::new(value))
     }
 }
 
-impl From<MembershipCredential> for PresentationCredential {
+impl<S: ShortGroupSignatureScheme> From<MembershipCredential> for PresentationCredential<S> {
     fn from(value: MembershipCredential) -> Self {
         Self::Membership(Box::new(value))
     }

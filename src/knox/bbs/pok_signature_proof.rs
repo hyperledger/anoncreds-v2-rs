@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::knox::bbs::ExpandedPublicKey;
+use crate::knox::bbs::PublicKey;
 use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledge;
 use crate::CredxResult;
 use blsful::inner_types::{
@@ -22,7 +22,7 @@ pub struct PokSignatureProof {
 }
 
 impl ProofOfSignatureKnowledge for PokSignatureProof {
-    type PublicKey = ExpandedPublicKey;
+    type PublicKey = PublicKey;
 
     fn add_proof_contribution(
         &self,

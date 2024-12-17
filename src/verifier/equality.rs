@@ -1,5 +1,7 @@
 use crate::error::Error;
-use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledge;
+use crate::knox::short_group_sig_core::short_group_traits::{
+    ProofOfSignatureKnowledge, ShortGroupSignatureScheme,
+};
 use crate::presentation::{PresentationProofs, PresentationSchema};
 use crate::statement::{EqualityStatement, Statements};
 use crate::verifier::ProofVerifier;
@@ -8,13 +10,13 @@ use blsful::inner_types::Scalar;
 use indexmap::IndexMap;
 use merlin::Transcript;
 
-pub struct EqualityVerifier<'a, 'b, 'c> {
+pub struct EqualityVerifier<'a, 'b, 'c, S: ShortGroupSignatureScheme> {
     pub statement: &'a EqualityStatement,
-    pub schema: &'b PresentationSchema,
-    pub proofs: &'c IndexMap<String, PresentationProofs>,
+    pub schema: &'b PresentationSchema<S>,
+    pub proofs: &'c IndexMap<String, PresentationProofs<S>>,
 }
 
-impl ProofVerifier for EqualityVerifier<'_, '_, '_> {
+impl<S: ShortGroupSignatureScheme> ProofVerifier for EqualityVerifier<'_, '_, '_, S> {
     fn add_challenge_contribution(
         &self,
         _challenge: Scalar,
