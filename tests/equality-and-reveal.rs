@@ -5,6 +5,8 @@ mod reveal_and_equality_tests {
     use credx::credential::{ClaimSchema, CredentialSchema};
     use credx::error::Error;
     use credx::issuer::Issuer;
+    use credx::knox::ps::PsScheme;
+    use credx::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
     use credx::prelude::IssuerPublic;
     use credx::presentation::{Presentation, PresentationSchema};
     use credx::statement::{EqualityStatement, SignatureStatement};
@@ -16,7 +18,6 @@ mod reveal_and_equality_tests {
     use rand_core::RngCore;
     use std::collections::BTreeSet;
     use std::fmt::Debug;
-
     // -------------------------------------------------------------------------
     // Setup some names for readability
 
@@ -84,7 +85,7 @@ mod reveal_and_equality_tests {
     #[test]
     fn t00_reveal_ssn_a_no_equality() {
         let (isspub, iss) = setup_issuer();
-        let r = run_test(&isspub, iss, "_", &REV_SSN, &REV_NONE, None);
+        let r = run_test::<PsScheme>(&isspub, iss, "_", &REV_SSN, &REV_NONE, None);
         validate_disclosures(r, &REV_SSN, &REV_NONE)
     }
 
@@ -93,7 +94,7 @@ mod reveal_and_equality_tests {
     #[test]
     fn t01_reveal_ssn_a_eq_names_unequal() {
         let (isspub, iss) = setup_issuer();
-        let r = run_test(&isspub, iss, "Bob", &REV_SSN, &REV_NONE, Some(NAME_IX));
+        let r = run_test::<PsScheme>(&isspub, iss, "Bob", &REV_SSN, &REV_NONE, Some(NAME_IX));
         assert_matches_error(
             r,
             Error::InvalidClaimData("equality statement - claims are not all the same"),
@@ -105,7 +106,7 @@ mod reveal_and_equality_tests {
     #[test]
     fn t02_no_reveal_eq_names_equal() {
         let (isspub, iss) = setup_issuer();
-        let r = run_test(&isspub, iss, "Alice", &REV_NONE, &REV_NONE, Some(NAME_IX));
+        let r = run_test::<PsScheme>(&isspub, iss, "Alice", &REV_NONE, &REV_NONE, Some(NAME_IX));
         validate_disclosures(r, &REV_NONE, &REV_NONE)
     }
 
@@ -114,7 +115,7 @@ mod reveal_and_equality_tests {
     #[test]
     fn t03_reveal_ssn_a_eq_names_equal() {
         let (isspub, iss) = setup_issuer();
-        let r = run_test(&isspub, iss, "Alice", &REV_SSN, &REV_NONE, Some(NAME_IX));
+        let r = run_test::<PsScheme>(&isspub, iss, "Alice", &REV_SSN, &REV_NONE, Some(NAME_IX));
         validate_disclosures(r, &REV_SSN, &REV_NONE)
     }
 
@@ -132,7 +133,7 @@ mod reveal_and_equality_tests {
     #[should_panic]
     fn t04_reveal_ssn_b_eq_ssns_equal() {
         let (isspub, iss) = setup_issuer();
-        let r = run_test(&isspub, iss, "_", &REV_NONE, &REV_SSN, Some(SSN_IX));
+        let r = run_test::<PsScheme>(&isspub, iss, "_", &REV_NONE, &REV_SSN, Some(SSN_IX));
         validate_disclosures(r, &REV_NONE, &REV_NONE)
     }
 
@@ -141,7 +142,7 @@ mod reveal_and_equality_tests {
     #[test]
     fn t05_reveal_ssn_a_eq_ssns_equal() {
         let (isspub, iss) = setup_issuer();
-        let r = run_test(&isspub, iss, "_", &REV_SSN, &REV_NONE, Some(SSN_IX));
+        let r = run_test::<PsScheme>(&isspub, iss, "_", &REV_SSN, &REV_NONE, Some(SSN_IX));
         assert_matches_error(
             r,
             Error::InvalidClaimData("revealed claim cannot be used with equality proof"),
@@ -153,7 +154,7 @@ mod reveal_and_equality_tests {
     #[test]
     fn t06_reveal_ssn_b_eq_ssns_equal() {
         let (isspub, iss) = setup_issuer();
-        let r = run_test(&isspub, iss, "_", &REV_NONE, &REV_SSN, Some(SSN_IX));
+        let r = run_test::<PsScheme>(&isspub, iss, "_", &REV_NONE, &REV_SSN, Some(SSN_IX));
         assert_matches_error(
             r,
             Error::InvalidClaimData("revealed claim cannot be used with equality proof"),
@@ -165,9 +166,9 @@ mod reveal_and_equality_tests {
 
     type Disclosures = IndexMap<String, IndexMap<String, ClaimData>>;
 
-    fn run_test(
-        issuer_public: &IssuerPublic,
-        mut issuer: Issuer,
+    fn run_test<S: ShortGroupSignatureScheme>(
+        issuer_public: &IssuerPublic<S>,
+        mut issuer: Issuer<S>,
         name_b: &str,
         reveal_a: &DisclosureReqs,
         reveal_b: &DisclosureReqs,
@@ -212,8 +213,8 @@ mod reveal_and_equality_tests {
             let pres_sch_id = random_string(16, rand::thread_rng());
 
             let (presentation_schema1, presentation_schema2): (
-                PresentationSchema,
-                PresentationSchema,
+                PresentationSchema<S>,
+                PresentationSchema<S>,
             ) = match equality_index {
                 None => (
                     PresentationSchema::new_with_id(&[
@@ -255,7 +256,7 @@ mod reveal_and_equality_tests {
         }
     }
 
-    fn setup_issuer() -> (IssuerPublic, Issuer) {
+    fn setup_issuer<S: ShortGroupSignatureScheme>() -> (IssuerPublic<S>, Issuer<S>) {
         const LABEL: &str = "Test Schema";
         const DESCRIPTION: &str = "This is a test presentation schema";
 
