@@ -27,7 +27,7 @@ impl<'a, 'b> MembershipVerifier<'a, 'b> {
     }
 }
 
-impl<'a, 'b> ProofVerifier for MembershipVerifier<'a, 'b> {
+impl ProofVerifier for MembershipVerifier<'_, '_> {
     fn add_challenge_contribution(
         &self,
         challenge: Scalar,

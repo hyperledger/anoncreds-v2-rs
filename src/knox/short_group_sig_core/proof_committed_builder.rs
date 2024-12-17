@@ -1,10 +1,10 @@
 use super::super::ecc_group::*;
 use crate::CredxResult;
-use blsful::inner_types::{
+use core::fmt::Debug;
+use elliptic_curve::{
     ff::PrimeField,
     group::{Curve, GroupEncoding},
 };
-use core::fmt::Debug;
 use merlin::Transcript;
 use rand_core::RngCore;
 use subtle::ConstantTimeEq;

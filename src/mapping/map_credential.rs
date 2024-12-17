@@ -1,6 +1,7 @@
 use crate::claim::{ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim};
 use crate::credential::{ClaimSchema, CredentialBundle, CredentialSchema};
 use crate::issuer::Issuer;
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::CredxResult;
 use base64::Engine;
 use chrono::Utc;
@@ -8,7 +9,7 @@ use rmp_serde::{Deserializer, Serializer};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 
-fn create_credential() -> CredxResult<CredentialBundle> {
+fn create_credential<S: ShortGroupSignatureScheme>() -> CredxResult<CredentialBundle<S>> {
     const LABEL: &str = "Test Schema";
     const DESCRIPTION: &str = "This is a test presentation schema";
     const CRED_ID: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
@@ -270,19 +271,20 @@ fn to_anoncreds(cred_json: &Value) -> Result<Value, Box<dyn std::error::Error>> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::knox::ps::PsScheme;
     use std::fs::File;
     use std::io::Read;
     use std::io::Write;
 
     #[test]
     fn test_create_credential() {
-        let credential_result = create_credential();
+        let credential_result = create_credential::<PsScheme>();
         assert!(credential_result.is_ok());
     }
 
     #[test]
     fn test_extract_cred_def() {
-        let credential_result = create_credential();
+        let credential_result = create_credential::<PsScheme>();
         assert!(credential_result.is_ok());
         let credential = credential_result.unwrap();
         let cred_string = serde_json::to_string_pretty(&credential).unwrap();
@@ -303,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_encode_to_w3c() {
-        let credential_result = create_credential();
+        let credential_result = create_credential::<PsScheme>();
         assert!(credential_result.is_ok());
         let credential = credential_result.unwrap();
         let cred_string = serde_json::to_string_pretty(&credential).unwrap();
@@ -315,7 +317,7 @@ mod tests {
 
     #[test]
     fn test_map_label_to_claim_value() {
-        let credential_result = create_credential();
+        let credential_result = create_credential::<PsScheme>();
         assert!(credential_result.is_ok());
         let credential = credential_result.unwrap();
         let cred_string = serde_json::to_string_pretty(&credential).unwrap();
@@ -327,7 +329,7 @@ mod tests {
 
     #[test]
     fn test_to_w3c() {
-        let credential_result = create_credential();
+        let credential_result = create_credential::<PsScheme>();
         assert!(credential_result.is_ok());
         let credential = credential_result.unwrap();
         let cred_string = serde_json::to_string_pretty(&credential).unwrap();

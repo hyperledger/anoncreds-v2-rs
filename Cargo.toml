@@ -1,14 +1,16 @@
 [package]
 name = "credx"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 # NOTE: Please keep dependencies sorted alphabetically.
 [dependencies]
 base64 = "0.22"
-blsful = "2.5"
+blsful = "3.0.0-pre8"
 bulletproofs = { version = "4.0.0", git = "https://github.com/cryptidtech/bulletproofs" }
 chrono = "0.4"
+elliptic-curve = { version = "0.13", features = ["hash2curve"] }
+elliptic-curve-tools = "0.1"
 hex = "0.4"
 indexmap = "2"
 log = "0.4"
@@ -25,9 +27,9 @@ serde_json = "1"
 serde_regex = "1"
 sha2 = "0.10"
 sha3 = "0.10"
-subtle = "2.5"
+subtle = "2.6"
 uint-zigzag = { version = "0.2", features = ["std"] }
-uuid = {version = "1.10", features = ["v4"]}
+uuid = {version = "1.11", features = ["v4"]}
 zeroize = "1"
 
 

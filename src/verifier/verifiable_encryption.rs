@@ -2,7 +2,8 @@ use crate::presentation::VerifiableEncryptionProof;
 use crate::statement::VerifiableEncryptionStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use blsful::inner_types::{group::Curve, G1Projective, Scalar};
+use blsful::inner_types::{G1Projective, Scalar};
+use elliptic_curve::group::Curve;
 use merlin::Transcript;
 
 pub struct VerifiableEncryptionVerifier<'a, 'b> {
@@ -10,7 +11,7 @@ pub struct VerifiableEncryptionVerifier<'a, 'b> {
     pub proof: &'b VerifiableEncryptionProof,
 }
 
-impl<'a, 'b> ProofVerifier for VerifiableEncryptionVerifier<'a, 'b> {
+impl ProofVerifier for VerifiableEncryptionVerifier<'_, '_> {
     fn add_challenge_contribution(
         &self,
         challenge: Scalar,

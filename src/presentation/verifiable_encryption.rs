@@ -1,7 +1,9 @@
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::VerifiableEncryptionStatement;
 use crate::CredxResult;
-use blsful::inner_types::{ff::Field, group::Curve, G1Projective, Scalar};
+use blsful::inner_types::{G1Projective, Scalar};
+use elliptic_curve::{ff::Field, group::Curve};
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
@@ -16,8 +18,8 @@ pub(crate) struct VerifiableEncryptionBuilder<'a> {
     r: Scalar,
 }
 
-impl<'a> PresentationBuilder for VerifiableEncryptionBuilder<'a> {
-    fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
+impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for VerifiableEncryptionBuilder<'_> {
+    fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
         let message_proof = self.b + challenge * self.message;
         let blinder_proof = self.r + challenge * self.b;
         VerifiableEncryptionProof {

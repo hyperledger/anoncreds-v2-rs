@@ -1,14 +1,13 @@
 use crate::knox::{
     ps::PublicKey, short_group_sig_core::short_group_traits::SecretKey as SecretKeyTrait,
 };
-use blsful::inner_types::{
-    ff::{Field, PrimeField},
-    G1Projective, G2Projective, Scalar,
-};
+use blsful::inner_types::{G1Projective, G2Projective, Scalar};
+use elliptic_curve::{Field, PrimeField};
 use rand_chacha::ChaChaRng;
 use rand_core::{CryptoRng, RngCore, SeedableRng};
 use serde::{Deserialize, Serialize};
 use sha3::digest::{ExtendableOutput, Update, XofReader};
+use std::num::NonZeroUsize;
 use zeroize::Zeroize;
 
 /// The secret key contains a field element for each
@@ -57,7 +56,7 @@ impl SecretKey {
     const SCALAR_SIZE: usize = 32;
 
     /// Compute a secret key from a hash
-    pub fn hash<B: AsRef<[u8]>>(count: usize, data: B) -> Option<Self> {
+    pub fn hash<B: AsRef<[u8]>>(count: NonZeroUsize, data: B) -> Option<Self> {
         const SALT: &[u8] = b"PS-SIG-KEYGEN-SALT-";
         let mut reader = sha3::Shake256::default()
             .chain(SALT)
@@ -71,7 +70,7 @@ impl SecretKey {
     }
 
     /// Compute a secret key from a CS-PRNG
-    pub fn random(count: usize, rng: impl RngCore + CryptoRng) -> Option<Self> {
+    pub fn random(count: NonZeroUsize, rng: impl RngCore + CryptoRng) -> Option<Self> {
         generate_secret_key(count, rng)
     }
 
@@ -159,8 +158,12 @@ impl SecretKey {
     }
 }
 
-fn generate_secret_key(count: usize, mut rng: impl RngCore + CryptoRng) -> Option<SecretKey> {
-    if count == 0 || count > 128 {
+fn generate_secret_key(
+    count: NonZeroUsize,
+    mut rng: impl RngCore + CryptoRng,
+) -> Option<SecretKey> {
+    let count = count.get();
+    if count > 128 {
         return None;
     }
     let w = Scalar::random(&mut rng);

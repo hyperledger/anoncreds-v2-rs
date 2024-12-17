@@ -1,4 +1,7 @@
-use crate::knox::{accumulator::vb20::MembershipWitness, ps::BlindSignature};
+use crate::knox::accumulator::vb20::MembershipWitness;
+use crate::knox::short_group_sig_core::short_group_traits::{
+    BlindSignature, ShortGroupSignatureScheme,
+};
 use crate::{
     claim::ClaimData, credential::Credential, error::Error, issuer::IssuerPublic, CredxResult,
 };
@@ -8,25 +11,25 @@ use std::collections::BTreeMap;
 
 /// A blind credential
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct BlindCredential {
+pub struct BlindCredential<S: ShortGroupSignatureScheme> {
     /// The known claims signed by the issuer
     pub claims: BTreeMap<String, ClaimData>,
     /// The blind signature
-    pub signature: BlindSignature,
+    pub signature: S::BlindSignature,
     /// The revocation handle
     pub revocation_handle: MembershipWitness,
     /// The claim that is used for revocation
     pub revocation_label: String,
 }
 
-impl BlindCredential {
+impl<S: ShortGroupSignatureScheme> BlindCredential<S> {
     /// Convert this blind credential into a regular credential
     pub fn to_credential(
         mut self,
-        issuer: &IssuerPublic,
+        issuer: &IssuerPublic<S>,
         blinder: Scalar,
         hidden_claims: &BTreeMap<String, ClaimData>,
-    ) -> CredxResult<Credential> {
+    ) -> CredxResult<Credential<S>> {
         if issuer.schema.claims.len() != self.claims.len() + hidden_claims.len() {
             return Err(Error::InvalidClaimData(
                 "hidden + known claims != schema claims",
