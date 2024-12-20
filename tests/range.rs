@@ -42,7 +42,7 @@ fn test_range_proof_works(
     val: isize,
     lower: Option<isize>,
     upper: Option<isize>,
-    expexcted_to_fail: bool,
+    expected_to_fail: bool,
 ) -> Result<(), String> {
     const LABEL: &str = "Test Schema";
     const DESCRIPTION: &str = "This is a test presentation schema";
@@ -122,7 +122,7 @@ fn test_range_proof_works(
         PresentationSchema::new(&[sig_st.into(), comm_st.into(), range_st.into()]);
     match Presentation::create(&credentials, &presentation_schema, &nonce) {
         Err(e) => {
-            if expexcted_to_fail {
+            if expected_to_fail {
                 Ok(())
             } else {
                 Err(format!("create presentation failed: {e:?}"))
@@ -130,14 +130,14 @@ fn test_range_proof_works(
         }
         Ok(presentation) => match presentation.verify(&presentation_schema, &nonce) {
             Err(e) => {
-                if expexcted_to_fail {
+                if expected_to_fail {
                     Ok(())
                 } else {
                     Err(format!("verify presentation failed: {e:?}"))
                 }
             }
             Ok(_) => {
-                if expexcted_to_fail {
+                if expected_to_fail {
                     Err("verification passed, but was expected to fail".to_string())
                 } else {
                     Ok(())
