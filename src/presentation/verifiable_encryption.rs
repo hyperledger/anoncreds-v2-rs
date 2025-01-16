@@ -13,20 +13,18 @@ pub(crate) struct VerifiableEncryptionBuilder<'a> {
     c1: G1Projective,
     c2: G1Projective,
     statement: &'a VerifiableEncryptionStatement<G1Projective>,
-    message: Scalar,
     b: Scalar,
     r: Scalar,
 }
 
 impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for VerifiableEncryptionBuilder<'_> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
-        let message_proof = self.b + challenge * self.message;
+        // Message proof will be passed from signature proof
         let blinder_proof = self.r + challenge * self.b;
         VerifiableEncryptionProof {
             id: self.statement.id.clone(),
             c1: self.c1,
             c2: self.c2,
-            message_proof,
             blinder_proof,
         }
         .into()
@@ -60,7 +58,6 @@ impl<'a> VerifiableEncryptionBuilder<'a> {
             c1,
             c2,
             statement,
-            message,
             b,
             r,
         })
@@ -76,8 +73,6 @@ pub struct VerifiableEncryptionProof {
     pub c1: G1Projective,
     /// The C2 El-Gamal component
     pub c2: G1Projective,
-    /// The schnorr message proof
-    pub message_proof: Scalar,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
 }

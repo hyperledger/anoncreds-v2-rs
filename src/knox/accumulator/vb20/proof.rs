@@ -232,14 +232,14 @@ impl MembershipProofCommitting {
 /// A ZKP membership proof
 #[derive(Debug, Default, Copy, Clone, Deserialize, Serialize)]
 pub struct MembershipProof {
-    e_c: G1Projective,
-    t_sigma: G1Projective,
-    t_rho: G1Projective,
-    s_sigma: Scalar,
-    s_rho: Scalar,
-    s_delta_sigma: Scalar,
-    s_delta_rho: Scalar,
-    s_y: Scalar,
+    pub(crate) e_c: G1Projective,
+    pub(crate) t_sigma: G1Projective,
+    pub(crate) t_rho: G1Projective,
+    pub(crate) s_sigma: Scalar,
+    pub(crate) s_rho: Scalar,
+    pub(crate) s_delta_sigma: Scalar,
+    pub(crate) s_delta_rho: Scalar,
+    pub(crate) s_y: Scalar,
 }
 
 impl core::fmt::Display for MembershipProof {

@@ -1,4 +1,6 @@
 use super::*;
+use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledge;
+use std::collections::BTreeMap;
 
 impl<S: ShortGroupSignatureScheme> Presentation<S> {
     /// Verify this presentation
@@ -32,12 +34,20 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
         for (id, pred_statement) in &predicate_statements {
             match (pred_statement, self.proofs.get(*id)) {
                 (Statements::Revocation(aa), Some(PresentationProofs::Revocation(proof))) => {
-                    let verifier = RevocationVerifier::new(aa, proof, nonce);
+                    let hidden_messages = self.get_sig_hidden_messages(schema, &aa.reference_id)?;
+                    let message_proof = hidden_messages
+                        .get(&aa.claim)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    let verifier = RevocationVerifier::new(aa, proof, nonce, *message_proof);
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }
                 (Statements::Membership(mm), Some(PresentationProofs::Membership(proof))) => {
-                    let verifier = MembershipVerifier::new(mm, proof, nonce);
+                    let hidden_messages = self.get_sig_hidden_messages(schema, &mm.reference_id)?;
+                    let message_proof = hidden_messages
+                        .get(&mm.claim)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    let verifier = MembershipVerifier::new(mm, proof, nonce, *message_proof);
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }
@@ -54,7 +64,16 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     Statements::Commitment(statement),
                     Some(PresentationProofs::Commitment(proof)),
                 ) => {
-                    let verifier = CommitmentVerifier { statement, proof };
+                    let hidden_messages =
+                        self.get_sig_hidden_messages(schema, &statement.reference_id)?;
+                    let message_proof = hidden_messages
+                        .get(&statement.claim)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    let verifier = CommitmentVerifier {
+                        statement,
+                        proof,
+                        message_proof: *message_proof,
+                    };
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }
@@ -62,7 +81,16 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     Statements::VerifiableEncryption(statement),
                     Some(PresentationProofs::VerifiableEncryption(proof)),
                 ) => {
-                    let verifier = VerifiableEncryptionVerifier { statement, proof };
+                    let hidden_messages =
+                        self.get_sig_hidden_messages(schema, &statement.reference_id)?;
+                    let message_proof = hidden_messages
+                        .get(&statement.claim)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    let verifier = VerifiableEncryptionVerifier {
+                        statement,
+                        proof,
+                        message_proof: *message_proof,
+                    };
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }
@@ -114,5 +142,43 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
         }
 
         Ok(())
+    }
+
+    fn get_sig_hidden_messages(
+        &self,
+        schema: &PresentationSchema<S>,
+        reference_id: &String,
+    ) -> CredxResult<BTreeMap<usize, Scalar>> {
+        let sig_proof = self
+            .proofs
+            .get(reference_id)
+            .ok_or(Error::InvalidPresentationData)?;
+        match sig_proof {
+            PresentationProofs::Signature(s) => {
+                match schema
+                    .statements
+                    .get(&s.id)
+                    .ok_or(Error::InvalidPresentationData)?
+                {
+                    Statements::Signature(sig_st) => {
+                        let disclosed_messages: Vec<(usize, Scalar)> = s
+                            .disclosed_messages
+                            .iter()
+                            .map(|(idx, scalar)| (*idx, *scalar))
+                            .collect();
+                        let hidden_messages = s
+                            .pok
+                            .get_hidden_message_proofs(
+                                &sig_st.issuer.verifying_key,
+                                disclosed_messages.as_slice(),
+                            )
+                            .map_err(|_| Error::InvalidPresentationData)?;
+                        Ok(hidden_messages)
+                    }
+                    _ => Err(Error::InvalidPresentationData),
+                }
+            }
+            _ => Err(Error::InvalidPresentationData),
+        }
     }
 }

@@ -3,6 +3,7 @@ use credx::claim::{ClaimType, HashedClaim, NumberClaim, RevocationClaim};
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::issuer::Issuer;
 use credx::knox::bbs::BbsScheme;
+use credx::knox::ps::PsScheme;
 use credx::presentation::{Presentation, PresentationSchema};
 use credx::statement::{CommitmentStatement, RangeStatement, SignatureStatement};
 use credx::{random_string, CredxResult};
@@ -37,6 +38,11 @@ range_test_with!(in_range_max_implicit, isize::MAX, Some(0), None, false);
 // These tests are expected to fail (expected_to_fail argument is true)
 range_test_with!(out_of_range_below, 0, Some(1), Some(isize::MAX), true);
 range_test_with!(out_of_range_above, 1001, Some(0), Some(1000), true);
+
+#[test]
+fn test_out_of_range_above() {
+    assert!(test_range_proof_works(1000, Some(0), Some(1000), false).is_ok());
+}
 
 fn test_range_proof_works(
     val: isize,

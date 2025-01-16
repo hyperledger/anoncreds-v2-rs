@@ -9,6 +9,7 @@ use merlin::Transcript;
 pub struct CommitmentVerifier<'a, 'b> {
     pub statement: &'a CommitmentStatement<G1Projective>,
     pub proof: &'b CommitmentProof,
+    pub message_proof: Scalar,
 }
 
 impl ProofVerifier for CommitmentVerifier<'_, '_> {
@@ -18,7 +19,7 @@ impl ProofVerifier for CommitmentVerifier<'_, '_> {
         transcript: &mut Transcript,
     ) -> CredxResult<()> {
         let blind_commitment = self.proof.commitment * -challenge
-            + self.statement.message_generator * self.proof.message_proof
+            + self.statement.message_generator * self.message_proof
             + self.statement.blinder_generator * self.proof.blinder_proof;
 
         transcript.append_message(b"", self.statement.id.as_bytes());

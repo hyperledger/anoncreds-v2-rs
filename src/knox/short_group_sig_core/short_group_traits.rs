@@ -131,8 +131,9 @@ pub trait ProofOfSignatureKnowledge:
     /// Verify the signature proof of knowledge
     fn verify(
         &self,
-        revealed_messages: &[(usize, Scalar)],
         public_key: &Self::PublicKey,
+        revealed_messages: &[(usize, Scalar)],
+        challenge: Scalar,
     ) -> CredxResult<()>;
 
     /// Get the hidden message proofs

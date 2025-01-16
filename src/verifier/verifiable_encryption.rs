@@ -9,6 +9,7 @@ use merlin::Transcript;
 pub struct VerifiableEncryptionVerifier<'a, 'b> {
     pub statement: &'a VerifiableEncryptionStatement<G1Projective>,
     pub proof: &'b VerifiableEncryptionProof,
+    pub message_proof: Scalar,
 }
 
 impl ProofVerifier for VerifiableEncryptionVerifier<'_, '_> {
@@ -20,7 +21,7 @@ impl ProofVerifier for VerifiableEncryptionVerifier<'_, '_> {
         let challenge = -challenge;
         let r1 = self.proof.c1 * challenge + G1Projective::GENERATOR * self.proof.blinder_proof;
         let r2 = self.proof.c2 * challenge
-            + self.statement.message_generator * self.proof.message_proof
+            + self.statement.message_generator * self.message_proof
             + self.statement.encryption_key.0 * self.proof.blinder_proof;
 
         transcript.append_message(b"", self.statement.id.as_bytes());

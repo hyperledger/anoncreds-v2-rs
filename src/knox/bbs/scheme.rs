@@ -126,6 +126,6 @@ impl ShortGroupSignatureScheme for BbsScheme {
         transcript.challenge_bytes(b"signature proof of knowledge", &mut res);
         let v_challenge = Scalar::from_bytes_wide(&res);
 
-        proof.verify(revealed_msgs, public_key).is_ok() && challenge == v_challenge
+        proof.verify(public_key, revealed_msgs, challenge).is_ok() && challenge == v_challenge
     }
 }

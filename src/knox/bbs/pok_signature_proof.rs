@@ -17,7 +17,7 @@ use std::collections::{BTreeMap, BTreeSet};
 pub struct PokSignatureProof {
     pub(crate) a_bar: G1Projective,
     pub(crate) b_bar: G1Projective,
-    pub(crate) commitment: G1Projective,
+    pub(crate) t: G1Projective,
     pub(crate) proof: Vec<Scalar>,
 }
 
@@ -26,47 +26,23 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
 
     fn add_proof_contribution(
         &self,
-        public_key: &Self::PublicKey,
-        revealed_messages: &[(usize, Scalar)],
-        challenge: Scalar,
+        _public_key: &Self::PublicKey,
+        _revealed_messages: &[(usize, Scalar)],
+        _challenge: Scalar,
         transcript: &mut Transcript,
     ) {
-        transcript.append_message(b"a_bar", self.a_bar.to_affine().to_compressed().as_ref());
-        transcript.append_message(b"b_bar", self.b_bar.to_affine().to_compressed().as_ref());
-        transcript.append_message(
-            b"random commitment",
-            self.commitment.to_affine().to_compressed().as_ref(),
-        );
-        let mut known = BTreeSet::new();
-        for (idx, _) in revealed_messages {
-            known.insert(*idx);
-        }
-
-        let mut points = Vec::with_capacity(public_key.y.len() + 2);
-        for (idx, _) in public_key.y.iter().enumerate() {
-            if known.contains(&idx) {
-                continue;
-            }
-            points.push(public_key.y[idx]);
-        }
-        points.push(self.commitment);
-        points.push(self.a_bar);
-        points.push(self.b_bar);
-        let mut scalars = self.proof.clone();
-        scalars.push(-challenge);
-        let commitment = G1Projective::sum_of_products(&points, &scalars);
-        transcript.append_message(
-            b"blind commitment",
-            commitment.to_affine().to_compressed().as_ref(),
-        );
+        transcript.append_message(b"a_bar", self.a_bar.to_compressed().as_ref());
+        transcript.append_message(b"b_bar", self.b_bar.to_compressed().as_ref());
+        transcript.append_message(b"commitment", self.t.to_compressed().as_ref());
     }
 
     fn verify(
         &self,
-        revealed_messages: &[(usize, Scalar)],
         public_key: &Self::PublicKey,
+        revealed_messages: &[(usize, Scalar)],
+        challenge: Scalar,
     ) -> CredxResult<()> {
-        if (self.a_bar.is_identity() | self.b_bar.is_identity()).into() {
+        if (self.a_bar.is_identity() | self.b_bar.is_identity() | self.t.is_identity()).into() {
             return Err(Error::General("Invalid proof - identity"));
         }
         if public_key.is_invalid().into() {
@@ -74,16 +50,34 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
         }
         let mut points = Vec::with_capacity(public_key.y.len() + 2);
         let mut msgs = Vec::with_capacity(revealed_messages.len());
+        let mut known = BTreeSet::new();
         for (idx, msg) in revealed_messages {
             if *idx >= public_key.y.len() {
                 continue;
             }
+            known.insert(*idx);
             points.push(public_key.y[*idx]);
             msgs.push(*msg);
         }
-        let commitment = G1Projective::GENERATOR + G1Projective::sum_of_products(&points, &msgs);
-        if self.commitment != commitment {
-            return Err(Error::General("Invalid proof - commitment"));
+        let lhs = -G1Projective::sum_of_products(&points, &msgs) - G1Projective::GENERATOR;
+        points.clear();
+        msgs.clear();
+
+        for (idx, y) in public_key.y.iter().enumerate() {
+            if known.contains(&idx) {
+                continue;
+            }
+            points.push(*y);
+        }
+
+        points.push(self.a_bar);
+        points.push(self.b_bar);
+        points.push(lhs);
+        let mut scalars = self.proof.clone();
+        scalars.push(-challenge);
+        let commitment = G1Projective::sum_of_products(&points, &scalars);
+        if self.t != commitment {
+            return Err(Error::General("Invalid proof - invalid messages"));
         }
 
         let res = multi_miller_loop(&[
@@ -127,7 +121,10 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
                 j += 1;
                 continue;
             }
-            let message = self.proof.get(i).ok_or(Error::General("invalid proof"))?;
+            let message = self
+                .proof
+                .get(i - j)
+                .ok_or(Error::General("invalid proof"))?;
             hidden.insert(i, *message);
         }
 
@@ -140,9 +137,9 @@ impl PokSignatureProof {
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut buffer = Vec::with_capacity(48 * 3 + 32 * self.proof.len());
 
-        buffer.extend_from_slice(&self.a_bar.to_affine().to_compressed());
-        buffer.extend_from_slice(&self.b_bar.to_affine().to_compressed());
-        buffer.extend_from_slice(&self.commitment.to_affine().to_compressed());
+        buffer.extend_from_slice(&self.a_bar.to_compressed());
+        buffer.extend_from_slice(&self.b_bar.to_compressed());
+        buffer.extend_from_slice(&self.t.to_compressed());
         for scalar in &self.proof {
             buffer.extend_from_slice(scalar.to_repr().as_ref());
         }
@@ -194,7 +191,7 @@ impl PokSignatureProof {
         Some(Self {
             a_bar: a_bar.unwrap(),
             b_bar: b_bar.unwrap(),
-            commitment: commitment.unwrap(),
+            t: commitment.unwrap(),
             proof,
         })
     }

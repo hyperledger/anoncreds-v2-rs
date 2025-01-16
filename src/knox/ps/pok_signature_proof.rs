@@ -72,7 +72,12 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
     /// Validate the proof, only checks the signature proof
     /// the selective disclosure proof is checked by verifying
     /// self.challenge == computed_challenge
-    fn verify(&self, rvl_msgs: &[(usize, Scalar)], public_key: &PublicKey) -> CredxResult<()> {
+    fn verify(
+        &self,
+        public_key: &Self::PublicKey,
+        revealed_messages: &[(usize, Scalar)],
+        _challenge: Scalar,
+    ) -> CredxResult<()> {
         // check the signature proof
         if self
             .sigma_1
@@ -84,7 +89,7 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
             return Err(Error::General("Invalid proof - identity"));
         }
 
-        if public_key.y.len() < rvl_msgs.len() {
+        if public_key.y.len() < revealed_messages.len() {
             return Err(Error::General(
                 "Invalid key - revealed messages length is bigger than the public key",
             ));
@@ -96,7 +101,7 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
         let mut points = Vec::new();
         let mut scalars = Vec::new();
 
-        for (idx, msg) in rvl_msgs {
+        for (idx, msg) in revealed_messages {
             if *idx > public_key.y.len() {
                 return Err(Error::General("Invalid proof - revealed message index"));
             }
