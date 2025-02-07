@@ -48,7 +48,7 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
         if public_key.is_invalid().into() {
             return Err(Error::General("Invalid public key"));
         }
-        let mut points = Vec::with_capacity(public_key.y.len() + 2);
+        let mut points = Vec::with_capacity(public_key.y.len() + 3);
         let mut msgs = Vec::with_capacity(revealed_messages.len());
         let mut known = BTreeSet::new();
         for (idx, msg) in revealed_messages {

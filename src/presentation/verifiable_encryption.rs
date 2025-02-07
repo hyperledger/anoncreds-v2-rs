@@ -19,7 +19,6 @@ pub(crate) struct VerifiableEncryptionBuilder<'a> {
 
 impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for VerifiableEncryptionBuilder<'_> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
-        // Message proof will be passed from signature proof
         let blinder_proof = self.r + challenge * self.b;
         VerifiableEncryptionProof {
             id: self.statement.id.clone(),

@@ -41,7 +41,7 @@ impl ProofOfSignatureKnowledgeContribution for PokSignature {
         let b_bar = b * r - a_bar * signature.e;
 
         let mut proof = ProofCommittedBuilder::new(G1Projective::sum_of_products);
-        let mut hidden_messages = Vec::with_capacity(msgs.len());
+        let mut hidden_messages = Vec::with_capacity(msgs.len() + 2);
 
         for (i, m) in messages.iter().enumerate() {
             match m {

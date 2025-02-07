@@ -34,7 +34,8 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
         for (id, pred_statement) in &predicate_statements {
             match (pred_statement, self.proofs.get(*id)) {
                 (Statements::Revocation(aa), Some(PresentationProofs::Revocation(proof))) => {
-                    let hidden_messages = self.get_sig_hidden_messages(schema, &aa.reference_id)?;
+                    let hidden_messages =
+                        self.get_sig_hidden_message_proofs(schema, &aa.reference_id)?;
                     let message_proof = hidden_messages
                         .get(&aa.claim)
                         .ok_or(Error::InvalidPresentationData)?;
@@ -43,7 +44,8 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     verifiers.push(verifier.into());
                 }
                 (Statements::Membership(mm), Some(PresentationProofs::Membership(proof))) => {
-                    let hidden_messages = self.get_sig_hidden_messages(schema, &mm.reference_id)?;
+                    let hidden_messages =
+                        self.get_sig_hidden_message_proofs(schema, &mm.reference_id)?;
                     let message_proof = hidden_messages
                         .get(&mm.claim)
                         .ok_or(Error::InvalidPresentationData)?;
@@ -65,7 +67,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     Some(PresentationProofs::Commitment(proof)),
                 ) => {
                     let hidden_messages =
-                        self.get_sig_hidden_messages(schema, &statement.reference_id)?;
+                        self.get_sig_hidden_message_proofs(schema, &statement.reference_id)?;
                     let message_proof = hidden_messages
                         .get(&statement.claim)
                         .ok_or(Error::InvalidPresentationData)?;
@@ -82,7 +84,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     Some(PresentationProofs::VerifiableEncryption(proof)),
                 ) => {
                     let hidden_messages =
-                        self.get_sig_hidden_messages(schema, &statement.reference_id)?;
+                        self.get_sig_hidden_message_proofs(schema, &statement.reference_id)?;
                     let message_proof = hidden_messages
                         .get(&statement.claim)
                         .ok_or(Error::InvalidPresentationData)?;
@@ -144,7 +146,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
         Ok(())
     }
 
-    fn get_sig_hidden_messages(
+    fn get_sig_hidden_message_proofs(
         &self,
         schema: &PresentationSchema<S>,
         reference_id: &String,
