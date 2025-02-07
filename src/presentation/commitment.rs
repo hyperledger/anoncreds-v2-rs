@@ -12,19 +12,16 @@ use serde::{Deserialize, Serialize};
 pub(crate) struct CommitmentBuilder<'a> {
     pub(crate) commitment: G1Projective,
     pub(crate) statement: &'a CommitmentStatement<G1Projective>,
-    pub(crate) message: Scalar,
     pub(crate) b: Scalar,
     pub(crate) r: Scalar,
 }
 
 impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for CommitmentBuilder<'_> {
     fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
-        let message_proof = self.b + challenge * self.message;
         let blinder_proof = self.r + challenge * self.b;
         CommitmentProof {
             id: self.statement.id.clone(),
             commitment: self.commitment,
-            message_proof,
             blinder_proof,
         }
         .into()
@@ -41,7 +38,6 @@ impl<'a> CommitmentBuilder<'a> {
         transcript: &mut Transcript,
     ) -> CredxResult<Self> {
         let r = Scalar::random(&mut rng);
-
         let commitment = statement.message_generator * message + statement.blinder_generator * b;
         let blind_commitment = statement.message_generator * b + statement.blinder_generator * r;
 
@@ -57,7 +53,6 @@ impl<'a> CommitmentBuilder<'a> {
         Ok(Self {
             commitment,
             statement,
-            message,
             b,
             r,
         })
@@ -71,8 +66,6 @@ pub struct CommitmentProof {
     pub id: String,
     /// The commitment
     pub commitment: G1Projective,
-    /// The schnorr message proof
-    pub message_proof: Scalar,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
 }

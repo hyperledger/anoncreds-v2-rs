@@ -47,10 +47,11 @@ impl<S: ShortGroupSignatureScheme> ProofVerifier for SignatureVerifier<'_, '_, S
         Ok(())
     }
 
-    fn verify(&self, _challenge: Scalar) -> CredxResult<()> {
+    fn verify(&self, challenge: Scalar) -> CredxResult<()> {
         self.signature_proof.pok.verify(
-            &self.disclosed_messages,
             &self.statement.issuer.verifying_key,
+            &self.disclosed_messages,
+            challenge,
         )
     }
 }
