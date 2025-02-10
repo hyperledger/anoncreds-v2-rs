@@ -453,7 +453,7 @@ fn setup_ssa<S: ShortGroupSignatureScheme>(
     )
     .unwrap();
 
-    let (ssa_public, mut ssa) = Issuer::new(&vc_soc_sec_schema);
+    let (ssa_public, ssa) = Issuer::new(&vc_soc_sec_schema);
     vdr.insert(SSA_DID.to_string(), ssa_public);
     ssa_wallet.insert(SSA_DID.to_string(), ssa);
 
@@ -477,7 +477,7 @@ fn setup_dos<S: ShortGroupSignatureScheme>(
     )
     .unwrap();
 
-    let (dos_public, mut dos) = Issuer::new(&vc_passport_schema);
+    let (dos_public, dos) = Issuer::new(&vc_passport_schema);
     vdr.insert(DOS_DID.to_string(), dos_public);
     dos_wallet.insert(DOS_DID.to_string(), dos);
 
@@ -499,7 +499,7 @@ fn setup_bank<S: ShortGroupSignatureScheme>(
     )
     .unwrap();
 
-    let (bank_a_public, mut bank_a) = Issuer::new(&vc_bank_stmt_schema);
+    let (bank_a_public, bank_a) = Issuer::new(&vc_bank_stmt_schema);
     vdr.insert(BANK_DID.to_string(), bank_a_public);
     bank_wallet.insert(BANK_DID.to_string(), bank_a);
 

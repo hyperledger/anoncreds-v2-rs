@@ -3,7 +3,6 @@ use credx::claim::{ClaimType, HashedClaim, NumberClaim, RevocationClaim};
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::issuer::Issuer;
 use credx::knox::bbs::BbsScheme;
-use credx::knox::ps::PsScheme;
 use credx::presentation::{Presentation, PresentationSchema};
 use credx::statement::{CommitmentStatement, RangeStatement, SignatureStatement};
 use credx::{random_string, CredxResult};
