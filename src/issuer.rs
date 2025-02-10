@@ -305,6 +305,7 @@ impl Issuer {
     fn get_public(&self) -> IssuerPublic {
         let verifying_key = ps::PublicKey::from(&self.signing_key);
         let revocation_verifying_key = vb20::PublicKey::from(&self.revocation_key);
+        #[allow(unused_qualifications)]
         let verifiable_encryption_key =
             PublicKey::<Bls12381G2Impl>::from(&self.verifiable_decryption_key);
         IssuerPublic {

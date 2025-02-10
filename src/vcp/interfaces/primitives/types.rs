@@ -22,15 +22,18 @@ pub struct InRangeResolved {
 }
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd)]
-pub struct EncryptedForResolved(pub AuthorityPublicData);
+pub struct EncryptedForResolved {
+    pub auth_pub_spk  : SharedParamKey,
+    pub auth_pub_data : AuthorityPublicData,
+}
 
 impl std::fmt::Debug for EncryptedForResolved {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("EncryptedForResolved")
             .field(
                 &(format!(
-                    "AuthorityPublicData with {} characters",
-                    self.0.0.len()
+                    "AuthorityPublicData with for key {}",
+                    self.auth_pub_spk,
                 )),
             )
             .finish()
@@ -82,7 +85,7 @@ pub struct ProofInstructionGeneral<T> {
     pub discl_general    : T,
 }
 
-pub type EqualityReq = Vec<(CredentialLabel, CredAttrIndex)>;
+pub type EqualityReq  = Vec<(CredentialLabel, CredAttrIndex)>;
 pub type EqualityReqs = Vec<EqualityReq>;
 
 #[derive(Debug, PartialEq)]

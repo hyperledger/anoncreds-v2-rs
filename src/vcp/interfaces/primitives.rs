@@ -101,7 +101,7 @@ pub type UpdateAccumulatorWitness = Arc<
     dyn Fn(
             &AccumulatorMembershipWitness,
             &AccumulatorElement,
-            &AccumWitnessUpdateInfo,
+            &AccumulatorWitnessUpdateInfo,
         ) -> VCPResult<AccumulatorMembershipWitness>
         + Send
         + Sync,

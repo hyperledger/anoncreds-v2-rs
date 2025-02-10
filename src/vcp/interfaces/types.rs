@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use std::collections::HashMap;
 // ------------------------------------------------------------------------------
 
+#[macro_export]
 macro_rules! impl_Debug_for_OpaqueMaterial_wrapper {
     ($ty: ident) => {
         impl std::fmt::Debug for $ty {
@@ -200,14 +201,14 @@ pub struct InRangeInfo {
     pub min_label: SharedParamKey,
     #[serde(rename = "maxLabel")]
     pub max_label: SharedParamKey,
-    #[serde(rename = "provingKeyLabel")]
-    pub proving_key_label: SharedParamKey,
+    #[serde(rename = "rangeProvingKeyLabel")]
+    pub range_proving_key_label: SharedParamKey,
 }
 
 impl InRangeInfo {
     pub fn new(index: RawIndex, min_label: SharedParamKey,
-               max_label: SharedParamKey, proving_key_label: SharedParamKey) -> InRangeInfo {
-        InRangeInfo { index, max_label, min_label, proving_key_label }
+               max_label: SharedParamKey, range_proving_key_label: SharedParamKey) -> InRangeInfo {
+        InRangeInfo { index, max_label, min_label, range_proving_key_label }
     }
 }
 
@@ -215,22 +216,22 @@ impl InRangeInfo {
 pub struct InAccumInfo {
     #[serde(rename = "index")]
     pub index: RawIndex,
-    #[serde(rename = "publicDataLabel")]
-    pub public_data_label: SharedParamKey,
-    #[serde(rename = "memPrvLabel")]
-    pub mem_prv_label: SharedParamKey,
+    #[serde(rename = "accumulatorPublicDataLabel")]
+    pub accumulator_public_data_label: SharedParamKey,
+    #[serde(rename = "membershipProvingKeyLabel")]
+    pub membership_proving_key_label: SharedParamKey,
     #[serde(rename = "accumulatorLabel")]
     pub accumulator_label: SharedParamKey,
     /// Holder needs this to find appropriate witness
-    #[serde(rename = "accumulatorSeqNo")]
-    pub accumulator_seq_no_label: SharedParamKey,
+    #[serde(rename = "accumulatorSeqNumLabel")]
+    pub accumulator_seq_num_label: SharedParamKey,
 }
 
 impl InAccumInfo {
-    pub fn new(index: RawIndex, public_data_label: SharedParamKey,
-               mem_prv_label: SharedParamKey, accumulator_label: SharedParamKey,
-               accumulator_seq_no_label: SharedParamKey) -> InAccumInfo {
-        InAccumInfo { index, public_data_label, mem_prv_label, accumulator_label, accumulator_seq_no_label }
+    pub fn new(index: RawIndex, accumulator_public_data_label: SharedParamKey,
+               membership_proving_key_label: SharedParamKey, accumulator_label: SharedParamKey,
+               accumulator_seq_num_label: SharedParamKey) -> InAccumInfo {
+        InAccumInfo { index, accumulator_public_data_label, membership_proving_key_label, accumulator_label, accumulator_seq_num_label }
     }
 }
 
@@ -248,9 +249,9 @@ impl_Debug_for_OpaqueMaterial_wrapper! { MembershipProvingKey }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AccumulatorData {
     #[serde(rename = "accumulatorPublicData")]
-    pub public_data: AccumulatorPublicData,
+    pub accumulator_public_data: AccumulatorPublicData,
     #[serde(rename = "accumulatorSecretData")]
-    pub secret_data: AccumulatorSecretData,
+    pub accumulator_secret_data: AccumulatorSecretData,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -270,8 +271,8 @@ pub struct AccumulatorElement(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorElement }
 
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
-pub struct AccumWitnessUpdateInfo(pub OpaqueMaterial);
-impl_Debug_for_OpaqueMaterial_wrapper! { AccumWitnessUpdateInfo }
+pub struct AccumulatorWitnessUpdateInfo(pub OpaqueMaterial);
+impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorWitnessUpdateInfo }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct HolderID(pub OpaqueMaterial);
@@ -279,16 +280,22 @@ impl_Debug_for_OpaqueMaterial_wrapper! { HolderID }
 
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct CreateAccumulatorResponse  {
-    pub new_accum_data  : AccumulatorData,
-    pub new_accum_value : Accumulator,
+    #[serde(rename = "accumulatorData")]
+    pub accumulator_data  : AccumulatorData,
+    #[serde(rename = "accumulator")]
+    pub accumulator       : Accumulator,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AccumulatorAddRemoveResponse {
-    pub witness_update_info: AccumWitnessUpdateInfo,
-    pub wits_for_new: HashMap<HolderID, AccumulatorMembershipWitness>,
-    pub updated_accum_data: AccumulatorData,
-    pub updated_accum_value: Accumulator,
+    #[serde(rename = "witnessUpdateInfo")]
+    pub witness_update_info: AccumulatorWitnessUpdateInfo,
+    #[serde(rename = "witnessesForNew")]
+    pub witnesses_for_new: HashMap<HolderID, AccumulatorMembershipWitness>,
+    #[serde(rename = "accumulatorData")]
+    pub accumulator_data: AccumulatorData,
+    #[serde(rename = "accumulator")]
+    pub accumulator: Accumulator,
 }
 
 // ------------------------------------------------------------------------------
@@ -315,18 +322,19 @@ impl_Debug_for_OpaqueMaterial_wrapper! { AuthorityDecryptionKey }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AuthorityData {
-    #[serde(rename = "public")]
-    pub public: AuthorityPublicData,
-    #[serde(rename = "secret")]
-    pub secret: AuthoritySecretData,
-    #[serde(rename = "decryptionKey")]
-    pub decryption_key: AuthorityDecryptionKey,
+    #[serde(rename = "authorityPublicData")]
+    pub authority_public_data: AuthorityPublicData,
+    #[serde(rename = "authoritySecretData")]
+    pub authority_secret_data: AuthoritySecretData,
+    #[serde(rename = "authorityDecryptionKey")]
+    pub authority_decryption_key: AuthorityDecryptionKey,
 }
 
 impl AuthorityData {
-    pub fn new(public: AuthorityPublicData, secret: AuthoritySecretData,
-               decryption_key: AuthorityDecryptionKey) -> AuthorityData {
-        AuthorityData { public, secret, decryption_key }
+    pub fn new(authority_public_data: AuthorityPublicData,
+               authority_secret_data: AuthoritySecretData,
+               authority_decryption_key: AuthorityDecryptionKey) -> AuthorityData {
+        AuthorityData { authority_public_data, authority_secret_data, authority_decryption_key }
     }
 }
 
@@ -349,14 +357,14 @@ pub struct SignatureAndRelatedData {
     pub signature: Signature,
     #[serde(rename = "values")]
     pub values: Vec<DataValue>,
-    #[serde(rename = "credAuxData")]
-    pub accum_wits: AccumulatorWitnesses,
+    #[serde(rename = "accumulatorWitnesses")]
+    pub accumulator_witnesses: AccumulatorWitnesses,
 }
 
 impl SignatureAndRelatedData {
     pub fn new(signature: Signature, values: Vec<DataValue>,
-               accum_wits: AccumulatorWitnesses) -> SignatureAndRelatedData {
-        SignatureAndRelatedData { signature, values, accum_wits }
+               accumulator_witnesses: AccumulatorWitnesses) -> SignatureAndRelatedData {
+        SignatureAndRelatedData { signature, values, accumulator_witnesses }
     }
 }
 
@@ -365,16 +373,20 @@ impl SignatureAndRelatedData {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DecryptRequest {
-    #[serde(rename = "authSecret")]
-    pub auth_secret: AuthoritySecretData,
-    #[serde(rename = "authDecryptionKey")]
-    pub auth_decryption_key: AuthorityDecryptionKey,
+    #[serde(rename = "authoritySecretData")]
+    pub authority_secret_data: AuthoritySecretData,
+    #[serde(rename = "authorityDecryptionKey")]
+    pub authority_decryption_key: AuthorityDecryptionKey,
 }
 
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
+pub struct DecryptionProof(pub OpaqueMaterial);
+impl_Debug_for_OpaqueMaterial_wrapper! { DecryptionProof }
+
 impl DecryptRequest {
-    pub fn new(auth_secret: AuthoritySecretData,
-               auth_decryption_key: AuthorityDecryptionKey) -> DecryptRequest {
-        DecryptRequest { auth_secret, auth_decryption_key }
+    pub fn new(authority_secret_data: AuthoritySecretData,
+               authority_decryption_key: AuthorityDecryptionKey) -> DecryptRequest {
+        DecryptRequest { authority_secret_data, authority_decryption_key }
     }
 }
 
@@ -382,13 +394,13 @@ impl DecryptRequest {
 pub struct DecryptResponse {
     #[serde(rename = "value")]
     pub value: String,
-    #[serde(rename = "proof")]
-    pub proof: Proof
+    #[serde(rename = "decryptionProof")]
+    pub decryption_proof: DecryptionProof
 }
 
 impl DecryptResponse {
-    pub fn new(value: String, proof: Proof) -> DecryptResponse {
-        DecryptResponse { value, proof }
+    pub fn new(value: String, decryption_proof: DecryptionProof) -> DecryptResponse {
+        DecryptResponse { value, decryption_proof }
     }
 }
 
@@ -437,20 +449,20 @@ impl DataForVerifier {
 pub struct WarningsAndDataForVerifier {
     #[serde(rename = "warnings")]
     pub warnings: Vec<Warning>,
-    #[serde(rename = "result")]
-    pub result: DataForVerifier
+    #[serde(rename = "dataForVerifier")]
+    pub data_for_verifier: DataForVerifier
 }
 
 impl WarningsAndDataForVerifier {
-    pub fn new(warnings: Vec<Warning>, result: DataForVerifier) -> WarningsAndDataForVerifier {
-        WarningsAndDataForVerifier { warnings, result }
+    pub fn new(warnings: Vec<Warning>, data_for_verifier: DataForVerifier) -> WarningsAndDataForVerifier {
+        WarningsAndDataForVerifier { warnings, data_for_verifier }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct WarningsAndDecryptResponses {
-    #[serde(rename = "statementWarnings")]
-    pub statement_warnings: Vec<Warning>,
+    #[serde(rename = "warnings")]
+    pub warnings: Vec<Warning>,
     #[serde(rename = "decryptResponses")]
     pub decrypt_responses: HashMap<CredentialLabel,
                                    HashMap<CredAttrIndex,
@@ -458,12 +470,12 @@ pub struct WarningsAndDecryptResponses {
 }
 
 impl WarningsAndDecryptResponses {
-    pub fn new(statement_warnings: Vec<Warning>,
+    pub fn new(warnings: Vec<Warning>,
                decrypt_responses: HashMap<CredentialLabel,
                                           HashMap<CredAttrIndex,
                                                   HashMap<AuthorityLabel, DecryptResponse>>>,
     ) -> WarningsAndDecryptResponses {
-        WarningsAndDecryptResponses { statement_warnings, decrypt_responses }
+        WarningsAndDecryptResponses { warnings, decrypt_responses }
     }
 }
 

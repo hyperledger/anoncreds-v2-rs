@@ -20,7 +20,7 @@ pub type VCPResult<T> = Result<T, Error>;
 pub enum Error {
     B64DecodeError(base64::DecodeError),
     B64DecodeSliceError(base64::DecodeSliceError),
-    CredxError(prelude::Error),
+    CryptoLibraryError(String),
     FileError(String),
     FromUtf8Error(std::string::FromUtf8Error),
     General(String),
@@ -28,6 +28,13 @@ pub enum Error {
     SerdeError(SerdeJsonError),
     UnexpectedError(UnexpectedError),
     Utf8Error(std::str::Utf8Error),
+}
+
+pub fn convert_to_crypto_library_error<T>
+    (crypto_lib: &str, call_site: &str, err: T) -> Error
+where T: Debug {
+    Error::CryptoLibraryError(
+        format!("Error from underlying cryptography library {crypto_lib}, {call_site}: {:?}", err))
 }
 
 #[derive(Debug)]

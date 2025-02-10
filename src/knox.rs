@@ -1,3 +1,4 @@
+#![allow(clippy::all)]
 /// Accumulator methods
 pub mod accumulator;
 /// ECC group operations
