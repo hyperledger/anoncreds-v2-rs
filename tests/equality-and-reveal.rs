@@ -1,4 +1,3 @@
-#[cfg(test)]
 mod reveal_and_equality_tests {
     use credx::claim::ClaimData;
     use credx::claim::{ClaimType, ClaimValidator, HashedClaim, RevocationClaim};

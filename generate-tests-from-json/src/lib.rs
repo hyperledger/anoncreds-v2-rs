@@ -34,7 +34,8 @@ use std::collections::HashMap;
 ///
 /// Running, ignoring slow and slowslow tests
 ///
-///      Consider the following test files:
+///      Consider the following test files (note that these files are not necessarily current or
+///      accurate test files; they are just examples for the purposes of this documentation):
 ///
 ///      - json_test_014_slow_verifies_with_small_range_below_signed_value.json
 ///      - json_test_015_slow_verifies_with_small_range_above_signed_value.json
@@ -70,19 +71,17 @@ use std::collections::HashMap;
 ///
 ///      Only tests with 'slowslow' are ignored
 ///
-///      Looking up overrides
+///      Overrides
 ///
 ///      The override_path argument specifies the location of a JSON file that represents a map from
 ///      "distilled" test labels to overrides.  Both test names and keys in the JSON overrides file
 ///      are distilled in order to reduce sensitivity of the lookup to details such as instances of
 ///      "slow", "slowslow" (lower and upper case), double underscores, etc.
 ///
-///      Overrides
-///
 ///      Possible overrides are:
 ///      - NotSoSlow: Run the test even if its name contains "slow" or "slowslow" and one of the ignore_slow* features is enabled
-///      - Skip(reason): Skip the test and display the reason
-///      - Fail(reason): Fail the test and include the reason in the failure output
+///      - Skip(reason): Skip the test and include "ignored" and the reason in test output, do not count it as failure
+///      - Fail(reason): Fail the test and include the reason in the test output, count it as a failure
 ///
 ///      TODO: revisit "slowness" handling; replace NotSoSlow with (something like) Slowness(n), and enable skipping all tests
 ///      with greater than a specified "slowness"
@@ -113,12 +112,37 @@ use std::collections::HashMap;
 ///
 ///      ---- vcp::r#impl::general::proof_system::direct::tests::test_014_slow_verifies_with_small_range_below_signed_value stdout ----
 ///      thread 'vcp::r#impl::general::proof_system::direct::tests::test_014_slow_verifies_with_small_range_below_signed_value' panicked at
-///             'don't run this test because of some deficiency in the library', tests/vcp/impl/general/proof_system/direct.rs:69:5
+///             'don't run this test because of some deficiency in the library', tests/vcp/impl/general/proof_system/direct.rs:71:5
+///
+///
+///
+///      Note that the reason (from the =content= field in the overrides file) is displayed for
+///      tests ignored due to the Skip tag.  For tests overridden to Fail, the reason is not
+///      displayed by default.  Also, the code line shown (=direct.rs:69=) is not informative: it's
+///      just the line where a macro is called to run the test. However, running an individual test
+///      that is overridden to Fail with the --nocapture flag displays the reason from the overrides
+///      file, e.g.,:
+///
+///      $ cargo test ac2c::test_014 -- --nocapture
+///      ...
+///      running 1 test
+///      thread 'vcp::r#impl::general::proof_system::direct::tests::ac2c::test_014_verifies_with_small_range_below_signed_value_overridden_to_fail' panicked at tests/vcp/impl/general/proof_system/direct.rs:71:9:
+///      don't run this test because of some deficiency in the library       <=== reason for overriding the test to Fail
+///      test vcp::r#impl::general::proof_system::direct::tests::ac2c::test_014_verifies_with_small_range_below_signed_value_overridden_to_fail ... FAILED
+///
+///      failures:
+///          vcp::r#impl::general::proof_system::direct::tests::ac2c::test_020_SLOWSLOW_encrypt_and_decrypt_one_attribute_and_verify_overridden_to_fail
+///
+///      test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 119 filtered out; finished in 0.00s
+///
+///      To investigate the actual test behaviour, remove the override, and run, for example:
+///
+///      $ RUST_BACKTRACE=1 cargo test ac2c::test_014 -- --nocapture
 ///
 ///      About override labels
 ///
 ///      To make it easier to override tests and avoid adverse interactions with SLOW annotations,
-///      key values in the overrides file and (file)names of tests are preprocessed before matching:
+///      key values in the overrides file and (file)names of tests are preprocessed ("distilled") before matching:
 ///      - all instances of slow or SLOW are removed
 ///      - a required prefix like json_test_012_ is removed from test file names
 
@@ -214,6 +238,9 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
                 .collect()
         }
     };
+    // Simplistic way to track unused overrides.
+    // TODO: detect overrides used for multiple tests, report which ones
+    let mut unused_overrides = overrides.clone();
 
     // get all filenames in the specified test directory (ignore subdirectories)
     let dir_path = dir_path_lit.to_string().replace("\"", "");
@@ -244,10 +271,11 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
         let mut test_name = file_basename.clone();
         // "distill" name and lookup override, if any
         let lookup_str = file_basename.distill_test_name().to_string();
-        let r#override = overrides.get(&lookup_str);
+        let lupstrref = &lookup_str.clone();
+        let r#override = overrides.get(lupstrref);
         // remove "slow" from test_name if override is NotSoSlow
         if r#override == Some(&TestHandler::NotSoSlow) {
-           test_name = lookup_str;
+            test_name = lookup_str;
         }
         // prepend "test_": a valid identifier cannot start with a digit
         test_name = "test_".to_string() + &test_name;
@@ -270,6 +298,9 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
             #[test]
         };
         let test_name_as_string = test_name.to_string();
+        // Note that the should_panic directive emitted here has nothing to do with "panic!" (as in
+        // generate an error and die).  It simply reverses the "sense" of the test so that it fails
+        // if the underlying test succeeds, and vice versa.
         if test_name_as_string.contains("expected_to_fail") {
             ts.extend(quote! {
                 #[should_panic]
@@ -281,7 +312,7 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
                 #[cfg_attr(feature = "ignore_slow", ignore)]
             })
         }
-        if test_name_as_string.is_slow_slow() {
+        if test_name_as_string.clone().is_slow_slow() {
             ts.extend(quote! {
                 #[cfg_attr(any(feature = "ignore_slow", feature = "ignore_slow_slow"),ignore)]
             })
@@ -290,30 +321,54 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
         let test_name_id = pm2::Ident::new(&test_name, pm2::Span::call_site());
         // generate output for the test itself, taking override (if any) into account
         match r#override {
-            Some(TestHandler::NotSoSlow) | None =>
+            Some(TestHandler::NotSoSlow) | None => {
+                unused_overrides.remove(lupstrref);
                 ts.extend(quote!{
                     fn #test_name_id() {
                         #test_runner(#file_path_lit)
                     }
-                }),
+                })},
             Some(TestHandler::Fail(s)) => {
+                unused_overrides.remove(lupstrref);
                 let err_str = pm2::Literal::string(s);
                 let test_name_id =
                     pm2::Ident::new(&(test_name + "_overridden_to_fail"), pm2::Span::call_site());
-                ts.extend(quote!{
-                    fn #test_name_id() {
-                        panic!(#err_str)
-                    }
-                })},
+                if test_name_as_string.contains("expected_to_fail") {
+                    // The test is overridden to ensure it fails.  If its name contains
+                    // "expected_to_fail", then we emitted #[should_panic] before the test.
+                    // Therefore, we omit a trivial empty test that PASSES in order to make the cargo test fail.
+                    ts.extend(quote! {
+                        fn #test_name_id() {
+                        }
+                    })
+                } else {
+                    // Otherwise, we used panic! to make it fail.
+                    ts.extend(quote!{
+                        fn #test_name_id() {
+                            panic!(#err_str)
+                        }
+                    })}},
             Some(TestHandler::Skip(s)) => {
+                unused_overrides.remove(lupstrref);
                 let skip_str = pm2::Literal::string(s);
+                // We want to ignore this test, so we replace it by an empty/trivial test, and
+                // annotate it with #[ignore = #skip_str].
                 ts.extend(quote! {
                     #[ignore = #skip_str]
                     fn #test_name_id() {}
                 })}
         }
         output.extend(ts);
-    }
+    };
+    let num_unused = unused_overrides.len();
+    if num_unused != 0 {
+        println!("-------------------------");
+        println!("WARNING: {num_unused} unused overrides\n in {override_file_name}");
+        for (k,v) in unused_overrides {
+            println!("{k}\n    {v:?}")
+        }
+        println!("-------------------------\n");
+    };
     output.into()
 }
 

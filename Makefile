@@ -16,7 +16,7 @@ SKIP_TESTS_THAT_OVERWRITE_SRC = \
         --skip test_to_w3c_presentation \
         --skip test_map_to_w3c_presentation
 
-SKIP_TESTS_THAT_ARE_OVERRIDDEN = \
+SKIP_TESTS_THAT_ARE_OVERRIDDEN_TO_FAIL = \
         --skip overridden_to_fail
 
 .PHONY: test
@@ -24,7 +24,13 @@ test:
 	cargo test -- \
                    $(TEST_THREADS) \
                    $(SKIP_TESTS_THAT_OVERWRITE_SRC) \
-                   $(SKIP_TESTS_THAT_ARE_OVERRIDDEN)
+                   $(SKIP_TESTS_THAT_ARE_OVERRIDDEN_TO_FAIL)
+
+.PHONY: test-all   # shows failures for tests overridden to fail
+test-all:
+	cargo test -- \
+                   $(TEST_THREADS) \
+                   $(SKIP_TESTS_THAT_OVERWRITE_SRC)
 
 .PHONY: test-skip-slow
 test-skip-slow:
@@ -32,7 +38,7 @@ test-skip-slow:
                    -- \
                    $(TEST_THREADS) \
                    $(SKIP_TESTS_THAT_OVERWRITE_SRC) \
-                   $(SKIP_TESTS_THAT_ARE_OVERRIDDEN)
+                   $(SKIP_TESTS_THAT_ARE_OVERRIDDEN_TO_FAIL)
 
 .PHONY: test-skip-slow-slow
 test-skip-slow-slow:
@@ -40,12 +46,16 @@ test-skip-slow-slow:
                    -- \
                    $(TEST_THREADS) \
                    $(SKIP_TESTS_THAT_OVERWRITE_SRC) \
-                   $(SKIP_TESTS_THAT_ARE_OVERRIDDEN)
+                   $(SKIP_TESTS_THAT_ARE_OVERRIDDEN_TO_FAIL)
 
 .PHONY: clean
 clean:
 	cargo clean
 
+# Note: edit ./src/vcp/README.org, then do
+#   M-x org-md-export-to-markdown (in emacs)
+# Then:
+#   make fix-readme-markdown
 README_MD = ./src/vcp/README.md
 .PHONY: fix-readme-markdown
 fix-readme-markdown:

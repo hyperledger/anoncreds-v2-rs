@@ -12,7 +12,6 @@ base64 = "0.22"
 blsful = "2.5"
 bulletproofs = { version = "4.0.0", git = "https://github.com/cryptidtech/bulletproofs" }
 chrono = "0.4"
-generate-tests-from-json = { path = "generate-tests-from-json" }
 hex = "0.4"
 indexmap = "2"
 lazy_static = "1.4.0"
@@ -36,11 +35,26 @@ uint-zigzag = { version = "0.2", features = ["std"] }
 uuid = {version = "1.10", features = ["v4"]}
 zeroize = "1"
 
+# VCP specific dependencies
+# ----- docknetwork crypto
+bbs_plus = "0.22.0"
+legogroth16 = "0.15.0"
+proof_system = "0.31.0"
+saver = "0.18.0"
+vb_accumulator = "0.26.0"
+# ----- needed for VCP usage of docknetwork crypto
+ark-bls12-381 = "0.4.0"
+ark-ec = { version = "^0.4.1", default-features = false }
+ark-ff = { version = "^0.4.1", default-features = false }
+ark-serialize = { version = "^0.4.1", default-features = false, features = [ "derive" ] }
+ark-std = { version = "^0.4.0", default-features = false}
+blake2 = { version = "0.10", default-features = false }
+# ----- to generate tests
+generate-tests-from-json = { path = "generate-tests-from-json" }
 
 [dev-dependencies]
 lazy_static = "1.5.0"
 maplit = "1"
-serde_cbor = "0.11"
 sha2 = "0.10"
 env_logger = "0.11"
 

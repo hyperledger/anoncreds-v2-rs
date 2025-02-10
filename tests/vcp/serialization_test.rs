@@ -1,9 +1,9 @@
 // ------------------------------------------------------------------------------
 use credx::vcp::VCPResult;
 use credx::vcp::api;
-use credx::vcp::r#impl::to_from::*;
-use credx::vcp::r#impl::ac2c::accumulator::*;
-use credx::vcp::r#impl::json::util::*;
+use credx::vcp::r#impl::zkp_backends::ac2c::accumulators::*;
+use credx::vcp::r#impl::common::json::util::*;
+use credx::vcp::r#impl::common::to_from_api::*;
 use credx::vcp::interfaces::types::*;
 // ------------------------------------------------------------------------------
 use credx::prelude::vb20;
@@ -14,8 +14,8 @@ const PRINT_ENABLED : bool = false;
 #[test]
 fn accumulator_serialization() -> VCPResult<()> {
     let CreateAccumulatorResponse {
-        new_accum_data  : AccumulatorData { public_data : api_public, secret_data : _},
-        new_accum_value : api_acc
+        accumulator_data  : AccumulatorData { accumulator_public_data : api_public, accumulator_secret_data : _},
+        accumulator       : api_acc
     } = create_accumulator_data()(0)?;
     if PRINT_ENABLED { println!("api_public {:?}", api_public) };
     if PRINT_ENABLED { println!("api_acc {:?}", api_acc) };

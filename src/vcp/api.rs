@@ -2,7 +2,7 @@
 pub use crate::vcp::Error;
 pub use crate::vcp::crypto_interface::CryptoInterface;
 pub use crate::vcp::non_primitives::*;
-pub use crate::vcp::r#impl::general::proof::{create_proof, verify_proof};
+pub use crate::vcp::r#impl::common::general::proof::{create_proof, verify_proof};
 pub use crate::vcp::primitives::*;
 pub use crate::vcp::types::*;
 // -----------------------------------------------------------------------------

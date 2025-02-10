@@ -1,8 +1,6 @@
 // ------------------------------------------------------------------------------
 use credx::vcp::interfaces::types::*;
 // ------------------------------------------------------------------------------
-use crate::util::remove_whitespace;
-// ------------------------------------------------------------------------------
 
 // Tests for serialization of API types.
 // We want to ensure
@@ -125,11 +123,31 @@ fn dl_reqs() -> &'static str {
                          "toLabel":"MonthlySubscription1.0SignerPublicData"}],
         "inAccum"     :[],
         "inRange"     :[{"index":1,"maxLabel":"daysBornAfterJan_1_1900MAX",
-                          "minLabel":"daysBornAfterJan_1_1900MIN","provingKeyLabel":"rangeProvingKey"}],
+                          "minLabel":"daysBornAfterJan_1_1900MIN","rangeProvingKeyLabel":"rangeProvingKey"}],
         "notInAccum"  :[],
         "signerLabel" :"DriverLicense1.0SignerPublicData"}"#
 }
 
 fn spvone() -> &'static str {
     r#"{"contents":{"contents":"{\"signerPublicSchema\":[\"CTText\",\"CTInt\",\"CTInt\",\"CTAccumulatorMember\",\"CTEncryptableText\"],\"signerPublicSetupData\":\"5LDYxXSJd\"}","tag":"DVText"},"tag":"SPVOne"}"#
+}
+
+// ------------------------------------------------------------------------------
+// utilities
+
+pub fn remove_whitespace(s: &str) -> String {
+    let s = s.trim();
+    let mut collapsed = String::new();
+    for c in s.chars() {
+        if collapsed.chars().last().is_some() {
+            if c.is_whitespace() {
+                continue;
+            } else {
+                collapsed.push(c);
+            }
+        } else {
+            collapsed.push(c);
+        }
+    }
+    collapsed
 }

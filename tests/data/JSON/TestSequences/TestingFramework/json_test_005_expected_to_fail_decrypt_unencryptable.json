@@ -1,6 +1,6 @@
 {"comment": "this should not be allowed, so the test should fail",
  "descr": "expected_to_fail_decrypt_unencryptable",
- "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, please file an issue against https://github.com/mark-moir/anoncreds-v2-rs and mention commit 1661de53d199b005e4dc391bab0502bfcf6cfe31(which is in a different, non-public repo).",
+ "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-01-28",
  "testseq": [{"contents": ["DMV",
                            ["CTText", "CTInt", "CTEncryptableText", "CTInt",
                             "CTAccumulatorMember"]],

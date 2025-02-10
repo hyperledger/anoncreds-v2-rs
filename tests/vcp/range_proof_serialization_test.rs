@@ -1,6 +1,6 @@
 // ------------------------------------------------------------------------------
 use credx::vcp::VCPResult;
-use credx::vcp::r#impl::to_from::*;
+use credx::vcp::r#impl::common::to_from_api::*;
 // ------------------------------------------------------------------------------
 use bulletproofs::{inner_types::*, BulletproofGens, PedersenGens, RangeProof};
 use merlin::Transcript;

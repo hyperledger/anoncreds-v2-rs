@@ -10,18 +10,18 @@
 * Introduction
 
 This directory contains work towards defining and implementing an abstraction to decouple verifiable
-credential formats and presentation/proof requests on one hand from underlying cryptography
+credential formats and presentation/proof requests on one hand from underlying zero-knowledge proof (ZKP)
 libraries on the other.  Test code related to this work, including the test framework described
-below, is under the [[../../tests/vcp][tests/vcp]] directory.
+below, is under the [[../../tests/vcp/test_framework/][tests/vcp/test_framework]] directory.
 
-So far, in this repo, we have instantiated our abstraction with only one underlying cryptography library,
-which is the cryptography library that is part of the [[https://github.com/hyperledger/anoncreds-v2-rs-private][AnonCreds v2]] repo.  We refer to that cryptography
-library as AC2C in order to distinguish it from the broader project.  In internal work, we have
-instantated our Haskell implementation with both AC2C the [[https://github.com/docknetwork/crypto/][DockNetwork crypto]] library (which we call DNC); we plan
-to translate this to Rust and add it to this repo in future.
+We have instantiated our abstraction with two underlying ZKP libraries
+- the ZKP library that is part of the [[https://github.com/hyperledger/anoncreds-v2-rs][AnonCreds v2]] repo
+  - referred to as AC2C in order to distinguish it from the broader project
+- the ZKP library that is part of the [[https://github.com/docknetwork/crypto/][DockNetwork crypto]] repo
+  - referred to as DNC
 
 The information below is intended to help the reader approach this code after gaining some
-familiarity with the work by reviewing the SLIDES-LINK-TODO that we presented at
+familiarity with the work by reviewing the [[https://www.dropbox.com/preview/Presentations/IIW%20Oct%202024%20-%20VC%20and%20ZPK%20abstraction.pdf][slides]] that we presented at
 [[https://internetidentityworkshop.com][IIW]] in October, 2024.
 
 This work is by [[https://github.com/haroldcarr][Harold Carr]] and [[https://github.com/mark-moir][Mark Moir]] of Oracle Labs, and [[https://github.com/rybla][Henry Blanchette]]
@@ -30,7 +30,7 @@ of the University of Maryland at College Park, during his Summer 2024 internship
 * Caveats
 
 This is research work in progress aimed at exploring and demonstrating the benefits and feasibility
-of establishing an abstraction between credential formats and cryptography libraries.  This work
+of establishing an abstraction between credential formats and cryptography/ZKP libraries.  This work
 should in no way be considered for use in production or for any purpose other than engaging in such
 exploration.  In particular,
 
@@ -41,8 +41,8 @@ exploration.  In particular,
   Labs mentors at different times during their Rust learning process.  Therefore, different styles,
   tastes, and levels of expertise are evident in different parts of the code.  While we have made
   progress towards more consistent styles throughout, this is not complete.
-- There are quite a few TODOs, including some that would undermine security if left undone before
-  this code were used in a practical application.
+- There are quite a few TODOs, potentially including some that would undermine security if left
+  undone before this code were used in a practical application.
 - While we hope to eventually contribute to [[https://github.com/hyperledger/anoncreds-v2-rs][Hyperledger AnonCreds, v2]] based on this work, we are not
   raising a Pull Request at this stage. Rather, we have made this work public in order to facilitate
   feedback and engagement towards something that we can offer as a contribution.
@@ -54,10 +54,10 @@ From an application/user perspective, our abstraction is defined by the
 
 - By using the ~implement_platform_api_using~ function in [[./api_utils.rs][./api_utils.rs]] and providing an instance of
   ~CryptoInterface~, such as ~CRYPTO_INTERFACE_AC2C~ (defined in [[./impl/ac2c/impl_ac2c.rs][./impl/ac2c/impl_ac2c.rs]]), and calling
-  its methods directly.  See [[connecting-crypto-libary-to-platform]] for more details.
-- By accessing the functionality via a Swagger/OpenAPI interface. We have previously built an HTTP
+  its methods directly.  See [[connecting-zkp-libary-to-platform]] for more details.
+- By accessing the functionality via a Swagger/OpenAPI interface. We have built an HTTP
   server serving such an interface built automatically from our Haskell prototype. However,
-  this is internal work, and is not up-to-date.  Future work may include doing similar in Rust.
+  this is internal work, and is not up-to-date.  Future work includes implementing an HTTP server in Rust.
 - Via our test framework, described below.  We recommend this approach as the easiest way to get
   started gaining some familiarity with our interface because, as detailed below, the test framework
   handles a lot of common setup tasks and manages data for all roles, which a user would otherwise
@@ -92,12 +92,14 @@ JSON test files contain the following fields:
 - ~comment~ (optional) - a comment about the test
 - ~testseq~ - an array of ~TestStep~, see below
 
-The filename for the JSON test must be ~json_test_nnn_<str>~ for some three-digit ~nnn~, where ~str~ is
-the contents of its ~descr~ field.
+The filename for the JSON test must be ~json_test_nnn_<str>~ for some three-digit ~nnn~, where ~str~
+must be identical to the contents of its ~descr~ field.
 
 Including ~expected_to_fail~ in the test's ~descr~ field (and therefore in its filename) "reverses" the
-test, so that if the test (at the level of the test framework _succeeds_, then the test is reported as
-a failure.
+test, so that if the test (at the level of the test framework) _succeeds_, then the test is reported
+as a failure, and vice versa.  (Note that we sometimes include =negative_test= in a test name.  This
+has no bearing on whether and how the test is run: it is merely a _convention_ to indicate that this
+test is using the API differently than intended.)
 
 In addition to running all tests using ~make test~, an individual test can be run using its ~descr~ field.  For example,
 to run only the test described in the next section:
@@ -132,22 +134,23 @@ Before describing each ~TestStep~ in detail, we first walk through the example i
 Each ~TestStep~ in the JSON file has a ~tag~ field that identifies the kind of step, and a ~contents~
 field that provides its arguments.
 
-The first step in our example is a ~CreateIssuer~ step, which establishes signing keys for an Issuer
+The first step in our example is a ~CreateIssuer~ step, which establishes an Issuer (for signing credentials)
 identified by the label given in the first argument, for a schema defined in the second.  In the example, we
 create an Issuer with label ~DMV~ and a schema with five attributes, the last of which is an
 accumulator member (~CTAccumulatorMember~), meaning that it is a field that will be used for set
 membership (e.g., for revocation).
 
-Although using the API directly would require creating and initializing ~AccumulatorData~ for each
-such field, the second (~CreateAccumulators)~ step creates and initializes an accumulator for each
-~CTAccumulatorMember~ field in the schema (only one in our example).
+The second (~CreateAccumulators)~ step creates and initializes an accumulator for each
+~CTAccumulatorMember~ field in the schema (only one in our example). ~CreateAccumulators~ is an
+example of a utility function that uses, but is not directly supported by ~PlatformAPI~; see comments
+in [[../../tests/vcp/test_framework/utility_functions.rs][../../tests/vcp/test_framework/utility_functions.rs]].
 
-In the third (~SignCredential~) step, Issuer ~DMV~ signs a credential for ~Holder1~, specifying values for each of
+The third (~SignCredential~) step, Issuer ~DMV~, signs a credential for ~Holder1~, specifying values for each of
 the five attributes indicated by the schema specified when the ~DMV~ Issuer was created.
 
 The fourth step (~AccumulatorAddRemove~) adds a "batch" of accumulator members (consisting of only
 ~Holder1~'s accumulator member in this case) to the accumulator associated with attribute 4 for ~DMV~,
-and also removes a "batch" of accumulator members, which is empty in this case.  Furthermore, for
+and also removes a "batch" of accumulator members (which is empty in this case).  Furthermore, for
 each accumulator member added to the accumulator, a new ~AccumulatorMembershipWitness~ is created and associated with the
 specified Holder's credential for the specified Issuer (if the specified Issuer has not been
 created, or if no credential has been signed by that Issuer for a specified Holder, then an error
@@ -171,6 +174,7 @@ as the one signed in the relevant credential, and (in examples involving decrypt
 decrypted values match the original signed values.
 
 ** TestSteps
+
 *** CreateIssuer
 **** Effects
    - Creates new Issuer with associated ~SignerData~
@@ -179,6 +183,7 @@ decrypted values match the original signed values.
    - ~[ ClaimType ]~: schema for new Issuer
 **** API method(s) invoked
    - ~create_signer_data~
+
 *** CreateAccumulators
 **** Effects
   - Creates ~AccumulatorData~ for each ~CTAccumulatorMember~ attribute in specified Issuer's schema
@@ -186,6 +191,7 @@ decrypted values match the original signed values.
    - ~IssuerLabel~
 **** API method(s) invoked
   - ~create_accumulator_data~ (once for each created accumulator)
+
 *** SignCredential
 **** Effects
    - Creates new credential (~SignatureAndRelatedData~) signed by specified Issuer with specified
@@ -198,6 +204,7 @@ decrypted values match the original signed values.
    - ~[ DataValue ]~: list of values to be signed, one for each attribute of Issuer's schema
 **** API method(s) invoked
   - ~sign~
+
 *** AccumulatorAddRemove
 **** Effects
   - Add some ~DataValue~ s to and remove some ~DataValue~ s from accumulator associated with specified
@@ -216,6 +223,7 @@ decrypted values match the original signed values.
    - ~[ DataValue ]~: ~DataValue~ s to be removed from specified accumulator
 **** API method(s) invoked
   - ~accumulator_add_remove~
+
 *** UpdateAccumulatorWitness
 **** Effects
   - Attempts to ensure that specified Holder has an ~AccumulatorMembershipWitness~ for accumulator
@@ -229,6 +237,11 @@ decrypted values match the original signed values.
   - When successful, generates and stores ~AccumulatorMembershipWitness~ for each ~AccumlatorBatchSeqNo~
     between the largest ~AccumlatorBatchSeqNo~ less than the target ~AccumulatorBatchSeqNo~ for which
     specified Holder already has an ~AccumulatorMembershipWitness~.
+**** Arguments
+   - ~HolderLabel~
+   - ~IssuerLabel~
+   - ~CredAttrIndex~
+   - ~AccumulatorBatchSeqNo~: target ~AccumulatorBatchSeqNo~ to ensure specified Holder
 **** Comments
   - Currently, a Holder will always have an ~AccumulatorMembershipWitness~ for every
     ~AccumlatorBatchSeqNo~ from the one at which its ~AccumulatorMembershipWitness~ was added and the
@@ -240,13 +253,9 @@ decrypted values match the original signed values.
     they retain one with ~AccumlatorBatchSeqNo~ at or before any future target.  If not, they would
     have to request a new ~AccumulatorMembershipWitness~ from the relevant Revocation Manager; the test
     framework also does not currently support this.
-**** Arguments
-   - ~HolderLabel~
-   - ~IssuerLabel~
-   - ~CredAttrIndex~
-   - ~AccumulatorBatchSeqNo~: target ~AccumulatorBatchSeqNo~ to ensure specified Holder
 **** API method(s) invoked
    - ~update_accumulator_witness~, potentially multiple times as described above
+
 *** Reveal
 **** Effects
   - adds to requirements for subsequent ~CreateAndVerifyProof~ steps for specified Holder,
@@ -262,6 +271,7 @@ decrypted values match the original signed values.
    - ~[ CredAttrIndex ]~: list of indexes for attributes to be revealed
 **** API method(s) invoked
   - none
+
 *** InRange
 **** Effects
   - adds to requirements for subsequent ~CreateAndVerifyProof~ steps for specified Holder,
@@ -281,6 +291,7 @@ decrypted values match the original signed values.
      able to test that ~CreateAndVerifyProof~ does not succeed in this case
 **** API method(s) invoked
   - none
+
 *** InAccum
 **** Effects
   - adds to requirements for subsequent ~CreateAndVerifyProof~ steps for specified Holder,
@@ -295,6 +306,7 @@ decrypted values match the original signed values.
      proof of membership in accumulator for older or newer accumulator versions
 **** API method(s) invoked
   - none
+
 *** Equality
 **** Effects
   - adds to requirements for subsequent ~CreateAndVerifyProof~ steps for specified Holder,
@@ -313,6 +325,7 @@ decrypted values match the original signed values.
      able to test that ~CreateAndVerifyProof~ does not succeed in this case
 **** API method(s) invoked
    - none
+
 *** CreateAndVerifyProof
 **** Effects
   - Attempts to create and then verify a proof satisfying all requirements added previously for
@@ -340,18 +353,20 @@ decrypted values match the original signed values.
      - ~CreateOrVerifyFails~: requires that, either proof creation fails, or it succeeds but
        verification of the generated proof fails.  This expectation is sometimes useful when it is
        required that a proof is not successfully created and then verified, but it does not matter
-       which step fails.  In some cases, some underlying cryptography libraries fail to generate a
+       which step fails.  In some cases, some underlying ZKP libraries fail to generate a
        proof, while others generate a proof that does not verify successfully.  This
        ~CreateVerifyExpectation~ is useful in such cases.
 **** API method(s) invoked
    - ~create_proof~
    - ~verify_proof~
+
 *** CreateAuthority
    - Creates new Authority with associated ~AuthorityData~
 **** Arguments
    - ~AuthorityLabel~: label to identify new Authority
 **** API method(s) invoked
    - ~create_authority_data~
+
 *** EncryptFor
 **** Effects
   - adds to requirements for subsequent ~CreateAndVerifyProof~ steps for specified Holder,
@@ -364,6 +379,7 @@ decrypted values match the original signed values.
    - ~AuthorityLabel~: label identifying ~Authority~ for whom specified attribute is to be encrypted
 **** API method(s) invoked
    - none
+
 *** Decrypt
 **** Effects
   - adds to requirements for subsequent ~CreateAndVerifyProof~ steps for specified Holder,
@@ -375,6 +391,7 @@ decrypted values match the original signed values.
    - ~AuthorityLabel~: label identifying ~Authority~ to decrypt specified attribute
 **** API method(s) invoked
   - none
+
 *** VerifyDecryption
 **** Effects
   - Verifies correct decryption for each ~DecryptResponse~ generated by most recent ~CreateAndProof~
@@ -384,36 +401,105 @@ decrypted values match the original signed values.
 **** API method(s) invoked
   - ~verify_decryption~
 
-
 ** Overriding tests
 
 Sometimes we want finer control over how specific tests are treated in combination with specific
-underlying cryptography libraries.  This is supported by a per-library overrides file.  As only one
-underlying library is currently supported, the only relevant overrides file is
-[[../../tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/AC2C.json][../../tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/AC2C.json]].
+underlying ZKP libraries.  This is supported by a per-library overrides file.  Thus, we have
+on overrides file for each underlying library currently used:
+- [[../../tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/AC2C.json][../../tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/AC2C.json]]
+- [[../../tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/AC2C.json][../../tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/DNC.json]]
 
-For a given test with a given underlying cryptography library, it could be that:
-- although the test has SLOW or SLOWSLOW in its name, we know that it is ~NotSoSlow~ with
-  the specific underlying library
-- the test is known to ~Fail~, e.g., because of a known bug in the cryptography library
-- we want to ~Skip~ the test for some reason
+Each entry in these overrides file has:
+- a lookup label based on the test's =descr= field (see documentation in
+  [[../../generate-tests-from-json/src/lib.rs][../../generate-tests-from-json/src/lib.rs]] for details)
+- an associated =contents= field, which explains the reason for the override
+- an associated =tag=, which determines whether the test is run and/or how its outcome is reflected in
+  output.  Currently, possible values for the =tag= are =NotSoSlow=, =Fail= and =Skip=, as explained below
+
+For a given test with a given underlying ZKP library, it could be that:
+- ~NotSoSlow~: although the test has SLOW or SLOWSLOW in its name, we know that it is ~NotSoSlow~ with the specific
+  underlying library, so we want to run it even when using, e.g., `make test-skip-slow` to skip slow
+  tests.  The test is run, even if skipping tests with =SLOW= in their name (see below for examples).
+- ~Fail~: the test is considered to ~Fail~, e.g., because of a known bug in the ZKP library or
+  because it does not yet support the functionality being tested.  It is reported as a failure in test output.
+- ~Skip~: we want to ~Skip~ the test for some reason.  Such tests are shown in test output as =ignored=, displaying
+  the reason from the overrides file, and are counted as ignored in test summaries.  An example
+  is that the underlying ZKP library has some known issue that causes a panic or test failure,
+  but we don't want to see it reported as a failure, e.g., because the issue is understood and will
+  be addressed in future work, or because the issue is not related to the main purpose of the test.
+  An example of the latter is if the underlying ZKP library panics when incorrectly used,
+  and the purpose of the test is only to ensure that it does not enable a prover to create a proof
+  that a verifier successfully verifies.
+
+If tests are run directly using ~cargo test~, then these tests that are overridden to =Fail= are
+reported as failures.  To avoid confusion, such tests have ~_overridden_to_fail~ appended to their
+names.  Furthermore, if running tests using any of:
+- ~make test~,
+- ~make test-skip-slow~, or
+- ~make test-skip-slow-slow~
+the ~Makefile~ is configured to exclude tests with ~_overridden_to_fail~ in their names, so overridden
+tests are not reported as failures.
 
 We would like to improve the override system.  In the meantime, it is documented in
 [[../../generate-tests-from-json/src/lib.rs][../../generate-tests-from-json/src/lib.rs]].
 
-We note that, currently, there are a number of tests that are "overridden" to fail.  If tests are
-run directly using ~cargo test~, then these tests are reported as failures.  To avoid confusion, such
-tests have ~_overridden_to_fail~ appended to their names.  Furthermore, if running tests using any of:
-- ~make test~,
-- ~make test-skip-slow~, or
-- ~make test-skip-slow-slow~
-the ~Makefile~ is configured to exclude tests with ~_overridden_to_fail~ in their names, so overriden
-tests are not reported as failed.
+** Test framework files
+
+Located in [[../../tests/vcp][../../tests/vcp]] :
+
+#+begin_example
+data_for_tests.rs
+json_test_runner_ac2c.rs
+json_test_runner_dnc.rs
+test_framework
+    steps.rs                   : The main file of the testing framework.
+                                 Defines the TestSteps.
+    tests
+        framework_tests.rs     : Rust code that tests the framework itself
+
+        run_json_tests_ac2c.rs : Test the framework itself
+                                 with CryptoInterface instantiated with AC2C
+                                 using JSON tests located in
+                                 ./tests/data/JSON/TestSequences/TestingFramework
+
+        run_json_tests_dnc.rs  : Test the framework itself
+                                 with CryptoInterface instantiated with DNC
+                                 using JSON tests located in
+                                 ./tests/data/JSON/TestSequences/TestingFramework
+
+    types.rs                   : types used by the test framework, in particular TestState
+
+    utility_functions.rs       : useful routines to compose common operations
+    utils.rs
+
+zkp_functionality_tests        : This directory runs tests that use the test framework
+                                 to test ZKP functionality provided by CryptoInterface.
+
+    run_json_tests_ac2c.rs     : Instantiates CryptoInterface with AC2C and runs the JSON tests located in
+                                 ./tests/data/JSON/TestSequences/LicenseSubscription
+                                 with overrides defined in
+                                 ./tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/AC2C.json
+
+    run_json_tests_dnc.rs      : Instantiates CryptoInterface with DNC and runs the JSON tests located in
+                                 ./tests/data/JSON/TestSequences/LicenseSubscription
+                                 with overrides defined in
+                                 ./tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/DNC.json
+
+    test_ac2c.rs               : Instantiates CryptoInterface with AC2C and runs the tests
+                                 defined in test_definitions.rs
+
+    test_definitions.rs        : ZKP functionality tests written in Rust (rather than JSON).
+#+end_example
+
+Note: the other tests located in [[../../tests/vcp][tests/vcp]] (various unit tests) can be ignored.
 
 # ------------------------------------------------------------------------------
 * The VCP architecture
 
 The following diagram gives a high-level view of the VCP architecture.
+It is shown using AC2C.  For DNC, the GENERAL part is identical but the DNC SPECIFIC part
+has different paths (but essentially does the same work, additionally providing
+`specific_verify_decryption`, which is not yet supported by AC2C).
 
 #+begin_example
                          SigsAnd         Credential       Shared    DataForVerifier DecryptReqs
@@ -451,10 +537,10 @@ VCP is comprised of three main parts
 - API (defined by the ~PlatformAPI~ type in [[./api.rs][./api.rs]])
   - functions available for various roles (e.g., Issuer, Holder, Verifier, ...)
 - general
-  - implementations of API functions that operate regardless of the underlying crypto library
+  - implementations of API functions that operate regardless of the underlying ZKP library
 - specific
-  - functions called from general that implement "primitive" crypto features (e.g., sign, prove,
-    verify) for a specific underlying cryptography library (so far, only AC2C)
+  - functions called from general that implement "primitive" features (e.g., sign, prove,
+    verify) for a specific underlying ZKP library
 
 ** General
 
@@ -487,7 +573,8 @@ with =resolved_proof_instructions= and =equality_requirements= to create an
 =anoncreds-v2-rs= presentation schema.
 
 =specific_prover_ac2c= uses the =anoncreds-v2-rs= credentials and presentation schema to create a proof.
-That proof is then converted to an opaque =Proof= and included in the =DataForVerifier= API type, along with disclosed values.
+That proof is then converted to an opaque =Proof= and included in the =DataForVerifier= API type,
+along with disclosed values.
 
 =specific_verifier_ac2c= uses the =DataForVerifier= and the =anoncreds-v2-rs= presentation schema
 to verify the proof.
@@ -499,83 +586,114 @@ to verify the proof.
 
 VCP code resides in the =src/vcp= directory.
 
-The top level directory for the =PlatformApi= contains:
+The top level directory contains:
 
 #+begin_example
-├── api.rs                                : the main top-level PlatformApi
-|
-├── api_utils.rs                          : connects a specific CryptoInterface to the PlatformApi
-└── mod.rs
+api.rs                                    : the main top-level PlatformApi
+
+api_utils.rs                              : connects a specific CryptoInterface to the PlatformApi
 #+end_example
 
 The directory structure for the interfaces used by =PlatformApi= is:
 
 #+begin_example
-├── interfaces
-    ├── crypto_interface.rs               : function types that a specific crypto library must implement
-    ├── mod.rs
-    ├── non_primitives.rs                 : function types for functions provided by VCP
-    ├── primitives
-    │   └── types.rs                      : data declarations for data used by CryptoInterface functions
-    |
-    ├── primitives.rs                     : function types for the function in CryptoInterface
-    |
-    └── types.rs                          : data declarations for data used in PlatformApi and CryptoInterface
+interfaces
+    crypto_interface.rs                   : function types that a specific ZKP library must implement
+    non_primitives.rs                     : function types for functions provided by VCP
+    primitives
+        types.rs                          : data declarations for data used by CryptoInterface functions
 
+    primitives.rs                         : function types for the functions in CryptoInterface
+
+    types.rs                              : data declarations for data used in PlatformApi and CryptoInterface
 #+end_example
 
 The directory structure for the "general" implementation is:
 
 #+begin_example
-├── impl
-    ├── catch_unwind_util.rs
-    ├── common
-    │   ├── mod.rs
-    │   └── types.rs                      : data declarations available for any specific implementation to use
-    ├── general
-    │   ├── mod.rs
-    │   ├── presentation_request_setup.rs : translates proof requests to proof instructions and equality requirements
-    |   |
-    │   └── proof.rs                      : general create_proof, verify_proof and verify_decryption functions
-    |                                       that call specific crypto library implementations of primitives
-    ├── json
-    │   ├── mod.rs
-    │   ├── shared_params.rs              : utilities for working with shared parameters
-    │   └── util.rs
-    ├── mod.rs
-    ├── to_from.rs                        : definitions of functions to convert between API types and
-    |                                       specific crypto library implementation types
-    └── util.rs
+impl
+    common
+        catch_unwind_util.rs
+        general
+            presentation_request_setup.rs : translates proof requests to proof instructions and equality requirements
+
+            proof.rs                      : general create_proof, verify_proof and verify_decryption functions
+                                            that call specific ZKP library implementations of primitives
+        json
+            shared_params.rs              : utilities for working with shared parameters
+            util.rs
+        to_from_api.rs                    : definitions of functions to convert between API types and
+                                            specific ZKP library implementation types
+
+        types.rs                          : data declarations available for any specific implementation to use
+        util.rs
 #+end_example
 
 The directory structure for the AC2C implementation of =CryptoInterface= is:
 
 #+begin_example
-├── impl
-    ├── ac2c                              : AC2C implementation of CryptoInterface
-        |
-        ├── accumulator.rs                : AC2C VB implementation of CryptoInterface accumulator primitives
-        |
-        ├── impl_ac2c.rs                  : instantiates CryptoInterface with AC2C implementation of primitives
-        ├── mod.rs
-        ├── presentation_request_setup.rs : Functions in this file are used by the following proof.rs file.
-        |                                   Generate AC2C proof statements and equality statements
-        |                                   from proof instructions (derived from proof requirements).
-        |                                   Also, generate AC2C PresentationCredentials from signatures and witnesses
-        |
-        ├── proof.rs                      : AC2C implementations of specific_create_proof,
-        |                                   specific_verify_proof and specific_verify_decryption functions
-        |
-        ├── signer.rs                     : AC2C implementations of "signer" (a.k.a Issuer)
-        |                                   primitive functions (e.g., create keys, sign)
-        |
-        └── to_from_api.rs                : functions to convert between API data types and AC2C data types
+impl
+    zkp_backends
+        ac2c
+            accumulators.rs               : AC2C VB implementation of CryptoInterface accumulator primitives
+
+            authority.rs                  : AC2C implementation of CryptoInterface authority primitives
+
+            crypto_interface_ac2c.rs      : Provides the AC2C implementation of CryptoInterface
+
+            presentation_request_setup.rs : Functions in this file are used by the following proof.rs file.
+                                            Generate AC2C proof statements and equality statements
+                                            from proof instructions (derived from proof requirements).
+                                            Also, generate AC2C PresentationCredentials from signatures and witnesses
+
+            proof.rs                      : AC2C implementations of specific_create_proof,
+                                            specific_verify_proof functions (and in future, specific_verify_decryption,
+                                            when AC2C supports it)
+
+            range_proof.rs                : AC2C implementation of range proof operations
+
+            signer.rs                     : AC2C implementations of "signer" (a.k.a Issuer)
+                                            primitive functions (e.g., create keys, sign)
+
+            to_from_api/*                 : functions to convert between API data types and AC2C data types
 #+end_example
 
-<<connecting-crypto-libary-to-platform>>
-** Example of connecting a specific crypto library to =PlatformApi=
+The directory structure for the DNC implementation of =CryptoInterface= is:
 
-In [[./impl/ac2c/impl_ac2c.rs][./impl/ac2c/impl_ac2c.rs]], the AC2C implementation initializes a =CryptoInterface=
+#+begin_example
+impl
+    zkp_backends
+        dnc
+            accumulators.rs               : DNC VB implementation of CryptoInterface accumulator primitives
+
+            authority.rs                  : DNC implementation of CryptoInterface authority primitives
+
+            crypto_interface_dnc.rs       : Provides the AC2C implementation of CryptoInterface
+
+            generate_frs.rs               : Turns user values to be signed into "FR"s (i.e., field elements)
+
+            in_memory_state.rs            : A non-production-ready "database" to hold state
+                                            associated with an accumulator
+
+            proof.rs                      : DNC implementations of specific_create_proof,
+                                            specific_verify_proof and specific_verify_decryption functions
+
+            range_proof.rs                : DNC implementation of range proof operations
+
+            reversible_encoding.rs        : Used for verifiable encryption
+
+            signer.rs                     : DNC implementations of "signer" (a.k.a Issuer)
+                                            primitive functions (e.g., create keys, sign)
+
+            to_from_api/*                 : functions to convert between API data types and DNC data types
+
+            types.rs                      : Type aliases used in the DNC implementation
+#+end_example
+
+<<connecting-zkp-libary-to-platform>>
+** Example of connecting a specific ZKP library to =PlatformApi=
+
+In [[./impl/zkp_backends/ac2c/crypto_interface_ac2c.rs][./impl/zkp_backends/ac2c/crypto_interface_ac2c.rs]], the AC2C implementation initializes a =CryptoInterface=
 ([[./interfaces/crypto_interface.rs][./interfaces/crypto_interface.rs]]) struct with "pointers" to the AC2C implementation of
 [[./interfaces/primitives.rs][./interfaces/primitives.rs]]. That initialized struct is referenced as =CRYPTO_INTERFACE_AC2C=.
 
@@ -587,7 +705,7 @@ the non-primitive, =create_proof=, =verify_proof=, and =verify_decryption= funct
 =PlatformAPI= function, which are then assigned to their associated fields.
 
 An example of making this connection can be seen in the =run_json_test_ac2c= function in
-[[../../tests/vcp/impl/general/testing_framework/utils.rs][../../tests/vcp/impl/general/testing_framework/utils.rs]].
+[[../../tests/vcp/json_test_runner_ac2c.rs][../../tests/vcp/json_test_runner_ac2c.rs]].
 
 # --------------------------------------------------
 ** Creating an Issuer's public and secret data (e.g., keys)
@@ -602,8 +720,8 @@ It takes
   - this is the "schema" for credentials that will be issued and signed by the Issuer
 
 Assuming the AC2C implementation of primitives are connected to =PlatformApi=,
-as described in <<connecting-crypto-libary-to-platform>>,
-then =create_signer_data= (in [[./impl/ac2c/signer.rs][./impl/ac2c/signer.rs]]) is invoked.
+as described in <<connecting-zkp-libary-to-platform>>,
+then =create_signer_data= (in [[./impl/zkp_backends/ac2c/signer.rs][./impl/zkp_backends/ac2c/signer.rs]]) is invoked.
 
 The =create_signer_data= implementation
 - creates an AC2C schema representation based on a list of VCP =ClaimType=
@@ -630,7 +748,7 @@ It takes
 - a list of =DataValue= ([[./interfaces/types.rs][./interfaces/types.rs]])
 - =SignerData= (from =create_signer_data= above)
 
-The AC2C implementation of =sign= is in [[./impl/ac2c/signer.rs][./impl/ac2c/signer.rs]].
+The AC2C implementation of =sign= is in [[./impl/zkp_backends/ac2c/signer.rs][./impl/zkp_backends/ac2c/signer.rs]].
 
 That =sign= implementation
 - converts each VCP =DataValue= to an AC2C claim
@@ -640,7 +758,7 @@ That =sign= implementation
 # --------------------------------------------------
 ** Creating a proof
 
-The general =create_proof= function ([[./impl/general/proof.rs][./impl/general/proof.rs]]) takes
+The general =create_proof= function ([[./impl/common/general/proof.rs][./impl/common/general/proof.rs]]) takes
 - proof requirements : =HashMap<CredentialLabel, CredentialReqs>=
   - =CredentialLabel=
     - an identifier used to refer to a credential for which a Prover must
@@ -669,12 +787,20 @@ The general =create_proof= function ([[./impl/general/proof.rs][./impl/general/p
 Using the above input, the general =create_proof= function
 - gets the values to reveal from the list of =DataValue=
 - transforms human-friendly =CredentialReqs= into machine-friendly "proof instructions" and equality requirements
-  - via =presentation_request_setup= ([[./impl/general/presentation_request_setup.rs][./impl/general/presentation_request_setup.rs]])
-  - TODO: clarify relationship between =CredentialReqs= and proof instructions, =ResolvedDisclosure= and =SupportedDisclosure=, relate =ResolvedDisclosure= to feature-specific sections below, note special =CredentialResolved= one, etc.
+  - via =presentation_request_setup= ([[./impl/common/general/presentation_request_setup.rs][./impl/common/general/presentation_request_setup.rs]])
+  - the "proof instructions" returned by =presentation_request_setup= are of type ~ProofInstructionGeneral<ResolvedDisclosure>~
+  - ~ProofInstructionGeneral~ identifies the credential and attribute for which a proof is required, and also the index of a "related" proof instruction, namely the proof instruction for the proof of knowledge of signature covering the relevant attribute
+  - There is one ~ResolvedDisclosure~ constructor for each type of proof supported:
+    - ~CredentialResolved~ (requires proof of knowledge of signature on a credential)
+    - ~InAccumResolved~
+    - ~InRangeResolved~
+    - ~EncryptedForResolved~
+  - Each ~ResolvedDisclosure~ contains the parameters for the relevant proof, looked up from ~SharedParams~ using the ~SharedParamKey~ s included in ~CredentialReqs~.  These parameters are in library-independent format.  Each ZKP backend knows how to translate these to their own data types and use them to construct the required proofs.
 - validates the =CredentialReqs= against schemas
-- calls the specific crypto library function =specific_prover=
+- calls the specific ZKP library function =specific_prover=, passing the proof instructions, equality requirements, signatures, etc.
+  - Each ZKP backend we have implemented specifies its own library-specific type of "proof instruction"; we call them ~ProofInstructionGeneral<SupportedDisclosure>~ in both cases, but this is not a requirement.
 
-The AC2C =specific_prover= (named =specific_prover_ac2c= in [[./impl/ac2c/proof.rs][./impl/ac2c/proof.rs]])
+The AC2C =specific_prover= (named =specific_prover_ac2c= in [[./impl/zkp_backends/ac2c/proof.rs][./impl/zkp_backends/ac2c/proof.rs]])
 - creates an AC2C =Presentation= (i.e., "proof") ([[../presentation.rs][../presentation.rs]])
 - wraps that proof in a VCP opaque data type
 - returns =DataForVerifier= that contains the VCP proof and any warnings
@@ -683,17 +809,22 @@ The AC2C =specific_prover= (named =specific_prover_ac2c= in [[./impl/ac2c/proof.
 ** Verifying a proof
 
 Like the general =create_proof= function,
-the general =verify_proof= function ([[./impl/general/proof.rs][./impl/general/proof.rs]]) takes
+the general =verify_proof= function ([[./impl/common/general/proof.rs][./impl/common/general/proof.rs]]) takes
 - proof requirements : =HashMap<CredentialLabel, CredentialReqs>=
 - shared parameters : =HashMap<SharedParamKey, SharedParamValue>=
 - =Option<Nonce>=
 
-It also takes a =DataForVerifier= produced by =create_proof=.
+It also takes:
+- data for verifier : =DataForVerifier= (produced by =create_proof)=.
+- decryption requests: ~HashMap<String, HashMap<u64, HashMap<String, DecryptRequest>>>~
+
+Note that AC2C does not yet support decryption, so if the decryption requests map is
+not empty, verification fails.
 
 After transforming =CredentialReqs= into proof instructions and equality requirements and
 after validating those requirements against schemas it calls the =specific_verifier= function.
 
-The AC2C =specific_verifier= (named =specific_verifier_ac2c= in [[./impl/ac2c/proof.rs][./impl/ac2c/proof.rs]])
+The AC2C =specific_verifier= (named =specific_verifier_ac2c= in [[./impl/zkp_backends/ac2c/proof.rs][./impl/zkp_backends/ac2c/proof.rs]])
 converts the VCP information and data into formats used by AC2C, and then calls
 the AC2C =Presentation:verify= to verify the proof.
 
@@ -705,8 +836,8 @@ Attributes whose values are to be revealed are specified in the =disclosed: Disc
 =Disclosed= ([[./interfaces/types.rs][./interfaces/types.rs]]) is a list of indices into the list of =DataValue= that were signed,
 specifying which values should be disclosed.
 
-Both the general =create_proof= and =verify_proof= functions ([[./impl/general/proof.rs][./impl/general/proof.rs]]) call
-=presentation_request_setup= ([[./impl/general/presentation_request_setup.rs][./impl/general/presentation_request_setup.rs]]) that calls
+Both the general =create_proof= and =verify_proof= functions ([[./impl/common/general/proof.rs][./impl/common/general/proof.rs]]) call
+=presentation_request_setup= ([[./impl/common/general/presentation_request_setup.rs][./impl/common/general/presentation_request_setup.rs]]) that calls
 =get_proof_instructions= to transform =CredentialReqs= into proof instructions.
 For each credential request, the translation happens in =get_proof_instructions_for_cred=.
 
@@ -716,17 +847,17 @@ For revealed values, the =ProofInstructionGeneral= that gets returned is
 - for each reveal value: a list of tuples : =(index, value, ClaimType)=
 
 Both the general =create_proof= and =verify_proof= functions go on to call their specific variants,
-in the AC2C case, =specific_prover_ac2c= and =specific_verifier_ac2c= ([[./impl/ac2c/proof.rs][./impl/ac2c/proof.rs]]).
+in the AC2C case, =specific_prover_ac2c= and =specific_verifier_ac2c= ([[./impl/zkp_backends/ac2c/proof.rs][./impl/zkp_backends/ac2c/proof.rs]]).
 
 The specific functions call =presentation_schema_from= which calls
-=transform_instruction= ([[./impl/ac2c/presentation_request_setup.rs][./impl/ac2c/presentation_request_setup.rs]]) to
+=transform_instruction= ([[./impl/zkp_backends/ac2c/presentation_request_setup.rs][./impl/zkp_backends/ac2c/presentation_request_setup.rs]]) to
 transform the =ProofInstructionGeneral<ResolvedDisclosure>= into a
 =ProofInstructionGeneral<SupportedDisclosure>=.
 That function returns a proof instruction that contains =SupportedDisclosure::SignatureAndReveal= that contains
 - an =anoncreds-v2-rs= =IssuerPublic=
 - =HashMap<CredAttrIndex, (DataValue, ClaimType)>=
 
-=SupportedDisclosure= is then given to =generate_statements= ([[./impl/ac2c/presentation_request_setup.rs][./impl/ac2c/presentation_request_setup.rs]]).
+=SupportedDisclosure= is then given to =generate_statements= ([[./impl/zkp_backends/ac2c/presentation_request_setup.rs][./impl/zkp_backends/ac2c/presentation_request_setup.rs]]).
 For =SupportedDisclosure::SignatureAndReveal=, =generate_statements= creates an =anoncreds-v2-rs=
 =SignatureStatement= containing
 - the disclosed information
@@ -740,7 +871,7 @@ The =anoncreds-v2-rs= statements returned from =generate_statements= are given t
 At this point =specific_prover_ac2c= calls =anoncreds-v2-rs= =Presentation::create= with
 - the =PresentationSchema=
 - =anoncreds-v2-rs= =IndexMap<CredentialLabel, PresentationCredential>=
-  - created by a call to =presentation_credentials_from= ([[./impl/ac2c/proof.rs][./impl/ac2c/proof.rs]])
+  - created by a call to =presentation_credentials_from= ([[./impl/zkp_backends/ac2c/proof.rs][./impl/zkp_backends/ac2c/proof.rs]])
 That =anoncreds-v2-rs= =Presentation= (i.e., proof) is returned from =specific_prover_ac2c=.
 
 In the =specific_verifier_ac2c= case, it calls =anoncreds-v2-rs= =Presentation::verify= with
@@ -787,7 +918,7 @@ Verifiable encryption requirements are specified in the =encrypted_for: Encrypte
 - a =label= : a key into shared parameters; that key maps to the public data that should be used for encryption.
 
 For verifiable encryption,
-=ResolvedDisclosure::EncryptedForResolvedWrapper(EncryptedForResolved= is created. It contains
+=ResolvedDisclosure::EncryptedForResolvedWrapper(EncryptedForResolved)= is created. It contains
 - the API public data to be used for encryption
 
 The AC2C implementation then transforms that =ResolvedDisclosure= into
@@ -797,10 +928,10 @@ The AC2C implementation then transforms that =ResolvedDisclosure= into
 =SupportedDisclosure::EncryptedFor=  is given to =generate_statements=
 which creates a =anoncreds-v2-rs= =VerifiableEncryptionStatement=
 
-TODO =verify_decryption=
+NOTE: AC2C does not yet support decryption.
 
 # --------------------------------------------------
-** Proofs with equalities between credentials
+** Proofs with equalities between attributes
 
 Equality requirements are specified in the =equal_to: EqualTo= field of =CredentialReqs=.
 
@@ -815,17 +946,17 @@ General =presentation_request_setup= calls =equality_reqs_from_pres_reqs_general
 where each =EqualityReq= is a list of pairs that point to values that should be equal.
 
 ~EqualityReqs~ is given to =specific_prover=.  In the AC2C case, =specific_prover_ac2c= calls
-=presentation_schema_from= ([[./impl/ac2c/presentation_request_setup.rs][./impl/ac2c/presentation_request_setup.rs]]) with those ~EqualityReqs~.
+=presentation_schema_from= ([[./impl/zkp_backends/ac2c/presentation_request_setup.rs][./impl/zkp_backends/ac2c/presentation_request_setup.rs]]) with those ~EqualityReqs~.
 =presentation_schema_from= pass those to =generate_equality_statements= to create a =anoncreds-v2-rs=
 =EqualityStatement= for each equality.
 
 # --------------------------------------------------
 ** Proofs with accumulators
 
-Verifiable encryption requirements are specified in the =in_accum: InAccum= field of =CredentialReqs=.
+Accumulator requirements are specified in the =in_accum: InAccum= field of =CredentialReqs=.
 
 =InAccum= ([[./interfaces/types.rs][./interfaces/types.rs]]) is a list of =InAccumInfo= that contain
-- an index specifying which value in the list of =DataValue= represents an accumlator element TODO
+- an index specifying which value in the list of =DataValue= represents an accumlator element
 - =public_data_label= : a key into shared parameters; that key maps to =AccumulatorPublicData=
 - =mem_prv_label=     : a key into shared parameters; that key maps to a =MembershipProvingKey=
 - =accumulator_label= : a key into shared parameters; that key maps to an =Accumulator=
@@ -852,4 +983,4 @@ There are functions for ([[./api.rs][./api.rs]], [[./interfaces/primitives.rs][.
 - adding and removing elements from accumulators and getting witnesses for those elements
 - updating existing witnesses after elements have been added to or removed from an accumulator
 
-The AC2C versions are in [[./impl/ac2c/accumulator.rs][./impl/ac2c/accumulator.rs]].
+The AC2C versions are in [[./impl/zkp_backends/ac2c/accumulators.rs][./impl/zkp_backends/ac2c/accumulators.rs]].
