@@ -58,7 +58,7 @@ pub struct TestState {
     pub decrypt_requests: AllDecryptReqs,
     pub preqs: AllProofReqs,
     // -----
-    // Below here are for recording/reporting/evaluatiung outcomes of the most recent
+    // Below here are for recording/reporting/evaluating outcomes of the most recent
     // CreateAndVerifyProof step
     pub warnings_and_data_for_verifier: api::WarningsAndDataForVerifier,
     pub verification_warnings: Vec<api::Warning>,
@@ -145,6 +145,22 @@ pub enum PerturbDecryptedValue {
     Perturb, DontPerturb
 }
 
+// Note these definitions use camel case for compatibility with Haskell implementations (including
+// the internal prototype on which this work is based), and have long names to make exported JSON
+// more understandable
+#[allow(non_snake_case)]
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct ReplaceValueWithMaximumPlus
+  { pub attrIdxToReplaceWithMaxSupported : api::CredAttrIndex,
+    pub plusOffset                       : u64
+  }
+
+#[allow(non_snake_case)]
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct ReplaceUpperBoundWithMaxSupportedPlusOffset
+  { pub replaceUpperBoundWithMaxSupportedPlusOffset : u64
+  }
+
 /// Each TestStep defines a step to take in a test.  Each step can be specified
 /// simply, e.g., in JSON, with no need to call any crypto library.
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -152,7 +168,17 @@ pub enum PerturbDecryptedValue {
 pub enum TestStep {
     CreateIssuer(IssuerLabel, Vec<api::ClaimType>),
     CreateAccumulators(IssuerLabel),
-    SignCredential(IssuerLabel, HolderLabel, Vec<api::DataValue>),
+    // If the last argument for a SignCredential TestStep is
+    //   Some(ReplaceValueWithMaximumPlus{attrIdxToReplaceWithMaxSupported:ci, plusOffset:offset}),
+    // then the provided DataValue at index ci is replaced by max + offset, where max is the
+    // crypto-interface-specific maximum data value that range proofs can support.  This is used to
+    // test the implementation's support for the get_range_proof_max_value API function.
+    SignCredential(
+        IssuerLabel,
+        HolderLabel,
+        Vec<api::DataValue>,
+        Option<ReplaceValueWithMaximumPlus>
+    ),
     AccumulatorAddRemove(
         IssuerLabel,
         api::CredAttrIndex,
@@ -166,12 +192,18 @@ pub enum TestStep {
         api::AccumulatorBatchSeqNo,
     ),
     Reveal(HolderLabel, IssuerLabel, Vec<api::CredAttrIndex>),
+    // If the last argument to an InRange test step is
+    //   Some(ReplaceUpperBoundWithMaxSupportedPlusOffset{replaceUpperBoundWithMaxSupportedPlusOffset:offset}),
+    // then the maximum value of the range is replaced by max + offset, where max is the
+    // crypto-interface-specific maximum data value that range proofs can support.  This is used to
+    // test the implementation's support for the get_range_proof_max_value API function.
     InRange(
         HolderLabel,
         IssuerLabel,
         api::CredAttrIndex,
-        u64,   // NOTE: AnonCreds allows Option for min and max, but we do not provide that
-        u64,   // generality (yet?) in our abstraction, and therefore not here either
+        u64,
+        u64,
+        Option<ReplaceUpperBoundWithMaxSupportedPlusOffset>
     ),
     InAccum(
         HolderLabel,

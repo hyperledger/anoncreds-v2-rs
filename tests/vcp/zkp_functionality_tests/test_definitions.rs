@@ -53,11 +53,11 @@ macro_rules! per_crypto_library_test {
 }
 
 pub fn sign_d_cred(h_lbl: tf::HolderLabel) -> tf::TestStep {
-    tf::TestStep::SignCredential(td::D_ISSUER_LABEL.to_owned(), h_lbl, td::D_VALS.to_owned())
+    tf::TestStep::SignCredential(td::D_ISSUER_LABEL.to_owned(), h_lbl, td::D_VALS.to_owned(), None)
 }
 
 pub fn sign_s_cred(h_lbl: tf::HolderLabel) -> tf::TestStep {
-    tf::TestStep::SignCredential(td::S_ISSUER_LABEL.to_owned(), h_lbl, td::S_VALS.to_owned())
+    tf::TestStep::SignCredential(td::S_ISSUER_LABEL.to_owned(), h_lbl, td::S_VALS.to_owned(), None)
 }
 
 lazy_static! {
@@ -156,7 +156,8 @@ lazy_static! {
     pub static ref SIGN_SECOND_DL: Vec<tf::TestStep> = vec![tf::TestStep::SignCredential(
         td::D_ISSUER_LABEL.to_owned(),
         "Holder2".to_owned(),
-        td::D_VALS2.to_owned()
+        td::D_VALS2.to_owned(),
+        None
     )];
     pub static ref ADD_TO_ACCUM2: Vec<tf::TestStep> = vec![tf::TestStep::AccumulatorAddRemove(
         td::D_ISSUER_LABEL.to_owned(),

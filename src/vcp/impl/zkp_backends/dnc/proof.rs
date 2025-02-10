@@ -1,5 +1,5 @@
 // ------------------------------------------------------------------------------
-use crate::prelude;
+use crate::str_vec_from;
 use crate::vcp::{convert_to_crypto_library_error, Error, VCPResult};
 use crate::vcp::r#impl::common::types::*;
 use crate::vcp::r#impl::common::general::presentation_request_setup::is_cred_resolved;
@@ -243,6 +243,16 @@ fn add_statement_and_maybe_witness(
 
         SupportedDisclosure::RangeProof(snark_pk, min, max) =>
         {
+            // DNC has changed so that it now interprets intervals for range proof requests as right
+            // open, e.g., if min = 10 and max = 20, an attribute value of 20 would previously have
+            // passed the test, but now it would fail.  See discussion in this DNC issue:
+            // https://github.com/docknetwork/crypto/issues/27
+            // For consistency of interpretation at the level of abstract presentation requirements,
+            // we add one to the upper bound of the requested range before creating the
+            // corresponding DNC statement.
+            let max = max.checked_add(1).ok_or(
+                Error::General(ic_semi(&str_vec_from!("add_statement_and_maybe_witness",
+                                                      "overflow when adjusting range maximum for right-open range"))))?;
             let rng_prf_stmt = match sigs_mb {
                 None      => BoundCheckVerifierStmt::new_statement_from_params(min, max, snark_pk.vk)
                     .map_err(|e| Error::General(format!("DNC add_statement_and_maybe_witness RangeProof None {:?}", e)))?,

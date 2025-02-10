@@ -69,6 +69,17 @@ We note that there are a number of additional tests, beyond those that use the t
 are less general, more historic, less well organised, etc.  We recommend focusing on the JSON tests
 that are run by the test framework.
 
+* Running tests
+
+We have added a number of tests, many of which are expressed in JSON.  More such tests can be added
+simply by adding JSON files, with no programming required.  The test framework that enables this is
+described in the next section.
+
+The [[../../Makefile][../../Makefile]] supports a number of =make= targets for running/skipping tests according to various
+criteria.  The two most important are =make test= and =make test-all=.  The former skips tests that are
+overridden to fail (see Section [[sec:overriding]]), so that unexpected failures are not masked by
+those tests.  The latter runs these tests as well, so that the failures can be seen.
+
 * The test framework
 
 The goal of our test framework is to enable easily specifying a sequence of actions that exercise
@@ -197,11 +208,18 @@ decrypted values match the original signed values.
    - Creates new credential (~SignatureAndRelatedData~) signed by specified Issuer with specified
      ~DataValue~ s for specified ~Holder~ ("related data" includes ~DataValue~ s signed and an empty map
      that will be used to store ~AccumulatorMembershipWitness~ es when they are created by an
-     ~AccumulatorAddRemove~ step).
+     ~AccumulatorAddRemove~ step).  If the fourth argument is provided, the value of the identified
+     attribute is replaced by the maximum value for which a range proof can be supported by the
+     underlying ZKP library, plus the identified offset.
+
 **** Arguments
    - ~IssuerLabel~: label identifying previously created Issuer
    - ~HolderLabel~: label identifying Holder
    - ~[ DataValue ]~: list of values to be signed, one for each attribute of Issuer's schema
+   - ~Option<ReplaceValueWithMaximumPlus>~: if provided, identifies an attribute index
+     =attrIdxToReplaceWithMaxSupported= and an offset =plusOffset=.  Argument used only for
+     testing that the underlying ZKP library's =get_range_proof_max_value= API function returns an
+     accurate value.
 **** API method(s) invoked
   - ~sign~
 
@@ -280,12 +298,19 @@ decrypted values match the original signed values.
   - note that there is no step for creating a ~RangeProvingKey~ because one is automatically
     created when an ~InRange~ step is first encountered, and the same one is used for any subsequent
     ~InRange~ requirements
+  - If the sixth argument is provided, the range's upper bound is replaced by the specified offset plus
+    the maximum value for which range proofs are supported by the underlying ZKP libary, as determined by
+    calling its =get_range_proof_max_value= API function.
 **** Arguments
    - ~HolderLabel~
    - ~IssuerLabel~
    - ~CredAttrIndex~
    - ~i64~: the minimum value in the range
    - ~i64~: the maximum value in the range
+   - =Option<ReplaceUpperBoundWithMaxSupportedPlusOffset>=: if provided, specifies a replacement value
+     for the range's upper bound in terms of an offset from the maximum value for which range proofs
+     are supported by the underlying ZKP libary.  Argument used only for testing that the
+     underlying ZKP library's =get_range_proof_max_value= API function returns an accurate value.
 **** Comments
    - Step does *not* generate an error if specified attribute is out of range, because we want to be
      able to test that ~CreateAndVerifyProof~ does not succeed in this case
@@ -401,6 +426,7 @@ decrypted values match the original signed values.
 **** API method(s) invoked
   - ~verify_decryption~
 
+<<sec:overriding>>
 ** Overriding tests
 
 Sometimes we want finer control over how specific tests are treated in combination with specific

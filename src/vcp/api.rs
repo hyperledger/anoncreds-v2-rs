@@ -24,6 +24,16 @@ pub struct PlatformApi {
     pub sign: Sign,
     // Range proof setup
     pub create_range_proof_proving_key: CreateRangeProofProvingKey,
+    // This function should return the largest value for which the underlying ZKP
+    // can create a range proof.  This enables participants to use and test range
+    // proofs without knowing the underlying ZKP library's maximum supported
+    // value.  In particular, it can be used by:
+    // - Issuers, in case they want to use a "maximum" value for an attribute
+    //   that may be subject to range proofs;
+    // - Verifiers, in case they want to express a "greater than" range proof
+    //   requirement
+    // - Tests, to ensure that the maximum supported value is reported accurately
+    pub get_range_proof_max_value: GetRangeProofMaxValue,
     // Authority setup
     pub create_authority_data: CreateAuthorityData,
     // Accumulator setup

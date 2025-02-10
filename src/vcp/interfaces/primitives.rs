@@ -121,7 +121,13 @@ pub type CreateRangeProofProvingKey = Arc<
         ) -> VCPResult<RangeProofProvingKey>
         + Send
         + Sync,
->;
+    >;
+
+pub type GetRangeProofMaxValue = Arc<
+    dyn Fn() -> u64
+        + Send
+        + Sync,
+    >;
 
 pub type CreateAuthorityData = Arc<
     dyn Fn(

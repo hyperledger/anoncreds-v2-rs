@@ -2,50 +2,51 @@
 
 # Table of Contents
 
-1.  [Introduction](#orgb3c15ee)
-2.  [Caveats](#orgff73d52)
-3.  [User abstraction](#org667bd3b)
-4.  [The test framework](#orgca148fe)
-    1.  [JSON test file naming and contents](#orgfdec348)
-    2.  [Overview of test framework](#orgd92cd04)
-    3.  [An example](#org8a915d4)
-    4.  [TestSteps](#orgd3c6ea5)
-        1.  [CreateIssuer](#org6b6814e)
-        2.  [CreateAccumulators](#org8884434)
-        3.  [SignCredential](#orge1ab18e)
-        4.  [AccumulatorAddRemove](#orgdc7f764)
-        5.  [UpdateAccumulatorWitness](#org7121147)
-        6.  [Reveal](#orge608696)
-        7.  [InRange](#orgc004dd3)
-        8.  [InAccum](#org435d9c9)
-        9.  [Equality](#org6c3c868)
-        10. [CreateAndVerifyProof](#org466bbab)
-        11. [CreateAuthority](#org3aa02d2)
-        12. [EncryptFor](#org9a6f920)
-        13. [Decrypt](#org2ae991b)
-        14. [VerifyDecryption](#org7d91eba)
-    5.  [Overriding tests](#org175d36d)
-    6.  [Test framework files](#org0eec527)
-5.  [The VCP architecture](#orgb31ab9d)
-    1.  [General](#org3ae7620)
-    2.  [Specific](#org2b43574)
-6.  [Guide to `src/vcp` code](#org34fe513)
-    1.  [Directory structure](#orge08e478)
-    2.  [Example of connecting a specific ZKP library to `PlatformApi`](#orge9abc67)
-    3.  [Creating an Issuer's public and secret data (e.g., keys)](#org5a5477b)
-    4.  [Issuer signing a credential](#orgef9e841)
-    5.  [Creating a proof](#org94d9617)
-    6.  [Verifying a proof](#org1717fe5)
-    7.  [Proofs with revealed values](#orga74d94f)
-    8.  [Proofs with range proofs](#org0366545)
-    9.  [Proofs with verifiable encryption](#org1ed8674)
-    10. [Proofs with equalities between attributes](#orgbca854b)
-    11. [Proofs with accumulators](#orgac33cab)
-    12. [Accumulator functions](#orge709564)
+1.  [Introduction](#orgc5699f3)
+2.  [Caveats](#org3b0e4ea)
+3.  [User abstraction](#org897a7bc)
+4.  [Running tests](#org55619ea)
+5.  [The test framework](#org7a23c44)
+    1.  [JSON test file naming and contents](#org22355eb)
+    2.  [Overview of test framework](#org43eef19)
+    3.  [An example](#org15ffab9)
+    4.  [TestSteps](#org91be796)
+        1.  [CreateIssuer](#orgb56d209)
+        2.  [CreateAccumulators](#orgb3336f9)
+        3.  [SignCredential](#orgba97881)
+        4.  [AccumulatorAddRemove](#orgc160190)
+        5.  [UpdateAccumulatorWitness](#org56bf1fe)
+        6.  [Reveal](#org0c59b31)
+        7.  [InRange](#orga0ea29d)
+        8.  [InAccum](#org24e4a1f)
+        9.  [Equality](#org8c482b8)
+        10. [CreateAndVerifyProof](#org14ac335)
+        11. [CreateAuthority](#orgc0f5a47)
+        12. [EncryptFor](#org2bd0570)
+        13. [Decrypt](#orgbbe30db)
+        14. [VerifyDecryption](#orgca4837d)
+    5.  [Overriding tests](#org5d5feab)
+    6.  [Test framework files](#orgda89d6e)
+6.  [The VCP architecture](#orge4292aa)
+    1.  [General](#orgc16dad2)
+    2.  [Specific](#org319296f)
+7.  [Guide to `src/vcp` code](#org2c3da01)
+    1.  [Directory structure](#org7a3fd4b)
+    2.  [Example of connecting a specific ZKP library to `PlatformApi`](#org2f28cf9)
+    3.  [Creating an Issuer's public and secret data (e.g., keys)](#orgb747785)
+    4.  [Issuer signing a credential](#orgd216e33)
+    5.  [Creating a proof](#org3f74c15)
+    6.  [Verifying a proof](#org4d080ec)
+    7.  [Proofs with revealed values](#orga740e3d)
+    8.  [Proofs with range proofs](#org8443a94)
+    9.  [Proofs with verifiable encryption](#orgcc62cac)
+    10. [Proofs with equalities between attributes](#orge989318)
+    11. [Proofs with accumulators](#org99a00eb)
+    12. [Accumulator functions](#org93efbe8)
 
 
 
-<a id="orgb3c15ee"></a>
+<a id="orgc5699f3"></a>
 
 # Introduction
 
@@ -69,7 +70,7 @@ This work is by [Harold Carr](https://github.com/haroldcarr) and [Mark Moir](htt
 of the University of Maryland at College Park, during his Summer 2024 internship at Oracle Labs.
 
 
-<a id="orgff73d52"></a>
+<a id="org3b0e4ea"></a>
 
 # Caveats
 
@@ -92,7 +93,7 @@ exploration.  In particular,
     feedback and engagement towards something that we can offer as a contribution.
 
 
-<a id="org667bd3b"></a>
+<a id="org897a7bc"></a>
 
 # User abstraction
 
@@ -101,7 +102,7 @@ From an application/user perspective, our abstraction is defined by the
 
 -   By using the `implement_platform_api_using` function in [./api_utils.rs](./api_utils.rs) and providing an instance of
     `CryptoInterface`, such as `CRYPTO_INTERFACE_AC2C` (defined in [./impl/ac2c/impl_ac2c.rs](./impl/ac2c/impl_ac2c.rs)), and calling
-    its methods directly.  See [6.1](#org740d3d7) for more details.
+    its methods directly.  See [7.1](#org018c529) for more details.
 -   By accessing the functionality via a Swagger/OpenAPI interface. We have built an HTTP
     server serving such an interface built automatically from our Haskell prototype. However,
     this is internal work, and is not up-to-date.  Future work includes implementing an HTTP server in Rust.
@@ -117,7 +118,21 @@ are less general, more historic, less well organised, etc.  We recommend focusin
 that are run by the test framework.
 
 
-<a id="orgca148fe"></a>
+<a id="org55619ea"></a>
+
+# Running tests
+
+We have added a number of tests, many of which are expressed in JSON.  More such tests can be added
+simply by adding JSON files, with no programming required.  The test framework that enables this is
+described in the next section.
+
+The [../../Makefile](../../Makefile) supports a number of `make` targets for running/skipping tests according to various
+criteria.  The two most important are `make test` and `make test-all`.  The former skips tests that are
+overridden to fail (see Section [5.4.14.3](#org536e2a8)), so that unexpected failures are not masked by
+those tests.  The latter runs these tests as well, so that the failures can be seen.
+
+
+<a id="org7a23c44"></a>
 
 # The test framework
 
@@ -133,7 +148,7 @@ test it is necessary to ensure recompilation, using these steps, for example:
     make test
 
 
-<a id="orgfdec348"></a>
+<a id="org22355eb"></a>
 
 ## JSON test file naming and contents
 
@@ -160,7 +175,7 @@ to run only the test described in the next section:
     cargo test example_single_issuer_and_credential_in_accum_no_update
 
 
-<a id="orgd92cd04"></a>
+<a id="org43eef19"></a>
 
 ## Overview of test framework
 
@@ -179,7 +194,7 @@ We make the simplifying assumption that each Holder can possess at most one cred
 each Issuer. This enables referring to credentials by the label of the Issuer that signed them.
 
 
-<a id="org8a915d4"></a>
+<a id="org15ffab9"></a>
 
 ## An example
 
@@ -230,12 +245,12 @@ as the one signed in the relevant credential, and (in examples involving decrypt
 decrypted values match the original signed values.
 
 
-<a id="orgd3c6ea5"></a>
+<a id="org91be796"></a>
 
 ## TestSteps
 
 
-<a id="org6b6814e"></a>
+<a id="orgb56d209"></a>
 
 ### CreateIssuer
 
@@ -253,7 +268,7 @@ decrypted values match the original signed values.
     -   `create_signer_data`
 
 
-<a id="org8884434"></a>
+<a id="orgb3336f9"></a>
 
 ### CreateAccumulators
 
@@ -270,7 +285,7 @@ decrypted values match the original signed values.
     -   `create_accumulator_data` (once for each created accumulator)
 
 
-<a id="orge1ab18e"></a>
+<a id="orgba97881"></a>
 
 ### SignCredential
 
@@ -279,20 +294,26 @@ decrypted values match the original signed values.
     -   Creates new credential (`SignatureAndRelatedData`) signed by specified Issuer with specified
         `DataValue` s for specified `Holder` ("related data" includes `DataValue` s signed and an empty map
         that will be used to store `AccumulatorMembershipWitness` es when they are created by an
-        `AccumulatorAddRemove` step).
+        `AccumulatorAddRemove` step).  If the fourth argument is provided, the value of the identified
+        attribute is replaced by the maximum value for which a range proof can be supported by the
+        underlying ZKP library, plus the identified offset.
 
 2.  Arguments
 
     -   `IssuerLabel`: label identifying previously created Issuer
     -   `HolderLabel`: label identifying Holder
     -   `[ DataValue ]`: list of values to be signed, one for each attribute of Issuer's schema
+    -   `Option<ReplaceValueWithMaximumPlus>`: if provided, identifies an attribute index
+        `attrIdxToReplaceWithMaxSupported` and an offset `plusOffset`.  Argument used only for
+        testing that the underlying ZKP library's `get_range_proof_max_value` API function returns an
+        accurate value.
 
 3.  API method(s) invoked
 
     -   `sign`
 
 
-<a id="orgdc7f764"></a>
+<a id="orgc160190"></a>
 
 ### AccumulatorAddRemove
 
@@ -320,7 +341,7 @@ decrypted values match the original signed values.
     -   `accumulator_add_remove`
 
 
-<a id="org7121147"></a>
+<a id="org56bf1fe"></a>
 
 ### UpdateAccumulatorWitness
 
@@ -363,7 +384,7 @@ decrypted values match the original signed values.
     -   `update_accumulator_witness`, potentially multiple times as described above
 
 
-<a id="orge608696"></a>
+<a id="org0c59b31"></a>
 
 ### Reveal
 
@@ -388,7 +409,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="orgc004dd3"></a>
+<a id="orga0ea29d"></a>
 
 ### InRange
 
@@ -400,6 +421,9 @@ decrypted values match the original signed values.
     -   note that there is no step for creating a `RangeProvingKey` because one is automatically
         created when an `InRange` step is first encountered, and the same one is used for any subsequent
         `InRange` requirements
+    -   If the sixth argument is provided, the range's upper bound is replaced by the specified offset plus
+        the maximum value for which range proofs are supported by the underlying ZKP libary, as determined by
+        calling its `get_range_proof_max_value` API function.
 
 2.  Arguments
 
@@ -408,6 +432,10 @@ decrypted values match the original signed values.
     -   `CredAttrIndex`
     -   `i64`: the minimum value in the range
     -   `i64`: the maximum value in the range
+    -   `Option<ReplaceUpperBoundWithMaxSupportedPlusOffset>`: if provided, specifies a replacement value
+        for the range's upper bound in terms of an offset from the maximum value for which range proofs
+        are supported by the underlying ZKP libary.  Argument used only for testing that the
+        underlying ZKP library's `get_range_proof_max_value` API function returns an accurate value.
 
 3.  Comments
 
@@ -419,7 +447,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org435d9c9"></a>
+<a id="org24e4a1f"></a>
 
 ### InAccum
 
@@ -443,7 +471,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org6c3c868"></a>
+<a id="org8c482b8"></a>
 
 ### Equality
 
@@ -473,7 +501,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org466bbab"></a>
+<a id="org14ac335"></a>
 
 ### CreateAndVerifyProof
 
@@ -516,7 +544,7 @@ decrypted values match the original signed values.
     -   `verify_proof`
 
 
-<a id="org3aa02d2"></a>
+<a id="orgc0f5a47"></a>
 
 ### CreateAuthority
 
@@ -531,7 +559,7 @@ decrypted values match the original signed values.
     -   `create_authority_data`
 
 
-<a id="org9a6f920"></a>
+<a id="org2bd0570"></a>
 
 ### EncryptFor
 
@@ -553,7 +581,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org2ae991b"></a>
+<a id="orgbbe30db"></a>
 
 ### Decrypt
 
@@ -574,7 +602,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org7d91eba"></a>
+<a id="orgca4837d"></a>
 
 ### VerifyDecryption
 
@@ -590,9 +618,11 @@ decrypted values match the original signed values.
 3.  API method(s) invoked
 
     -   `verify_decryption`
+    
+    <a id="org536e2a8"></a>
 
 
-<a id="org175d36d"></a>
+<a id="org5d5feab"></a>
 
 ## Overriding tests
 
@@ -642,7 +672,7 @@ We would like to improve the override system.  In the meantime, it is documented
 [../../generate-tests-from-json/src/lib.rs](../../generate-tests-from-json/src/lib.rs).
 
 
-<a id="org0eec527"></a>
+<a id="orgda89d6e"></a>
 
 ## Test framework files
 
@@ -693,7 +723,7 @@ Located in [../../tests/vcp](../../tests/vcp) :
 Note: the other tests located in [tests/vcp](../../tests/vcp) (various unit tests) can be ignored.
 
 
-<a id="orgb31ab9d"></a>
+<a id="orge4292aa"></a>
 
 # The VCP architecture
 
@@ -743,7 +773,7 @@ VCP is comprised of three main parts
         verify) for a specific underlying ZKP library
 
 
-<a id="org3ae7620"></a>
+<a id="orgc16dad2"></a>
 
 ## General
 
@@ -769,7 +799,7 @@ Both the general `create_proof` and `verify_proof` then pass that info to "speci
 create and verify.  The AC2C versions are shown in the above diagram.
 
 
-<a id="org2b43574"></a>
+<a id="org319296f"></a>
 
 ## Specific
 
@@ -788,12 +818,12 @@ along with disclosed values.
 to verify the proof.
 
 
-<a id="org34fe513"></a>
+<a id="org2c3da01"></a>
 
 # Guide to `src/vcp` code
 
 
-<a id="orge08e478"></a>
+<a id="org7a3fd4b"></a>
 
 ## Directory structure
 
@@ -893,10 +923,10 @@ The directory structure for the DNC implementation of `CryptoInterface` is:
     
                 types.rs                      : Type aliases used in the DNC implementation
 
-<a id="org740d3d7"></a>
+<a id="org018c529"></a>
 
 
-<a id="orge9abc67"></a>
+<a id="org2f28cf9"></a>
 
 ## Example of connecting a specific ZKP library to `PlatformApi`
 
@@ -915,7 +945,7 @@ An example of making this connection can be seen in the `run_json_test_ac2c` fun
 [../../tests/vcp/json_test_runner_ac2c.rs](../../tests/vcp/json_test_runner_ac2c.rs).
 
 
-<a id="org5a5477b"></a>
+<a id="orgb747785"></a>
 
 ## Creating an Issuer's public and secret data (e.g., keys)
 
@@ -930,7 +960,7 @@ It takes
     -   this is the "schema" for credentials that will be issued and signed by the Issuer
 
 Assuming the AC2C implementation of primitives are connected to `PlatformApi`,
-as described in <a id="orgbc0ba97"></a>,
+as described in <a id="org316a825"></a>,
 then `create_signer_data` (in [./impl/zkp_backends/ac2c/signer.rs](./impl/zkp_backends/ac2c/signer.rs)) is invoked.
 
 The `create_signer_data` implementation
@@ -950,7 +980,7 @@ The `create_signer_data` implementation
 An Issuer would securely store the private data and make the public data available.
 
 
-<a id="orgef9e841"></a>
+<a id="orgd216e33"></a>
 
 ## Issuer signing a credential
 
@@ -972,7 +1002,7 @@ That `sign` implementation
 -   returns a `Signature` (an opaque representation of an AC2C signature)
 
 
-<a id="org94d9617"></a>
+<a id="org3f74c15"></a>
 
 ## Creating a proof
 
@@ -1027,7 +1057,7 @@ The AC2C `specific_prover` (named `specific_prover_ac2c` in [./impl/zkp_backends
 -   returns `DataForVerifier` that contains the VCP proof and any warnings
 
 
-<a id="org1717fe5"></a>
+<a id="org4d080ec"></a>
 
 ## Verifying a proof
 
@@ -1054,7 +1084,7 @@ converts the VCP information and data into formats used by AC2C, and then calls
 the AC2C `Presentation:verify` to verify the proof.
 
 
-<a id="orga74d94f"></a>
+<a id="orga740e3d"></a>
 
 ## Proofs with revealed values
 
@@ -1110,7 +1140,7 @@ In the `specific_verifier_ac2c` case, it calls `anoncreds-v2-rs` `Presentation::
 the `PresentationSchema` to verify the proof.
 
 
-<a id="org0366545"></a>
+<a id="org8443a94"></a>
 
 ## Proofs with range proofs
 
@@ -1147,7 +1177,7 @@ which creates two `anoncreds-v2-rs` statements:
 Those statements are then used to create and verify proofs
 
 
-<a id="org1ed8674"></a>
+<a id="orgcc62cac"></a>
 
 ## Proofs with verifiable encryption
 
@@ -1174,7 +1204,7 @@ which creates a `anoncreds-v2-rs` `VerifiableEncryptionStatement`
 NOTE: AC2C does not yet support decryption.
 
 
-<a id="orgbca854b"></a>
+<a id="orge989318"></a>
 
 ## Proofs with equalities between attributes
 
@@ -1199,7 +1229,7 @@ where each `EqualityReq` is a list of pairs that point to values that should be 
 `EqualityStatement` for each equality.
 
 
-<a id="orgac33cab"></a>
+<a id="org99a00eb"></a>
 
 ## Proofs with accumulators
 
@@ -1228,7 +1258,7 @@ The AC2C implementation then transforms that `ResolvedDisclosure` into
 which creates a `anoncreds-v2-rs` `MembershipStatement`
 
 
-<a id="orge709564"></a>
+<a id="org93efbe8"></a>
 
 ## Accumulator functions
 

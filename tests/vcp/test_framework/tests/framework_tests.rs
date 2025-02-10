@@ -34,11 +34,11 @@ macro_rules! testing_framework_test {
             // -----------------------------------------------------------------
 
             fn sign_d_cred(h_lbl: tf::HolderLabel) -> tf::TestStep {
-                tf::TestStep::SignCredential(td::D_ISSUER_LABEL.to_owned(), h_lbl, td::D_VALS.to_vec())
+                tf::TestStep::SignCredential(td::D_ISSUER_LABEL.to_owned(), h_lbl, td::D_VALS.to_vec(), None)
             }
 
             fn sign_s_cred(h_lbl: tf::HolderLabel) -> tf::TestStep {
-                tf::TestStep::SignCredential(td::S_ISSUER_LABEL.to_owned(), h_lbl, td::S_VALS.to_vec())
+                tf::TestStep::SignCredential(td::S_ISSUER_LABEL.to_owned(), h_lbl, td::S_VALS.to_vec(), None)
             }
 
             $crate::test_framework_test!{ AC2C, &implement_platform_api_using(CRYPTO_INTERFACE_AC2C.to_owned()), hashmap!() }
@@ -53,8 +53,10 @@ macro_rules! test_framework_test {
         $crate::pok_and_reveal_metadata_test_detailed_cond_test! { $platform_api, $lib_spec }
         $crate::pok_and_reveal_metadata_test_test! { $platform_api}
         $crate::pok_and_reveal_metadata_and_eqs_test! { $platform_api}
-        // temp'ly skip accum stuff until this actually impl'ed
-        // $crate::accum_test! { $platform_api}
+        // TODO: translate tests from Haskell for:
+        // - rangeProofSpec
+        // - rangeProofMaxSpec
+        // - accumSpec
     };
 }
 
