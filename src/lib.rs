@@ -37,6 +37,8 @@ mod utils;
 /// Presentation verifiers
 mod verifier;
 
+pub mod vcp;
+
 /// One import to rule them all
 pub mod prelude {
     use super::*;
