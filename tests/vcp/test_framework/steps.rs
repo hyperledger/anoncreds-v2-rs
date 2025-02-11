@@ -2,10 +2,10 @@
 use credx::str_vec_from;
 use credx::vcp::{Error, VCPResult};
 use credx::vcp::api;
-use credx::vcp::r#impl::common::general::presentation_request_setup::get_proof_instructions;
-use credx::vcp::r#impl::common::json::shared_params::put_shared_one;
-use credx::vcp::r#impl::common::json::util::encode_to_text;
-use credx::vcp::r#impl::common::util::*;
+use credx::vcp::r#impl::general::presentation_request_setup::get_proof_instructions;
+use credx::vcp::r#impl::json::shared_params::put_shared_one;
+use credx::vcp::r#impl::json::util::encode_to_text;
+use credx::vcp::r#impl::util::*;
 use credx::vcp::interfaces::primitives::ProofInstructionGeneral;
 use credx::vcp::interfaces::primitives::types::*;
 use credx::vcp::interfaces::types::ClaimType::*;

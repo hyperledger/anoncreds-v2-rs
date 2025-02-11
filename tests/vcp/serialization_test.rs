@@ -1,10 +1,10 @@
 // ------------------------------------------------------------------------------
 use credx::vcp::VCPResult;
 use credx::vcp::api;
-use credx::vcp::r#impl::zkp_backends::ac2c::accumulators::*;
-use credx::vcp::r#impl::common::json::util::*;
-use credx::vcp::r#impl::common::to_from_api::*;
+use credx::vcp::r#impl::json::util::*;
+use credx::vcp::r#impl::to_from_api::*;
 use credx::vcp::interfaces::types::*;
+use credx::vcp::zkp_backends::ac2c::accumulators::*;
 // ------------------------------------------------------------------------------
 use credx::prelude::vb20;
 // ------------------------------------------------------------------------------

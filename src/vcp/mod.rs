@@ -8,11 +8,12 @@ use std::backtrace::Backtrace;
 use std::fmt::Debug;
 // ------------------------------------------------------------------------------
 
+pub mod api;
 pub mod api_utils;
 pub mod r#impl;
 pub mod interfaces;
 pub use interfaces::*;
-pub mod api;
+pub mod zkp_backends;
 
 pub type VCPResult<T> = Result<T, Error>;
 
