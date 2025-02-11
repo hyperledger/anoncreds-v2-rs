@@ -51,6 +51,8 @@ ark-ff = { version = "^0.4.1", default-features = false }
 ark-serialize = { version = "^0.4.1", default-features = false, features = [ "derive" ] }
 ark-std = { version = "^0.4.0", default-features = false}
 blake2 = { version = "0.10", default-features = false }
+# ----- needed for flexible macros
+paste = "1.0"
 # ----- to generate tests
 generate-tests-from-json = { path = "generate-tests-from-json" }
 

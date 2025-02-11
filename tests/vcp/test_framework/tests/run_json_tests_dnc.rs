@@ -2,7 +2,6 @@
 // ------------------------------------------------------------------------------
 use credx::vcp::*;
 use credx::vcp::VCPResult;
-use credx::vcp::r#impl::zkp_backends::dnc::crypto_interface_dnc::CRYPTO_INTERFACE_DNC;
 // ------------------------------------------------------------------------------
 use crate::vcp::data_for_tests as td;
 use crate::vcp::test_framework as tf;

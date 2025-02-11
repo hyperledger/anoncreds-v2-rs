@@ -6,8 +6,8 @@ use crate::vcp::interfaces::types as api;
 // ------------------------------------------------------------------------------
 use bbs_plus::prelude::SecretKey;
 use bbs_plus::prelude::SignatureG1;
-use saver::prelude::*;
 use proof_system::prelude::Proof;
+use saver::prelude::*;
 use vb_accumulator::prelude::MembershipWitness;
 // ------------------------------------------------------------------------------
 use ark_bls12_381::{Bls12_381,G1Affine};

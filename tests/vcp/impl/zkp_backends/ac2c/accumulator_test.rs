@@ -6,7 +6,10 @@ use credx::vcp::r#impl::zkp_backends::ac2c::accumulators::*;
 use credx::vcp::interfaces::types::*;
 // ------------------------------------------------------------------------------
 use credx::claim::{HashedClaim, RevocationClaim};
+use credx::knox::bbs::BbsScheme;
+use credx::knox::ps::PsScheme;
 use credx::knox::short_group_sig_core::{ProofMessage,HiddenMessage};
+use credx::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use credx::prelude::{
     vb20, ClaimSchema, ClaimType, CredentialBundle, CredentialSchema,
     Issuer, IssuerPublic, MembershipStatement,
@@ -35,18 +38,30 @@ fn setup() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
 
-#[test]
-fn test_vcp_membership() {
+macro_rules! run_vcp_membership_test_with {
+    ($schmid:ident, $scheme:ident) => {
+        paste::item! {
+            #[test]
+            fn [< vcp_membership_test_ $schmid>]() {
+                test_vcp_membership::<$scheme>()
+            }
+        }
+    }
+}
+
+run_vcp_membership_test_with!(bbs, BbsScheme);
+run_vcp_membership_test_with!(ps, PsScheme);
+
+fn test_vcp_membership<S: ShortGroupSignatureScheme>() {
     setup();
     let mut nonce = [0u8; 16];
     thread_rng().fill_bytes(&mut nonce);
-    let res = vcp_membership(&nonce);
+    let res = vcp_membership::<S>(&nonce);
     assert!(res.is_ok(), "{:?}", res);
 }
 
 // NOTE: the variables are numbered according to the accumulator number they are using.
-
-fn vcp_membership(nonce : &[u8],) -> VCPResult<()> {
+fn vcp_membership<S: ShortGroupSignatureScheme>(nonce : &[u8],) -> VCPResult<()> {
 
     // ------------------------------------------------------------------------------
     // accumulator manager
@@ -65,7 +80,7 @@ fn vcp_membership(nonce : &[u8],) -> VCPResult<()> {
     // ------------------------------------------------------------------------------
     // issuer
 
-    let (issuer_public, mut issuer)              = create_issuer()?;
+    let (issuer_public, mut issuer)              = create_issuer::<S>()?;
 
     // sign
 
@@ -218,7 +233,7 @@ where
         Ok(())
     }
     else {
-        return Err(vcp::Error::General(
+        Err(vcp::Error::General(
             format!("Expected error containing {}, but got {:?}",s,err)))
     }
 }
@@ -226,7 +241,7 @@ where
 // ------------------------------------------------------------------------------
 // Helper functions for the test above.
 
-fn create_issuer() -> VCPResult<(IssuerPublic, Issuer)>
+fn create_issuer<S: ShortGroupSignatureScheme>() -> VCPResult<(IssuerPublic<S>, Issuer<S>)>
 {
     const LABEL       : &str = "Test Schema";
     const DESCRIPTION : &str = "This is a test presentation schema";
@@ -249,7 +264,10 @@ fn create_issuer() -> VCPResult<(IssuerPublic, Issuer)>
     Ok(Issuer::new(&cred_schema))
 }
 
-fn sign_credential(issuer : &mut Issuer, membership_element : &String) -> VCPResult<CredentialBundle>
+fn sign_credential<S: ShortGroupSignatureScheme>(
+    issuer : &mut Issuer<S>,
+    membership_element : &String)
+    -> VCPResult<CredentialBundle<S>>
 {
     issuer.sign_credential(&[
         RevocationClaim::from("CRED_156-6eda-45fb-a709-d22ebb5ec8a5").into(),
@@ -257,9 +275,9 @@ fn sign_credential(issuer : &mut Issuer, membership_element : &String) -> VCPRes
     ]).map_err(|e| vcp::convert_to_crypto_library_error("AC2C", "sign_credential", e))
 }
 
-fn create_sig_and_revoke_stmts(
-    issuer_public : &IssuerPublic,
-) -> (SignatureStatement, RevocationStatement)
+fn create_sig_and_revoke_stmts<S: ShortGroupSignatureScheme>(
+    issuer_public : &IssuerPublic<S>,
+) -> (SignatureStatement<S>, RevocationStatement)
 {
     let sig_st = SignatureStatement {
         disclosed        : btreeset! {},
@@ -276,8 +294,8 @@ fn create_sig_and_revoke_stmts(
     (sig_st, rvk_st)
 }
 
-fn create_mem_stmt(
-    sig_st                   : &SignatureStatement,
+fn create_mem_stmt<S: ShortGroupSignatureScheme>(
+    sig_st                   : &SignatureStatement<S>,
     vk                       : &AccumulatorPublicData,
     acc                      : &credx::vcp::interfaces::types::Accumulator,
     idx                      : usize
@@ -295,14 +313,14 @@ fn create_mem_stmt(
     })
 }
 
-fn presentation_create(
-    credential : &CredentialBundle,
-    sig_st     : &SignatureStatement,
+fn presentation_create<S: ShortGroupSignatureScheme>(
+    credential : &CredentialBundle<S>,
+    sig_st     : &SignatureStatement<S>,
     rvk_st     : &RevocationStatement,
     mem_st     : &MembershipStatement,
     amw        : &AccumulatorMembershipWitness,
     nonce      : &[u8],
-) -> VCPResult<(PresentationSchema, Presentation)>
+) -> VCPResult<(PresentationSchema<S>, Presentation<S>)>
 {
     let accum_membership_witness : vb20::MembershipWitness = from_api(amw)?;
     let credentials = indexmap! {
@@ -319,9 +337,9 @@ fn presentation_create(
     Ok((presentation_schema, presentation))
 }
 
-fn presentation_verify(
-    presentation_schema : &PresentationSchema,
-    presentation        : &Presentation,
+fn presentation_verify<S: ShortGroupSignatureScheme>(
+    presentation_schema : &PresentationSchema<S>,
+    presentation        : &Presentation<S>,
     nonce               : &[u8],
 ) -> VCPResult<()>
 {

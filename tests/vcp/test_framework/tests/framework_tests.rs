@@ -2,13 +2,15 @@
 // ------------------------------------------------------------------------------
 use credx::vcp::*;
 use credx::vcp::VCPResult;
+use credx::vcp::r#impl::zkp_backends::ac2c::crypto_interface_ac2c::*;
+// ------------------------------------------------------------------------------
 use crate::vcp::data_for_tests as td;
 use crate::vcp::test_framework as tf;
-use credx::vcp::r#impl::zkp_backends::ac2c::crypto_interface_ac2c::CRYPTO_INTERFACE_AC2C;
 // ------------------------------------------------------------------------------
 
 crate::testing_framework_test! {}
 
+// TODO: generalise to include testing with provided CRYPTO_INTERFACE
 #[macro_export]
 macro_rules! testing_framework_test {
     () => {
@@ -16,7 +18,7 @@ macro_rules! testing_framework_test {
             // -----------------------------------------------------------------
             use credx::vcp::api_utils::implement_platform_api_using;
             use credx::vcp::r#impl::common::util::*;
-            use credx::vcp::r#impl::zkp_backends::ac2c::crypto_interface_ac2c::CRYPTO_INTERFACE_AC2C;
+            use credx::vcp::r#impl::zkp_backends::ac2c::crypto_interface_ac2c::*;
             use credx::vcp::types::*;
             // -----------------------------------------------------------------
             use $crate::vcp::data_for_tests as td;
@@ -41,7 +43,7 @@ macro_rules! testing_framework_test {
                 tf::TestStep::SignCredential(td::S_ISSUER_LABEL.to_owned(), h_lbl, td::S_VALS.to_vec(), None)
             }
 
-            $crate::test_framework_test!{ AC2C, &implement_platform_api_using(CRYPTO_INTERFACE_AC2C.to_owned()), hashmap!() }
+            $crate::test_framework_test!{ AC2C, &implement_platform_api_using(CRYPTO_INTERFACE_AC2C_PS.to_owned()), hashmap!() }
         }
     };
 }

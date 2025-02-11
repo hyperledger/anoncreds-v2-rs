@@ -9,17 +9,21 @@ use crate::vcp::r#impl::zkp_backends::ac2c::presentation_request_setup::*;
 use crate::vcp::interfaces::crypto_interface::*;
 // ------------------------------------------------------------------------------
 use crate::claim::ClaimData;
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::prelude::{Presentation, PresentationCredential, PresentationSchema};
 // ------------------------------------------------------------------------------
 use indexmap::IndexMap;
 use std::collections::HashMap;
+use std::panic::RefUnwindSafe;
 use std::str;
 use std::sync::Arc;
 // ------------------------------------------------------------------------------
 
-pub fn specific_prover_ac2c() -> SpecificProver {
+pub fn specific_prover_ac2c<S: ShortGroupSignatureScheme>() -> SpecificProver
+where <S as ShortGroupSignatureScheme>::PublicKey: RefUnwindSafe,
+      <S as ShortGroupSignatureScheme>::Signature: RefUnwindSafe {
     Arc::new(|prf_instrs, eqs, sigs_and_related_data, nonce| {
-        let credentials = presentation_credentials_from(sigs_and_related_data)?;
+        let credentials = presentation_credentials_from::<S>(sigs_and_related_data)?;
         // println!("specific_prover_ac2c: credentials: {:?}", credentials);
         let WarningsAndResult {
             warnings: warns,
@@ -36,12 +40,14 @@ pub fn specific_prover_ac2c() -> SpecificProver {
     })
 }
 
-pub fn specific_verifier_ac2c() -> SpecificVerifier {
+pub fn specific_verifier_ac2c<S: ShortGroupSignatureScheme>() -> SpecificVerifier
+where <S as ShortGroupSignatureScheme>::PublicKey: RefUnwindSafe,
+      <S as ShortGroupSignatureScheme>::ProofOfSignatureKnowledge: RefUnwindSafe {
     Arc::new(|prf_instrs, eqs, proof_api, decr_reqs, nonce| {
         let WarningsAndResult {
             warnings: warns,
             result: pres_sch,
-        } = presentation_schema_from(prf_instrs, eqs)?;
+        } = presentation_schema_from::<S>(prf_instrs, eqs)?;
         let proof_ac2c = from_api(proof_api)?;
         // throws if verify fails
         get_location_and_backtrace_on_panic!(

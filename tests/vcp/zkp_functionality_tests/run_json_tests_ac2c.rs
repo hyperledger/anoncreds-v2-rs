@@ -1,4 +1,6 @@
+// ------------------------------------------------------------------------------
 use crate::vcp::json_test_runner_ac2c::run_json_test_ac2c;
+// ------------------------------------------------------------------------------
 
 // Note: the directory path must be given statically, as it is read directly
 // at compile-time and not evaluated
