@@ -49,7 +49,7 @@ pub mod prelude {
     pub use credential::*;
     pub use error::*;
     pub use issuer::*;
-    pub use knox::{accumulator::vb20, ps, Knox};
+    pub use knox::{accumulator::vb20, bbs, ps, Knox};
     pub use presentation::*;
     pub use revocation_registry::*;
     pub use statement::*;

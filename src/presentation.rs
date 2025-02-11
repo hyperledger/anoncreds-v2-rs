@@ -22,10 +22,12 @@ pub use schema::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
 
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
 use crate::verifier::*;
 use crate::{claim::ClaimData, error::Error, statement::Statements, utils::*, CredxResult};
-use blsful::inner_types::{ff::Field, group::prime::PrimeCurveAffine, G1Affine, G2Affine, Scalar};
+use blsful::inner_types::{G1Affine, G2Affine, Scalar};
+use elliptic_curve::{ff::Field, group::prime::PrimeCurveAffine};
 use indexmap::{IndexMap, IndexSet};
 use merlin::Transcript;
 use rand_core::{CryptoRng, OsRng, RngCore};
@@ -33,14 +35,14 @@ use serde::{Deserialize, Serialize};
 use uint_zigzag::Uint;
 
 /// Implementers can build proofs for presentations
-pub trait PresentationBuilder {
+pub trait PresentationBuilder<S: ShortGroupSignatureScheme> {
     /// Finalize proofs
-    fn gen_proof(self, challenge: Scalar) -> PresentationProofs;
+    fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S>;
 }
 
 /// Encapsulates the builders for later conversion to proofs
-pub(crate) enum PresentationBuilders<'a> {
-    Signature(Box<SignatureBuilder<'a>>),
+pub(crate) enum PresentationBuilders<'a, S: ShortGroupSignatureScheme> {
+    Signature(Box<SignatureBuilder<'a, S>>),
     Revocation(Box<RevocationProofBuilder<'a>>),
     Equality(Box<EqualityBuilder<'a>>),
     Commitment(Box<CommitmentBuilder<'a>>),
@@ -49,9 +51,9 @@ pub(crate) enum PresentationBuilders<'a> {
     Membership(Box<MembershipProofBuilder<'a>>),
 }
 
-impl<'a> PresentationBuilders<'a> {
+impl<S: ShortGroupSignatureScheme> PresentationBuilders<'_, S> {
     /// Convert to proofs
-    pub fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
+    pub fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
         match self {
             Self::Signature(s) => s.gen_proof(challenge),
             Self::Equality(e) => e.gen_proof(challenge),
@@ -64,43 +66,51 @@ impl<'a> PresentationBuilders<'a> {
     }
 }
 
-impl<'a> From<SignatureBuilder<'a>> for PresentationBuilders<'a> {
-    fn from(sig: SignatureBuilder<'a>) -> Self {
+impl<'a, S: ShortGroupSignatureScheme> From<SignatureBuilder<'a, S>>
+    for PresentationBuilders<'a, S>
+{
+    fn from(sig: SignatureBuilder<'a, S>) -> Self {
         Self::Signature(Box::new(sig))
     }
 }
 
-impl<'a> From<RevocationProofBuilder<'a>> for PresentationBuilders<'a> {
+impl<'a, S: ShortGroupSignatureScheme> From<RevocationProofBuilder<'a>>
+    for PresentationBuilders<'a, S>
+{
     fn from(acc: RevocationProofBuilder<'a>) -> Self {
         Self::Revocation(Box::new(acc))
     }
 }
 
-impl<'a> From<EqualityBuilder<'a>> for PresentationBuilders<'a> {
+impl<'a, S: ShortGroupSignatureScheme> From<EqualityBuilder<'a>> for PresentationBuilders<'a, S> {
     fn from(eq: EqualityBuilder<'a>) -> Self {
         Self::Equality(Box::new(eq))
     }
 }
 
-impl<'a> From<CommitmentBuilder<'a>> for PresentationBuilders<'a> {
+impl<'a, S: ShortGroupSignatureScheme> From<CommitmentBuilder<'a>> for PresentationBuilders<'a, S> {
     fn from(com: CommitmentBuilder<'a>) -> Self {
         Self::Commitment(Box::new(com))
     }
 }
 
-impl<'a> From<VerifiableEncryptionBuilder<'a>> for PresentationBuilders<'a> {
+impl<'a, S: ShortGroupSignatureScheme> From<VerifiableEncryptionBuilder<'a>>
+    for PresentationBuilders<'a, S>
+{
     fn from(ve: VerifiableEncryptionBuilder<'a>) -> Self {
         Self::VerifiableEncryption(Box::new(ve))
     }
 }
 
-impl<'a> From<RangeBuilder<'a>> for PresentationBuilders<'a> {
+impl<'a, S: ShortGroupSignatureScheme> From<RangeBuilder<'a>> for PresentationBuilders<'a, S> {
     fn from(rg: RangeBuilder<'a>) -> Self {
         Self::Range(Box::new(rg))
     }
 }
 
-impl<'a> From<MembershipProofBuilder<'a>> for PresentationBuilders<'a> {
+impl<'a, S: ShortGroupSignatureScheme> From<MembershipProofBuilder<'a>>
+    for PresentationBuilders<'a, S>
+{
     fn from(value: MembershipProofBuilder<'a>) -> Self {
         Self::Membership(Box::new(value))
     }
@@ -108,13 +118,15 @@ impl<'a> From<MembershipProofBuilder<'a>> for PresentationBuilders<'a> {
 
 /// Defines the proofs for a verifier
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Presentation {
+pub struct Presentation<S: ShortGroupSignatureScheme> {
     /// The proofs
     #[serde(
         serialize_with = "serialize_indexmap",
-        deserialize_with = "deserialize_indexmap"
+        deserialize_with = "deserialize_indexmap",
+        bound(serialize = "PresentationProofs<S>: Serialize"),
+        bound(deserialize = "PresentationProofs<S>: Deserialize<'de>")
     )]
-    pub proofs: IndexMap<String, PresentationProofs>,
+    pub proofs: IndexMap<String, PresentationProofs<S>>,
     /// The fiat-shamir hash
     pub challenge: Scalar,
     /// The disclosed messages
@@ -125,15 +137,16 @@ pub struct Presentation {
     pub disclosed_messages: IndexMap<String, IndexMap<String, ClaimData>>,
 }
 
-impl Presentation {
+impl<S: ShortGroupSignatureScheme> Presentation<S> {
+    #[allow(clippy::type_complexity)]
     fn split_statements(
-        schema: &PresentationSchema,
+        schema: &PresentationSchema<S>,
     ) -> (
-        IndexMap<&String, &Statements>,
-        IndexMap<&String, &Statements>,
+        IndexMap<&String, &Statements<S>>,
+        IndexMap<&String, &Statements<S>>,
     ) {
-        let mut signature_statements: IndexMap<&String, &Statements> = IndexMap::new();
-        let mut predicate_statements: IndexMap<&String, &Statements> = IndexMap::new();
+        let mut signature_statements: IndexMap<&String, &Statements<S>> = IndexMap::new();
+        let mut predicate_statements: IndexMap<&String, &Statements<S>> = IndexMap::new();
 
         for (id, statement) in &schema.statements {
             if let Statements::Signature(_) = statement {
@@ -194,9 +207,9 @@ impl Presentation {
 
     /// Map the claims to the respective types
     fn get_message_types<'a>(
-        credentials: &IndexMap<String, PresentationCredential>,
-        signature_statements: &'a IndexMap<&String, &Statements>,
-        predicate_statements: &'a IndexMap<&String, &Statements>,
+        credentials: &IndexMap<String, PresentationCredential<S>>,
+        signature_statements: &'a IndexMap<&String, &Statements<S>>,
+        predicate_statements: &'a IndexMap<&String, &Statements<S>>,
         mut rng: impl RngCore + CryptoRng,
     ) -> CredxResult<IndexMap<&'a String, Vec<ProofMessage<Scalar>>>> {
         let mut shared_proof_msg_indices: IndexMap<&String, Vec<bool>> = IndexMap::new();

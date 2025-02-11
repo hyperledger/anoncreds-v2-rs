@@ -1,11 +1,12 @@
 use super::*;
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use log::debug;
 
-impl Presentation {
+impl<S: ShortGroupSignatureScheme> Presentation<S> {
     /// Create a new presentation composed of 1 to many proofs
     pub fn create(
-        credentials: &IndexMap<String, PresentationCredential>,
-        schema: &PresentationSchema,
+        credentials: &IndexMap<String, PresentationCredential<S>>,
+        schema: &PresentationSchema<S>,
         nonce: &[u8],
     ) -> CredxResult<Self> {
         let rng = OsRng {};
@@ -34,7 +35,7 @@ impl Presentation {
             rng,
         )?;
 
-        let mut builders = Vec::<PresentationBuilders>::with_capacity(schema.statements.len());
+        let mut builders = Vec::<PresentationBuilders<S>>::with_capacity(schema.statements.len());
         let mut disclosed_messages = IndexMap::new();
 
         for (id, sig_statement) in &signature_statements {
@@ -54,7 +55,7 @@ impl Presentation {
                 Self::add_disclosed_messages_challenge_contribution(id, &dm, &mut transcript);
                 let builder = SignatureBuilder::commit(
                     ss,
-                    cred.signature,
+                    &cred.signature,
                     &messages[*id],
                     rng,
                     &mut transcript,
@@ -161,7 +162,7 @@ impl Presentation {
                 Statements::Signature(_) => {}
             }
         }
-        let mut range_builders = Vec::<PresentationBuilders>::with_capacity(range_id.len());
+        let mut range_builders = Vec::<PresentationBuilders<S>>::with_capacity(range_id.len());
         for id in range_id {
             if let Statements::Range(r) = predicate_statements
                 .get(id)

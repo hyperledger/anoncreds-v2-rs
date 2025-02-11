@@ -3,7 +3,6 @@ use crate::{
     error::Error, knox::short_group_sig_core::short_group_traits::PublicKey as PublicKeyTrait,
 };
 use blsful::inner_types::*;
-use core::convert::TryFrom;
 use serde::{Deserialize, Serialize};
 use subtle::Choice;
 

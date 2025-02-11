@@ -1,4 +1,5 @@
 use super::*;
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::statement::{EqualityStatement, Statement};
 use crate::{error::Error, CredxResult};
 use indexmap::IndexMap;
@@ -8,8 +9,8 @@ pub(crate) struct EqualityBuilder<'a> {
     reference_statement: &'a EqualityStatement,
 }
 
-impl<'a> PresentationBuilder for EqualityBuilder<'a> {
-    fn gen_proof(self, _challenge: Scalar) -> PresentationProofs {
+impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for EqualityBuilder<'_> {
+    fn gen_proof(self, _challenge: Scalar) -> PresentationProofs<S> {
         EqualityProof {
             id: self.reference_statement.id(),
         }
@@ -18,9 +19,9 @@ impl<'a> PresentationBuilder for EqualityBuilder<'a> {
 }
 
 impl<'a> EqualityBuilder<'a> {
-    pub fn commit(
+    pub fn commit<S: ShortGroupSignatureScheme>(
         reference_statement: &'a EqualityStatement,
-        reference_id_credential: &IndexMap<String, PresentationCredential>,
+        reference_id_credential: &IndexMap<String, PresentationCredential<S>>,
     ) -> CredxResult<Self> {
         let mut scalars = Vec::new();
         for (id, claim_index) in &reference_statement.ref_id_claim_index {

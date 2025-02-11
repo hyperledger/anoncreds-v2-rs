@@ -1,5 +1,6 @@
 use super::Statement;
 use crate::issuer::IssuerPublic;
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -7,16 +8,20 @@ use uint_zigzag::Uint;
 
 /// A PS signature statement
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SignatureStatement {
+pub struct SignatureStatement<S: ShortGroupSignatureScheme> {
     /// The labels for the disclosed claims
     pub disclosed: BTreeSet<String>,
     /// The statement id
     pub id: String,
     /// The issuer information
-    pub issuer: IssuerPublic,
+    #[serde(bound(
+        serialize = "IssuerPublic<S>: Serialize",
+        deserialize = "IssuerPublic<S>: Deserialize<'de>"
+    ))]
+    pub issuer: IssuerPublic<S>,
 }
 
-impl Statement for SignatureStatement {
+impl<S: ShortGroupSignatureScheme> Statement for SignatureStatement<S> {
     /// Return this statement unique identifier
     fn id(&self) -> String {
         self.id.clone()

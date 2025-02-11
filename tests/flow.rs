@@ -6,6 +6,7 @@ use credx::claim::{
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::error::Error;
 use credx::issuer::Issuer;
+use credx::knox::bbs::BbsScheme;
 use credx::prelude::{
     MembershipClaim, MembershipCredential, MembershipRegistry, MembershipSigningKey,
     MembershipStatement, MembershipVerificationKey,
@@ -77,7 +78,7 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
     let cred_schema = CredentialSchema::new(Some(LABEL), Some(DESCRIPTION), &[], &schema_claims)?;
 
     let before = Instant::now();
-    let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
+    let (issuer_public, mut issuer) = Issuer::<BbsScheme>::new(&cred_schema);
     println!("key generation time = {:?}", before.elapsed());
 
     let before = std::time::Instant::now();
@@ -166,7 +167,7 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
     let before = Instant::now();
     println!("proof verification: {:?}", before.elapsed());
     let proof_data = serde_bare::to_vec(&presentation).unwrap();
-    let presentation: Presentation = serde_bare::from_slice(&proof_data).unwrap();
+    let presentation: Presentation<BbsScheme> = serde_bare::from_slice(&proof_data).unwrap();
     println!("proof size = {}", proof_data.len());
     presentation.verify(&presentation_schema, &nonce)
 }
@@ -232,7 +233,7 @@ fn test_presentation_1_credential_alter_revealed_message_fails() -> CredxResult<
 
     println!("{}", serde_json::to_string(&cred_schema).unwrap());
 
-    let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
+    let (issuer_public, mut issuer) = Issuer::<BbsScheme>::new(&cred_schema);
 
     let credential = issuer.sign_credential(&[
         RevocationClaim::from(CRED_ID).into(),
@@ -369,7 +370,7 @@ fn test_blind_sign_request() -> CredxResult<()> {
         &schema_claims,
     )?;
 
-    let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
+    let (issuer_public, mut issuer) = Issuer::<BbsScheme>::new(&cred_schema);
 
     let blind_claims = btreemap! { "link_secret".to_string() => ScalarClaim::from(Scalar::random(rand_core::OsRng)).into() };
     let (request, blinder) = BlindCredentialRequest::new(&issuer_public, &blind_claims)?;

@@ -1,6 +1,6 @@
 use crate::statement::Statement;
-use crate::utils::*;
-use blsful::inner_types::group::{Group, GroupEncoding};
+use elliptic_curve::group::{Group, GroupEncoding};
+use elliptic_curve_tools::group;
 use merlin::Transcript;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uint_zigzag::Uint;
@@ -9,16 +9,10 @@ use uint_zigzag::Uint;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CommitmentStatement<P: Group + GroupEncoding + DeserializeOwned + Serialize> {
     /// The generator for the message element
-    #[serde(
-        serialize_with = "serialize_point",
-        deserialize_with = "deserialize_point"
-    )]
+    #[serde(with = "group")]
     pub message_generator: P,
     /// The generator for the random element
-    #[serde(
-        serialize_with = "serialize_point",
-        deserialize_with = "deserialize_point"
-    )]
+    #[serde(with = "group")]
     pub blinder_generator: P,
     /// The statement id
     pub id: String,

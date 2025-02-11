@@ -1,10 +1,12 @@
 use crate::error::Error;
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::presentation::{CommitmentBuilder, PresentationBuilder, PresentationProofs};
 use crate::statement::RangeStatement;
 use crate::utils::*;
 use crate::CredxResult;
-use blsful::inner_types::{group::Curve, Scalar};
+use blsful::inner_types::Scalar;
 use bulletproofs::RangeProof as RangeProofBulletproof;
+use elliptic_curve::group::Curve;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 
@@ -15,8 +17,8 @@ pub(crate) struct RangeBuilder<'a> {
     adjusted_upper: Option<u64>,
 }
 
-impl<'a> PresentationBuilder for RangeBuilder<'a> {
-    fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
+impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for RangeBuilder<'_> {
+    fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
         let pedersen_gen = bulletproofs::PedersenGens {
             B: self.commitment_builder.statement.message_generator,
             B_blinding: self.commitment_builder.statement.blinder_generator,

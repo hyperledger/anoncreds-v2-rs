@@ -4,7 +4,8 @@ use crate::statement::{CommitmentStatement, RangeStatement};
 use crate::utils::{get_num_scalar, zero_center};
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use blsful::inner_types::{group::Curve, G1Projective, Scalar};
+use blsful::inner_types::{G1Projective, Scalar};
+use elliptic_curve::group::Curve;
 use merlin::Transcript;
 
 pub struct RangeProofVerifier<'a, 'b, 'c> {
@@ -14,7 +15,7 @@ pub struct RangeProofVerifier<'a, 'b, 'c> {
     pub commitment: G1Projective,
 }
 
-impl<'a, 'b, 'c> ProofVerifier for RangeProofVerifier<'a, 'b, 'c> {
+impl ProofVerifier for RangeProofVerifier<'_, '_, '_> {
     fn add_challenge_contribution(
         &self,
         _challenge: Scalar,

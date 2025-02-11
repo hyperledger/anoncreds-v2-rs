@@ -1,10 +1,10 @@
 use super::super::ecc_group::*;
 use crate::CredxResult;
-use blsful::inner_types::{
+use core::fmt::Debug;
+use elliptic_curve::{
     ff::PrimeField,
     group::{Curve, GroupEncoding},
 };
-use core::fmt::Debug;
 use merlin::Transcript;
 use rand_core::RngCore;
 use subtle::ConstantTimeEq;
@@ -63,9 +63,13 @@ where
 
     /// Convert the committed values to bytes for the fiat-shamir challenge
     pub fn add_challenge_contribution(&self, label: &'static [u8], transcript: &mut Transcript) {
-        let mut scalars = self.scalars.clone();
-        let commitment = (self.sum_of_products)(self.points.as_ref(), scalars.as_mut());
+        let commitment = self.commitment();
         transcript.append_message(label, commitment.to_affine().to_bytes().as_ref());
+    }
+
+    pub fn commitment(&self) -> B {
+        let mut scalars = self.scalars.clone();
+        (self.sum_of_products)(self.points.as_ref(), scalars.as_mut())
     }
 
     /// Generate the Schnorr challenges given the specified secrets

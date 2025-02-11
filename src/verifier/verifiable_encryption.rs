@@ -2,15 +2,17 @@ use crate::presentation::VerifiableEncryptionProof;
 use crate::statement::VerifiableEncryptionStatement;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use blsful::inner_types::{group::Curve, G1Projective, Scalar};
+use blsful::inner_types::{G1Projective, Scalar};
+use elliptic_curve::group::Curve;
 use merlin::Transcript;
 
 pub struct VerifiableEncryptionVerifier<'a, 'b> {
     pub statement: &'a VerifiableEncryptionStatement<G1Projective>,
     pub proof: &'b VerifiableEncryptionProof,
+    pub message_proof: Scalar,
 }
 
-impl<'a, 'b> ProofVerifier for VerifiableEncryptionVerifier<'a, 'b> {
+impl ProofVerifier for VerifiableEncryptionVerifier<'_, '_> {
     fn add_challenge_contribution(
         &self,
         challenge: Scalar,
@@ -19,7 +21,7 @@ impl<'a, 'b> ProofVerifier for VerifiableEncryptionVerifier<'a, 'b> {
         let challenge = -challenge;
         let r1 = self.proof.c1 * challenge + G1Projective::GENERATOR * self.proof.blinder_proof;
         let r2 = self.proof.c2 * challenge
-            + self.statement.message_generator * self.proof.message_proof
+            + self.statement.message_generator * self.message_proof
             + self.statement.encryption_key.0 * self.proof.blinder_proof;
 
         transcript.append_message(b"", self.statement.id.as_bytes());

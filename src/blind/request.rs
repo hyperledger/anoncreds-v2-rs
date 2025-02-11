@@ -1,4 +1,6 @@
-use crate::knox::ps::{BlindSignatureContext, Prover};
+use crate::knox::short_group_sig_core::short_group_traits::{
+    BlindSignatureContext as _, ShortGroupSignatureScheme,
+};
 use crate::{
     claim::ClaimData,
     error::Error,
@@ -11,19 +13,19 @@ use std::collections::BTreeMap;
 
 /// A blind credential signing request
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct BlindCredentialRequest {
+pub struct BlindCredentialRequest<S: ShortGroupSignatureScheme> {
     /// The blind signing context
-    pub blind_signature_context: BlindSignatureContext,
+    pub blind_signature_context: S::BlindSignatureContext,
     /// The blind claim labels
     pub blind_claim_labels: Vec<String>,
     /// The nonce for this context
     pub nonce: Scalar,
 }
 
-impl BlindCredentialRequest {
+impl<S: ShortGroupSignatureScheme> BlindCredentialRequest<S> {
     /// Create a new request
     pub fn new(
-        issuer: &IssuerPublic,
+        issuer: &IssuerPublic<S>,
         claims: &BTreeMap<String, ClaimData>,
     ) -> CredxResult<(Self, Scalar)> {
         let nonce = Scalar::random(rand::thread_rng());
@@ -41,7 +43,7 @@ impl BlindCredentialRequest {
                 claim.to_scalar(),
             ));
         }
-        let (ctx, blinder) = Prover::new_blind_signature_context(
+        let (ctx, blinder) = S::new_blind_signature_context(
             &messages,
             &issuer.verifying_key,
             nonce,
@@ -59,7 +61,7 @@ impl BlindCredentialRequest {
     }
 
     /// Verify the signing request is well-formed
-    pub fn verify(&self, issuer: &Issuer) -> CredxResult<()> {
+    pub fn verify(&self, issuer: &Issuer<S>) -> CredxResult<()> {
         let mut known_messages =
             Vec::with_capacity(issuer.schema.claims.len() - self.blind_claim_labels.len());
         for label in &self.blind_claim_labels {

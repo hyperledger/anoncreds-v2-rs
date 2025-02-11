@@ -2,9 +2,9 @@ use super::PublicKey;
 use crate::error::Error;
 use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledge;
 use crate::CredxResult;
-use blsful::inner_types::{group::prime::PrimeCurveAffine, *};
-use core::convert::TryFrom;
+use blsful::inner_types::*;
 use core::ops::BitOr;
+use elliptic_curve::group::prime::PrimeCurveAffine;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -72,7 +72,12 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
     /// Validate the proof, only checks the signature proof
     /// the selective disclosure proof is checked by verifying
     /// self.challenge == computed_challenge
-    fn verify(&self, rvl_msgs: &[(usize, Scalar)], public_key: &PublicKey) -> CredxResult<()> {
+    fn verify(
+        &self,
+        public_key: &Self::PublicKey,
+        revealed_messages: &[(usize, Scalar)],
+        _challenge: Scalar,
+    ) -> CredxResult<()> {
         // check the signature proof
         if self
             .sigma_1
@@ -84,19 +89,19 @@ impl ProofOfSignatureKnowledge for PokSignatureProof {
             return Err(Error::General("Invalid proof - identity"));
         }
 
-        if public_key.y.len() < rvl_msgs.len() {
+        if public_key.y.len() < revealed_messages.len() {
             return Err(Error::General(
                 "Invalid key - revealed messages length is bigger than the public key",
             ));
         }
-        if public_key.is_invalid().unwrap_u8() == 1u8 {
+        if public_key.is_invalid().into() {
             return Err(Error::General("Invalid public key"));
         }
 
         let mut points = Vec::new();
         let mut scalars = Vec::new();
 
-        for (idx, msg) in rvl_msgs {
+        for (idx, msg) in revealed_messages {
             if *idx > public_key.y.len() {
                 return Err(Error::General("Invalid proof - revealed message index"));
             }
@@ -166,7 +171,7 @@ impl PokSignatureProof {
     /// Needs (N + 2) * 32 + 48 * 2 + 96 space otherwise it will panic
     /// where N is the number of hidden messages
     pub fn to_bytes(&self) -> Vec<u8> {
-        let mut buffer = Vec::new();
+        let mut buffer = Vec::with_capacity(48 * 2 + 96 + 32 * self.proof.len());
         buffer.extend_from_slice(&self.sigma_1.to_affine().to_compressed());
         buffer.extend_from_slice(&self.sigma_2.to_affine().to_compressed());
         buffer.extend_from_slice(&self.commitment.to_affine().to_compressed());
@@ -177,8 +182,7 @@ impl PokSignatureProof {
         buffer
     }
 
-    /// Convert a byte sequence into the blind signature context
-    /// Expected size is (N + 2) * 32 + 48 * 2 bytes
+    /// Convert a byte sequence into a Signature Proof of Knowledge
     pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> Option<Self> {
         const SIZE: usize = 32 * 3 + 48 * 4;
         let buffer = bytes.as_ref();

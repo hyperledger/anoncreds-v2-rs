@@ -3,7 +3,8 @@ use crate::knox::short_group_sig_core::{
     short_group_traits::ProofOfSignatureKnowledgeContribution, *,
 };
 use crate::CredxResult;
-use blsful::inner_types::{ff::Field, group::Curve, G1Projective, G2Affine, G2Projective, Scalar};
+use blsful::inner_types::{G1Projective, G2Affine, G2Projective, Scalar};
+use elliptic_curve::{group::Curve, Field};
 use merlin::Transcript;
 use rand_core::*;
 
@@ -24,7 +25,7 @@ impl ProofOfSignatureKnowledgeContribution for PokSignature {
 
     /// Creates the initial proof data before a Fiat-Shamir calculation
     fn commit(
-        signature: Signature,
+        signature: &Signature,
         public_key: &PublicKey,
         messages: &[ProofMessage<Scalar>],
         mut rng: impl RngCore + CryptoRng,

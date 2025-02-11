@@ -2,32 +2,21 @@ use super::{PublicKey, SecretKey};
 use crate::error::Error;
 use crate::knox::short_group_sig_core::short_group_traits::Signature as SignatureTrait;
 use crate::CredxResult;
-use blsful::inner_types::{
-    ff::PrimeField,
+use blsful::inner_types::*;
+use elliptic_curve::{
     group::{prime::PrimeCurveAffine, Curve, Group},
-    *,
+    PrimeField,
 };
-use core::convert::TryFrom;
 use serde::{Deserialize, Serialize};
 use sha3::digest::{ExtendableOutput, Update, XofReader};
 use subtle::{Choice, ConditionallySelectable, CtOption};
 
 /// A Pointcheval Saunders signature
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Signature {
     pub(crate) sigma_1: G1Projective,
     pub(crate) sigma_2: G1Projective,
     pub(crate) m_tick: Scalar,
-}
-
-impl Default for Signature {
-    fn default() -> Self {
-        Self {
-            sigma_1: G1Projective::IDENTITY,
-            sigma_2: G1Projective::IDENTITY,
-            m_tick: Scalar::ZERO,
-        }
-    }
 }
 
 impl ConditionallySelectable for Signature {

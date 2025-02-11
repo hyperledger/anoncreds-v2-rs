@@ -1,5 +1,5 @@
 use super::super::ecc_group::ScalarOps;
-use blsful::inner_types::ff::PrimeField;
+use elliptic_curve::PrimeField;
 
 /// Two types of hidden messages
 #[derive(Copy, Clone, Debug)]
