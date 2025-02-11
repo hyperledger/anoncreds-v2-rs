@@ -9,6 +9,7 @@ pub struct CryptoInterface {
     pub sign: Sign,
     // Range proof setup
     pub create_range_proof_proving_key: CreateRangeProofProvingKey,
+    pub get_range_proof_max_value: GetRangeProofMaxValue,
     // Authority setup
     pub create_authority_data: CreateAuthorityData,
     // Accumulator setup

@@ -20,3 +20,9 @@ pub fn create_range_proof_proving_key() -> CreateRangeProofProvingKey {
         to_api(rpk)
     })
 }
+
+// -1 because DNC now interprets ranges as right-open, so a value of u64::MAX cannot be proved to be
+// within an expressible range
+pub fn get_range_proof_max_value() -> GetRangeProofMaxValue {
+    Arc::new(|| u64::MAX - 1)
+}

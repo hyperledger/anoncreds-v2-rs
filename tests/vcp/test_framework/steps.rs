@@ -88,8 +88,10 @@ pub fn step_sign_credential(
     i_lbl: IssuerLabel,
     h_lbl: HolderLabel,
     vals: Vec<api::DataValue>,
+    attr_max_off_mb: Option<ReplaceValueWithMaximumPlus>,
 ) -> AddTestStep {
     let sign = platform_api.sign.clone();
+    let get_range_proof_max_value = platform_api.get_range_proof_max_value.clone();
     Arc::new(move |ts| {
         pprintln("step_sign_credential", &format!("{:#?}", &ts));
         let sards0 = &mut ts.sigs_and_rel_data;
@@ -118,8 +120,30 @@ pub fn step_sign_credential(
         let h_pres0 = preqs0.get_mut(&h_lbl).unwrap();
         // Get issuer SignerData
         let sd = asd0.get(&i_lbl).ok_or(Error::General(
-            "stepSignCredential; Issuer has not been created".to_string(),
+            "step_sign_credential; Issuer has not been created".to_string(),
         ))?;
+        // If maxOff is Some(a_idx, off), replace a_idx'th value before signing, as described at
+        // definition of StepSignCredential
+        let vals = match attr_max_off_mb {
+            None => Ok(vals.clone()),
+            Some(ReplaceValueWithMaximumPlus{attrIdxToReplaceWithMaxSupported: a_idx, plusOffset: off}) => {
+                match lookup_throw_if_out_of_bounds(&vals,a_idx as usize,Error::General,
+                                                    &str_vec_from!("step_sign_credential",
+                                                                   "overridden attribute"))? {
+                    DVInt(_) => {
+                        let m = get_range_proof_max_value();
+                        let v = m.checked_add(off).ok_or(
+                            Error::General(ic_semi(
+                                &str_vec_from!("step_sign_credential",
+                                               "overflow when adjusting range maximum"))))?;
+                        let mut vals = vals.clone();
+                        vals[a_idx as usize] = DVInt(v);
+                        Ok(vals)
+                    },
+                    DVText(_) => Err(Error::General("XXXX".to_string())),
+                }
+            }
+        }?;
         // sign credential
         let sig = sign(0, &vals, sd)?;
         // This models the Issuer sending the signature to the Holder, which stores it along with
@@ -130,7 +154,7 @@ pub fn step_sign_credential(
             i_lbl.clone(),
             api::SignatureAndRelatedData {
                 signature: sig,
-                values: vals.clone(),
+                values: vals,
                 accumulator_witnesses: hashmap!(),
             },
         );
@@ -280,10 +304,25 @@ pub fn step_in_range(
     i_lbl: String,
     a_idx: api::CredAttrIndex,
     min_v: u64,
-    max_v: u64
+    max_v0: u64,
+    max_off: Option<ReplaceUpperBoundWithMaxSupportedPlusOffset>,
 ) -> AddTestStep {
     let create_range_proof_proving_key = platform_api.create_range_proof_proving_key.clone();
+    let max_range_value = (platform_api.get_range_proof_max_value)();
     Arc::new(move |ts| {
+        // the max_off is Some(n), step_in_range modifies the upper bound of the range, making it the
+        // maximum value supported by the underlying PlatformAPI plus n, and throwing an error in
+        // case that addition overflows.  A non-zero offset is only used for testing that the
+        // underlying PlatformAPI accurately reports the *maximum* value that can be proved to be
+        // within a specific range.
+        let max_v = match max_off {
+            None => max_v0,
+            Some(ReplaceUpperBoundWithMaxSupportedPlusOffset { replaceUpperBoundWithMaxSupportedPlusOffset: off }) =>
+                max_range_value.checked_add(off).ok_or(
+                           Error::General(ic_semi(
+                               &str_vec_from!("step_in_range",
+                                              "overflow"))))?,
+        };
         // Including min and max values in labels enables different ranges for the same attribute
         let range_min_val_sp_label =
             ic_semi(&str_vec_from!("rangeMinValueFor", format!("{i_lbl}"), format!("{a_idx}")));

@@ -70,8 +70,8 @@ pub fn extend_test(
                 TestStep::CreateAccumulators(i_lbl) => {
                     (*step_create_accumulators_for_issuer(platform_api, i_lbl))(t_st)?
                 }
-                TestStep::SignCredential(i_lbl, h_lbl, vals) => {
-                    (*step_sign_credential(platform_api, i_lbl, h_lbl, vals))(t_st)?
+                TestStep::SignCredential(i_lbl, h_lbl, vals, attr_max_off_mb) => {
+                    (*step_sign_credential(platform_api, i_lbl, h_lbl, vals, attr_max_off_mb))(t_st)?
                 }
                 TestStep::AccumulatorAddRemove(i_lbl, a_idx, adds, removes) => {
                     (*step_accumulator_add_remove(platform_api, i_lbl, a_idx,
@@ -83,8 +83,8 @@ pub fn extend_test(
                 TestStep::Reveal(h_lbl, i_lbl, idxs) => {
                     (*step_reveal(platform_api, h_lbl, i_lbl, idxs))(t_st)?
                 }
-                TestStep::InRange(h_lbl, i_lbl, idx, min_v, max_v) => {
-                    (*step_in_range(platform_api, h_lbl, i_lbl, idx, min_v, max_v))(t_st)?
+                TestStep::InRange(h_lbl, i_lbl, idx, min_v, max_v, max_off) => {
+                    (*step_in_range(platform_api, h_lbl, i_lbl, idx, min_v, max_v, max_off))(t_st)?
                 }
                 TestStep::InAccum(h_lbl, i_lbl, idxs, sn) => {
                     (*step_in_accum(platform_api, h_lbl, i_lbl, idxs, sn))(t_st)?

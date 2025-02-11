@@ -21,3 +21,6 @@ pub fn create_range_proof_proving_key() -> CreateRangeProofProvingKey {
     })
 }
 
+pub fn get_range_proof_max_value() -> GetRangeProofMaxValue {
+    Arc::new(|| { 2_u64.pow(63) - 1})
+}

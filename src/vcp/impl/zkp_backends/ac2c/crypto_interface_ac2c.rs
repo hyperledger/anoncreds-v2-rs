@@ -15,6 +15,7 @@ lazy_static! {
         create_signer_data             : create_signer_data(),
         sign                           : sign(),
         create_range_proof_proving_key : create_range_proof_proving_key(),
+        get_range_proof_max_value      : get_range_proof_max_value(),
         create_authority_data          : create_authority_data(),
         create_accumulator_data        : create_accumulator_data(),
         create_membership_proving_key  : create_membership_proving_key(),
@@ -26,4 +27,3 @@ lazy_static! {
         specific_verify_decryption     : specific_verify_decryption_ac2c(),
     };
 }
-
