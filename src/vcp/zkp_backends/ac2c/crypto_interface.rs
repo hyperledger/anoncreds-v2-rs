@@ -39,5 +39,5 @@ macro_rules! define_crypto_interface_with {
 }
 
 define_crypto_interface_with!(PS, PsScheme);
-define_crypto_interface_with!(Bbs, BbsScheme);
+define_crypto_interface_with!(BBS, BbsScheme);
 
