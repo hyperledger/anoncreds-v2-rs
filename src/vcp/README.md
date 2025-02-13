@@ -2,51 +2,95 @@
 
 # Table of Contents
 
-1.  [Introduction](#orgc5699f3)
-2.  [Caveats](#org3b0e4ea)
-3.  [User abstraction](#org897a7bc)
-4.  [Running tests](#org55619ea)
-5.  [The test framework](#org7a23c44)
-    1.  [JSON test file naming and contents](#org22355eb)
-    2.  [Overview of test framework](#org43eef19)
-    3.  [An example](#org15ffab9)
-    4.  [TestSteps](#org91be796)
-        1.  [CreateIssuer](#orgb56d209)
-        2.  [CreateAccumulators](#orgb3336f9)
-        3.  [SignCredential](#orgba97881)
-        4.  [AccumulatorAddRemove](#orgc160190)
-        5.  [UpdateAccumulatorWitness](#org56bf1fe)
-        6.  [Reveal](#org0c59b31)
-        7.  [InRange](#orga0ea29d)
-        8.  [InAccum](#org24e4a1f)
-        9.  [Equality](#org8c482b8)
-        10. [CreateAndVerifyProof](#org14ac335)
-        11. [CreateAuthority](#orgc0f5a47)
-        12. [EncryptFor](#org2bd0570)
-        13. [Decrypt](#orgbbe30db)
-        14. [VerifyDecryption](#orgca4837d)
-    5.  [Overriding tests](#org5d5feab)
-    6.  [Test framework files](#orgda89d6e)
-6.  [The VCP architecture](#orge4292aa)
-    1.  [General](#orgc16dad2)
-    2.  [Specific](#org319296f)
-7.  [Guide to `src/vcp` code](#org2c3da01)
-    1.  [Directory structure](#org7a3fd4b)
-    2.  [Example of connecting a specific ZKP library to `PlatformApi`](#org2f28cf9)
-    3.  [Creating an Issuer's public and secret data (e.g., keys)](#orgb747785)
-    4.  [Issuer signing a credential](#orgd216e33)
-    5.  [Creating a proof](#org3f74c15)
-    6.  [Verifying a proof](#org4d080ec)
-    7.  [Proofs with revealed values](#orga740e3d)
-    8.  [Proofs with range proofs](#org8443a94)
-    9.  [Proofs with verifiable encryption](#orgcc62cac)
-    10. [Proofs with equalities between attributes](#orge989318)
-    11. [Proofs with accumulators](#org99a00eb)
-    12. [Accumulator functions](#org93efbe8)
+1.  [Introduction](#orgeea4c75)
+2.  [Caveats](#orgd28b296)
+3.  [User abstraction](#orgeaea8d0)
+4.  [Running tests](#org5b53d40)
+5.  [The test framework](#orgc799101)
+    1.  [JSON test file naming and contents](#org6063053)
+    2.  [Overview of test framework](#org6f55f71)
+    3.  [An example](#org7bb6f2b)
+    4.  [TestSteps](#orgf517a54)
+        1.  [CreateIssuer](#orgc4c6489)
+            1.  [Effects](#org5f34e66)
+            2.  [Arguments](#org5f25694)
+            3.  [API method(s) invoked](#org5132155)
+        2.  [CreateAccumulators](#org09a5507)
+            1.  [Effects](#org66591be)
+            2.  [Arguments](#org8561049)
+            3.  [API method(s) invoked](#org5bb99a6)
+        3.  [SignCredential](#org9a197f3)
+            1.  [Effects](#orgaa8886b)
+            2.  [Arguments](#orgcaee422)
+            3.  [API method(s) invoked](#org864a2a2)
+        4.  [AccumulatorAddRemove](#orga5dd9cd)
+            1.  [Effects](#org3a50142)
+            2.  [Arguments](#orgc1ba4ea)
+            3.  [API method(s) invoked](#org74bc6c8)
+        5.  [UpdateAccumulatorWitness](#orgd2bf25a)
+            1.  [Effects](#org37d9b71)
+            2.  [Arguments](#org5b27366)
+            3.  [Comments](#org68f8dcb)
+            4.  [API method(s) invoked](#org9ab46ae)
+        6.  [Reveal](#org815042e)
+            1.  [Effects](#org3f35e93)
+            2.  [Arguments](#org0a5e629)
+            3.  [API method(s) invoked](#orge83f517)
+        7.  [InRange](#org8b42011)
+            1.  [Effects](#orga198575)
+            2.  [Arguments](#orgc5f0c65)
+            3.  [Comments](#orga2963b7)
+            4.  [API method(s) invoked](#orgdd68f21)
+        8.  [InAccum](#orgee39096)
+            1.  [Effects](#org0db85a0)
+            2.  [Arguments](#org6b84d4d)
+            3.  [API method(s) invoked](#org3912250)
+        9.  [Equality](#org40f7727)
+            1.  [Effects](#org06f3228)
+            2.  [Arguments](#orge029f07)
+            3.  [Comments](#orgea5043b)
+            4.  [API method(s) invoked](#org5f31d1b)
+        10. [CreateAndVerifyProof](#orge0a7fc4)
+            1.  [Effects](#org57a48d5)
+            2.  [Arguments](#orgda88719)
+            3.  [API method(s) invoked](#orgc9cdd2c)
+        11. [CreateAuthority](#org56e3141)
+            1.  [Arguments](#orgd84e53c)
+            2.  [API method(s) invoked](#org4d1fc19)
+        12. [EncryptFor](#orgbdb5695)
+            1.  [Effects](#org6111bbd)
+            2.  [Arguments](#org99b2aaa)
+            3.  [API method(s) invoked](#org6295b4b)
+        13. [Decrypt](#org079ce20)
+            1.  [Effects](#orgdcd882c)
+            2.  [Arguments](#org826bbf2)
+            3.  [API method(s) invoked](#org47d3916)
+        14. [VerifyDecryption](#org54a1a03)
+            1.  [Effects](#org84261d2)
+            2.  [Arguments](#org421a3a5)
+            3.  [API method(s) invoked](#org3d4ce53)
+    5.  [Overriding tests](#org216e1fa)
+    6.  [Test framework files](#org477305a)
+6.  [The VCP architecture](#org42ffd66)
+    1.  [General](#orgfc65776)
+    2.  [Specific](#org9a8bf4f)
+7.  [Guide to `src/vcp` code](#orgf8ac575)
+    1.  [Directory structure](#org01c8d6b)
+    2.  [Example of connecting a specific ZKP library to `PlatformApi`](#org43963f5)
+    3.  [Creating an Issuer's public and secret data (e.g., keys)](#org878e10e)
+    4.  [Issuer signing a credential](#orgc47446e)
+    5.  [Creating a proof](#org1b21ee0)
+    6.  [Verifying a proof](#orgc5c7cd4)
+    7.  [Proofs with revealed values](#org030dff1)
+    8.  [Proofs with range proofs](#org35c6441)
+    9.  [Proofs with verifiable encryption](#org14cb6cb)
+    10. [Proofs with equalities between attributes](#org6c3c375)
+    11. [Proofs with accumulators](#orga327e1d)
+    12. [Accumulator functions](#org12a6593)
 
 
 
-<a id="orgc5699f3"></a>
+<a id="orgeea4c75"></a>
 
 # Introduction
 
@@ -70,7 +114,7 @@ This work is by [Harold Carr](https://github.com/haroldcarr) and [Mark Moir](htt
 of the University of Maryland at College Park, during his Summer 2024 internship at Oracle Labs.
 
 
-<a id="org3b0e4ea"></a>
+<a id="orgd28b296"></a>
 
 # Caveats
 
@@ -93,7 +137,7 @@ exploration.  In particular,
     feedback and engagement towards something that we can offer as a contribution.
 
 
-<a id="org897a7bc"></a>
+<a id="orgeaea8d0"></a>
 
 # User abstraction
 
@@ -101,8 +145,8 @@ From an application/user perspective, our abstraction is defined by the
 `PlatformAPI` type in [./api.rs](./api.rs). There are several possible ways to access it:
 
 -   By using the `implement_platform_api_using` function in [./api_utils.rs](./api_utils.rs) and providing an instance of
-    `CryptoInterface`, such as `CRYPTO_INTERFACE_AC2C` (defined in [./impl/ac2c/impl_ac2c.rs](./impl/ac2c/impl_ac2c.rs)), and calling
-    its methods directly.  See [7.1](#org018c529) for more details.
+    `CryptoInterface`, such as `CRYPTO_INTERFACE_AC2C` (defined in [./zkp_backends/ac2c/crypto_interface.rs](./zkp_backends/ac2c/crypto_interface.rs)) and calling
+    its methods directly.  See [7.3](#orgfd04c8b) for more details.
 -   By accessing the functionality via a Swagger/OpenAPI interface. We have built an HTTP
     server serving such an interface built automatically from our Haskell prototype. However,
     this is internal work, and is not up-to-date.  Future work includes implementing an HTTP server in Rust.
@@ -118,7 +162,7 @@ are less general, more historic, less well organised, etc.  We recommend focusin
 that are run by the test framework.
 
 
-<a id="org55619ea"></a>
+<a id="org5b53d40"></a>
 
 # Running tests
 
@@ -128,11 +172,11 @@ described in the next section.
 
 The [../../Makefile](../../Makefile) supports a number of `make` targets for running/skipping tests according to various
 criteria.  The two most important are `make test` and `make test-all`.  The former skips tests that are
-overridden to fail (see Section [5.4.14.3](#org536e2a8)), so that unexpected failures are not masked by
+overridden to fail (see Section [5.4.14.3](#org580d133)), so that unexpected failures are not masked by
 those tests.  The latter runs these tests as well, so that the failures can be seen.
 
 
-<a id="org7a23c44"></a>
+<a id="orgc799101"></a>
 
 # The test framework
 
@@ -148,7 +192,7 @@ test it is necessary to ensure recompilation, using these steps, for example:
     make test
 
 
-<a id="org22355eb"></a>
+<a id="org6063053"></a>
 
 ## JSON test file naming and contents
 
@@ -175,14 +219,14 @@ to run only the test described in the next section:
     cargo test example_single_issuer_and_credential_in_accum_no_update
 
 
-<a id="org43eef19"></a>
+<a id="org6f55f71"></a>
 
 ## Overview of test framework
 
 The test framework maintains state representing all data of all roles (Issuers, Holders,
 Authorities, and Revocation Managers. It is assumed that there is a single, unnamed verifier). (This
 is represented in the `TestState` data type in
-[../../tests/vcp/impl/general/utility_function_types.rs](../../tests/vcp/impl/general/utility_function_types.rs).)
+[../../tests/vcp/test_framework/types.rs](../../tests/vcp/test_framework/types.rs)).
 
 Each `TestStep` updates the state and/or checks whether some condition holds in that state.  The
 implementation of each `TestStep` invokes one or more methods in the API as noted in the description
@@ -194,13 +238,13 @@ We make the simplifying assumption that each Holder can possess at most one cred
 each Issuer. This enables referring to credentials by the label of the Issuer that signed them.
 
 
-<a id="org15ffab9"></a>
+<a id="org7bb6f2b"></a>
 
 ## An example
 
 Before describing each `TestStep` in detail, we first walk through the example in
 [../../tests/data/JSON/TestSequences/LicenseSubscription/json_test_028_example_single_issuer_and_credential_in_accum_no_update.json](../../tests/data/JSON/TestSequences/LicenseSubscription/json_test_028_example_single_issuer_and_credential_in_accum_no_update.json)
-(from ).
+(from [our IIW presentation](https://www.dropbox.com/preview/Presentations/IIW%20Oct%202024%20-%20VC%20and%20ZPK%20abstraction.pdf)).
 
 Each `TestStep` in the JSON file has a `tag` field that identifies the kind of step, and a `contents`
 field that provides its arguments.
@@ -245,384 +289,516 @@ as the one signed in the relevant credential, and (in examples involving decrypt
 decrypted values match the original signed values.
 
 
-<a id="org91be796"></a>
+<a id="orgf517a54"></a>
 
 ## TestSteps
 
 
-<a id="orgb56d209"></a>
+<a id="orgc4c6489"></a>
 
 ### CreateIssuer
 
-1.  Effects
 
-    -   Creates new Issuer with associated `SignerData`
+<a id="org5f34e66"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `IssuerLabel`: label to identify new Issuer
-    -   `[ ClaimType ]`: schema for new Issuer
-
-3.  API method(s) invoked
-
-    -   `create_signer_data`
+-   Creates new Issuer with associated `SignerData`
 
 
-<a id="orgb3336f9"></a>
+<a id="org5f25694"></a>
+
+#### Arguments
+
+-   `IssuerLabel`: label to identify new Issuer
+-   `[ ClaimType ]`: schema for new Issuer
+
+
+<a id="org5132155"></a>
+
+#### API method(s) invoked
+
+-   `create_signer_data`
+
+
+<a id="org09a5507"></a>
 
 ### CreateAccumulators
 
-1.  Effects
 
-    -   Creates `AccumulatorData` for each `CTAccumulatorMember` attribute in specified Issuer's schema
+<a id="org66591be"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `IssuerLabel`
-
-3.  API method(s) invoked
-
-    -   `create_accumulator_data` (once for each created accumulator)
+-   Creates `AccumulatorData` for each `CTAccumulatorMember` attribute in specified Issuer's schema
 
 
-<a id="orgba97881"></a>
+<a id="org8561049"></a>
+
+#### Arguments
+
+-   `IssuerLabel`
+
+
+<a id="org5bb99a6"></a>
+
+#### API method(s) invoked
+
+-   `create_accumulator_data` (once for each created accumulator)
+
+
+<a id="org9a197f3"></a>
 
 ### SignCredential
 
-1.  Effects
 
-    -   Creates new credential (`SignatureAndRelatedData`) signed by specified Issuer with specified
-        `DataValue` s for specified `Holder` ("related data" includes `DataValue` s signed and an empty map
-        that will be used to store `AccumulatorMembershipWitness` es when they are created by an
-        `AccumulatorAddRemove` step).  If the fourth argument is provided, the value of the identified
-        attribute is replaced by the maximum value for which a range proof can be supported by the
-        underlying ZKP library, plus the identified offset.
+<a id="orgaa8886b"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `IssuerLabel`: label identifying previously created Issuer
-    -   `HolderLabel`: label identifying Holder
-    -   `[ DataValue ]`: list of values to be signed, one for each attribute of Issuer's schema
-    -   `Option<ReplaceValueWithMaximumPlus>`: if provided, identifies an attribute index
-        `attrIdxToReplaceWithMaxSupported` and an offset `plusOffset`.  Argument used only for
-        testing that the underlying ZKP library's `get_range_proof_max_value` API function returns an
-        accurate value.
-
-3.  API method(s) invoked
-
-    -   `sign`
+-   Creates new credential (`SignatureAndRelatedData`) signed by specified Issuer with specified
+    `DataValue` s for specified `Holder` ("related data" includes `DataValue` s signed and an empty map
+    that will be used to store `AccumulatorMembershipWitness` es when they are created by an
+    `AccumulatorAddRemove` step).  If the fourth argument is provided, the value of the identified
+    attribute is replaced by the maximum value for which a range proof can be supported by the
+    underlying ZKP library, plus the identified offset.
 
 
-<a id="orgc160190"></a>
+<a id="orgcaee422"></a>
+
+#### Arguments
+
+-   `IssuerLabel`: label identifying previously created Issuer
+-   `HolderLabel`: label identifying Holder
+-   `[ DataValue ]`: list of values to be signed, one for each attribute of Issuer's schema
+-   `Option<ReplaceValueWithMaximumPlus>`: if provided, identifies an attribute index
+    `attrIdxToReplaceWithMaxSupported` and an offset `plusOffset`.  Argument used only for
+    testing that the underlying ZKP library's `get_range_proof_max_value` API function returns an
+    accurate value.
+
+
+<a id="org864a2a2"></a>
+
+#### API method(s) invoked
+
+-   `sign`
+
+
+<a id="orga5dd9cd"></a>
 
 ### AccumulatorAddRemove
 
-1.  Effects
 
-    -   Add some `DataValue` s to and remove some `DataValue` s from accumulator associated with specified
-        Issuer and attribute.
-    -   Each `DataValue` added generates an `AccumulatorMembershipWitness` for the new accumulator value,
-        which is stored in the `SignatureAndRelatedData` associated with specified Holder and the
-        `AccumlatorBatchSeqNo` of this batch of additions and removals.  This information can be used by
-        subsequent `UpdateAccumulatorWitness` and `CreateAndVerify` steps.
-    -   Stores "update information" associated with updating `Accumulatormembershipwitness` es
-        from previous `AccumulatorBatchSeqNo` to new one,for use by subsequent `UpdateAccumulatorWitness` steps
+<a id="org3a50142"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `IssuerLabel`
-    -   `CredAttrIndex`: attribute index identifying relevant accumulator associated with specified Issuer
-    -   `Map HolderLabel DataValue`: `DataValue` s to be added to specified accumulator and Holders to
-        receive respective generated witnesses
-    -   `[ DataValue ]`: `DataValue` s to be removed from specified accumulator
-
-3.  API method(s) invoked
-
-    -   `accumulator_add_remove`
+-   Add some `DataValue` s to and remove some `DataValue` s from accumulator associated with specified
+    Issuer and attribute.
+-   Each `DataValue` added generates an `AccumulatorMembershipWitness` for the new accumulator value,
+    which is stored in the `SignatureAndRelatedData` associated with specified Holder and the
+    `AccumlatorBatchSeqNo` of this batch of additions and removals.  This information can be used by
+    subsequent `UpdateAccumulatorWitness` and `CreateAndVerify` steps.
+-   Stores "update information" associated with updating `Accumulatormembershipwitness` es
+    from previous `AccumulatorBatchSeqNo` to new one,for use by subsequent `UpdateAccumulatorWitness` steps
 
 
-<a id="org56bf1fe"></a>
+<a id="orgc1ba4ea"></a>
+
+#### Arguments
+
+-   `IssuerLabel`
+-   `CredAttrIndex`: attribute index identifying relevant accumulator associated with specified Issuer
+-   `Map HolderLabel DataValue`: `DataValue` s to be added to specified accumulator and Holders to
+    receive respective generated witnesses
+-   `[ DataValue ]`: `DataValue` s to be removed from specified accumulator
+
+
+<a id="org74bc6c8"></a>
+
+#### API method(s) invoked
+
+-   `accumulator_add_remove`
+
+
+<a id="orgd2bf25a"></a>
 
 ### UpdateAccumulatorWitness
 
-1.  Effects
 
-    -   Attempts to ensure that specified Holder has an `AccumulatorMembershipWitness` for accumulator
-        identified by specified Issuer and attribute index.
-    -   This is possible only if
-        -   a) specified Holder already has an `AccumulatorMembershipWitness` for identified accumulator for
-            an `AccumulatorBatchSeqNo` that is at most the target `AccumulatorBatchSeqNo`, and
-        -   b) there have been sufficient `AccumulatorAddRemove` steps performed that "update information"
-            has been stored to enable updating to specified `AccumulatorBatchSeqNo`.
-    -   An error is generated if these conditions do not hold.
-    -   When successful, generates and stores `AccumulatorMembershipWitness` for each `AccumlatorBatchSeqNo`
-        between the largest `AccumlatorBatchSeqNo` less than the target `AccumulatorBatchSeqNo` for which
-        specified Holder already has an `AccumulatorMembershipWitness`.
+<a id="org37d9b71"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `HolderLabel`
-    -   `IssuerLabel`
-    -   `CredAttrIndex`
-    -   `AccumulatorBatchSeqNo`: target `AccumulatorBatchSeqNo` to ensure specified Holder
-
-3.  Comments
-
-    -   Currently, a Holder will always have an `AccumulatorMembershipWitness` for every
-        `AccumlatorBatchSeqNo` from the one at which its `AccumulatorMembershipWitness` was added and the
-        highest `AccumlatorBatchSeqNo` to which it has ever updated.
-    -   In practice, Holders would likely
-        discard `AccumulatorMembershipWitness` es considered "too old".  The test framework does not
-        currently support such "garbage collection".
-    -   If it did, Holders could always regenerate discarded `AccumulatorMembershipWitness` es **provided**
-        they retain one with `AccumlatorBatchSeqNo` at or before any future target.  If not, they would
-        have to request a new `AccumulatorMembershipWitness` from the relevant Revocation Manager; the test
-        framework also does not currently support this.
-
-4.  API method(s) invoked
-
-    -   `update_accumulator_witness`, potentially multiple times as described above
+-   Attempts to ensure that specified Holder has an `AccumulatorMembershipWitness` for accumulator
+    identified by specified Issuer and attribute index.
+-   This is possible only if
+    -   a) specified Holder already has an `AccumulatorMembershipWitness` for identified accumulator for
+        an `AccumulatorBatchSeqNo` that is at most the target `AccumulatorBatchSeqNo`, and
+    -   b) there have been sufficient `AccumulatorAddRemove` steps performed that "update information"
+        has been stored to enable updating to specified `AccumulatorBatchSeqNo`.
+-   An error is generated if these conditions do not hold.
+-   When successful, generates and stores `AccumulatorMembershipWitness` for each `AccumlatorBatchSeqNo`
+    between the largest `AccumlatorBatchSeqNo` less than the target `AccumulatorBatchSeqNo` for which
+    specified Holder already has an `AccumulatorMembershipWitness`.
 
 
-<a id="org0c59b31"></a>
+<a id="org5b27366"></a>
+
+#### Arguments
+
+-   `HolderLabel`
+-   `IssuerLabel`
+-   `CredAttrIndex`
+-   `AccumulatorBatchSeqNo`: target `AccumulatorBatchSeqNo` to ensure specified Holder
+
+
+<a id="org68f8dcb"></a>
+
+#### Comments
+
+-   Currently, a Holder will always have an `AccumulatorMembershipWitness` for every
+    `AccumlatorBatchSeqNo` from the one at which its `AccumulatorMembershipWitness` was added and the
+    highest `AccumlatorBatchSeqNo` to which it has ever updated.
+-   In practice, Holders would likely
+    discard `AccumulatorMembershipWitness` es considered "too old".  The test framework does not
+    currently support such "garbage collection".
+-   If it did, Holders could always regenerate discarded `AccumulatorMembershipWitness` es **provided**
+    they retain one with `AccumlatorBatchSeqNo` at or before any future target.  If not, they would
+    have to request a new `AccumulatorMembershipWitness` from the relevant Revocation Manager; the test
+    framework also does not currently support this.
+
+
+<a id="org9ab46ae"></a>
+
+#### API method(s) invoked
+
+-   `update_accumulator_witness`, potentially multiple times as described above
+
+
+<a id="org815042e"></a>
 
 ### Reveal
 
-1.  Effects
 
-    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-        requiring that it reveals attributes with specified indexes from its credential
-        signed by specified Issuer
-    -   generates error if:
-        -   specified Holder or Issuer does not exist, or
-        -   no credential has been signed for specified Holder by specified Issuer, or
-        -   any of specified attribute indexes is out of range established by Issuer's schema
+<a id="org3f35e93"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `HolderLabel`
-    -   `IssuerLabel`
-    -   `[ CredAttrIndex ]`: list of indexes for attributes to be revealed
-
-3.  API method(s) invoked
-
-    -   none
+-   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+    requiring that it reveals attributes with specified indexes from its credential
+    signed by specified Issuer
+-   generates error if:
+    -   specified Holder or Issuer does not exist, or
+    -   no credential has been signed for specified Holder by specified Issuer, or
+    -   any of specified attribute indexes is out of range established by Issuer's schema
 
 
-<a id="orga0ea29d"></a>
+<a id="org0a5e629"></a>
+
+#### Arguments
+
+-   `HolderLabel`
+-   `IssuerLabel`
+-   `[ CredAttrIndex ]`: list of indexes for attributes to be revealed
+
+
+<a id="orge83f517"></a>
+
+#### API method(s) invoked
+
+-   none
+
+
+<a id="org8b42011"></a>
 
 ### InRange
 
-1.  Effects
 
-    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-        requiring that it proves that specified attribute in a credential signed by specified Issuer
-        for specified Holder is within range specified by minimum and maximum values
-    -   note that there is no step for creating a `RangeProvingKey` because one is automatically
-        created when an `InRange` step is first encountered, and the same one is used for any subsequent
-        `InRange` requirements
-    -   If the sixth argument is provided, the range's upper bound is replaced by the specified offset plus
-        the maximum value for which range proofs are supported by the underlying ZKP libary, as determined by
-        calling its `get_range_proof_max_value` API function.
+<a id="orga198575"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `HolderLabel`
-    -   `IssuerLabel`
-    -   `CredAttrIndex`
-    -   `i64`: the minimum value in the range
-    -   `i64`: the maximum value in the range
-    -   `Option<ReplaceUpperBoundWithMaxSupportedPlusOffset>`: if provided, specifies a replacement value
-        for the range's upper bound in terms of an offset from the maximum value for which range proofs
-        are supported by the underlying ZKP libary.  Argument used only for testing that the
-        underlying ZKP library's `get_range_proof_max_value` API function returns an accurate value.
-
-3.  Comments
-
-    -   Step does **not** generate an error if specified attribute is out of range, because we want to be
-        able to test that `CreateAndVerifyProof` does not succeed in this case
-
-4.  API method(s) invoked
-
-    -   none
+-   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+    requiring that it proves that specified attribute in a credential signed by specified Issuer
+    for specified Holder is within range specified by minimum and maximum values
+-   note that there is no step for creating a `RangeProvingKey` because one is automatically
+    created when an `InRange` step is first encountered, and the same one is used for any subsequent
+    `InRange` requirements
+-   If the sixth argument is provided, the range's upper bound is replaced by the specified offset plus
+    the maximum value for which range proofs are supported by the underlying ZKP libary, as determined by
+    calling its `get_range_proof_max_value` API function.
 
 
-<a id="org24e4a1f"></a>
+<a id="orgc5f0c65"></a>
+
+#### Arguments
+
+-   `HolderLabel`
+-   `IssuerLabel`
+-   `CredAttrIndex`
+-   `i64`: the minimum value in the range
+-   `i64`: the maximum value in the range
+-   `Option<ReplaceUpperBoundWithMaxSupportedPlusOffset>`: if provided, specifies a replacement value
+    for the range's upper bound in terms of an offset from the maximum value for which range proofs
+    are supported by the underlying ZKP libary.  Argument used only for testing that the
+    underlying ZKP library's `get_range_proof_max_value` API function returns an accurate value.
+
+
+<a id="orga2963b7"></a>
+
+#### Comments
+
+-   Step does **not** generate an error if specified attribute is out of range, because we want to be
+    able to test that `CreateAndVerifyProof` does not succeed in this case
+
+
+<a id="orgdd68f21"></a>
+
+#### API method(s) invoked
+
+-   none
+
+
+<a id="orgee39096"></a>
 
 ### InAccum
 
-1.  Effects
 
-    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-        requiring that it proves that specified attribute in a credential signed by specified Issuer
-        for specified Holder is in the accumulator associated with specified Issuer and CredAttrIndex,
-        as of specified `AccumulatorBatchSeqNo`
+<a id="org0db85a0"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `HolderLabel`
-    -   `IssuerLabel`
-    -   `CredAttrIndex`
-    -   `AccumulatorBatchSeqNo`: the "batch number" for which the proof is required; enables requiring
-        proof of membership in accumulator for older or newer accumulator versions
-
-3.  API method(s) invoked
-
-    -   none
+-   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+    requiring that it proves that specified attribute in a credential signed by specified Issuer
+    for specified Holder is in the accumulator associated with specified Issuer and CredAttrIndex,
+    as of specified `AccumulatorBatchSeqNo`
 
 
-<a id="org8c482b8"></a>
+<a id="org6b84d4d"></a>
+
+#### Arguments
+
+-   `HolderLabel`
+-   `IssuerLabel`
+-   `CredAttrIndex`
+-   `AccumulatorBatchSeqNo`: the "batch number" for which the proof is required; enables requiring
+    proof of membership in accumulator for older or newer accumulator versions
+
+
+<a id="org3912250"></a>
+
+#### API method(s) invoked
+
+-   none
+
+
+<a id="org40f7727"></a>
 
 ### Equality
 
-1.  Effects
 
-    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-        requiring that it proves that specified attribute in a credential signed by specified Issuer is
-        equal to each attribute specified in each "other" credentials (identified by specified Issuer)
+<a id="org06f3228"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `HolderLabel`
-    -   `IssuerLabel`: identifies Issuer who signed a credential
-    -   `CredAttrIndex`: identifies an attribute in that credential
-    -   `[(IssuerLabel, CredAttrIndex)]`: a list of attributes in other credentials required to be equal
-        to specified attribute
-
-3.  Comments
-
-    -   It would have been cleaner to specify the equivalence class of `(Issuer,CredAttrIndex)` pairs,
-        rather than singling on of them out
-    -   Step does **not** generate an error if specified attributes are not equal, because we want to be
-        able to test that `CreateAndVerifyProof` does not succeed in this case
-
-4.  API method(s) invoked
-
-    -   none
+-   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+    requiring that it proves that specified attribute in a credential signed by specified Issuer is
+    equal to each attribute specified in each "other" credentials (identified by specified Issuer)
 
 
-<a id="org14ac335"></a>
+<a id="orge029f07"></a>
+
+#### Arguments
+
+-   `HolderLabel`
+-   `IssuerLabel`: identifies Issuer who signed a credential
+-   `CredAttrIndex`: identifies an attribute in that credential
+-   `[(IssuerLabel, CredAttrIndex)]`: a list of attributes in other credentials required to be equal
+    to specified attribute
+
+
+<a id="orgea5043b"></a>
+
+#### Comments
+
+-   It would have been cleaner to specify the equivalence class of `(Issuer,CredAttrIndex)` pairs,
+    rather than singling on of them out
+-   Step does **not** generate an error if specified attributes are not equal, because we want to be
+    able to test that `CreateAndVerifyProof` does not succeed in this case
+
+
+<a id="org5f31d1b"></a>
+
+#### API method(s) invoked
+
+-   none
+
+
+<a id="orge0a7fc4"></a>
 
 ### CreateAndVerifyProof
 
-1.  Effects
 
-    -   Attempts to create and then verify a proof satisfying all requirements added previously for
-        specified Holder, and checks that the outcome is consistent with specified `CreateVerifyExpectation`.
-    -   An error is generated if specified Holder cannot satisfy previously added requirements because,
-        for example, specified Holder does not have a credential signed by an Issuer for a previously
-        added requirement, does not have an `AccumulatorMembershipWitness` for a required
-        `AccumlatorBatchSeqNo`, etc.
-    -   note that, if previous steps include `Decrypt` requirements for specified Holder, subsequent
-        `CreateAndVerifyProof` steps model an `Authority` verifying a proof created by specified Holder,
-        rather than a generic Verifier; this is because the decryption requires `AuthoritySecretData` for
-        each attribute to be decrypted.  If there are decryption requirements for multiple Authorities,
-        the step models Verifier having `AuthoritySecretData` for all of them.  While this is not
-        particularly realistic, it is useful for testing generality.
+<a id="org57a48d5"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `HolderLabel`
-    -   `CreateVerifyExpectation`: expected outcome for attempt to create and then verify a proof
-        consistent with established requirement.  Possible values are currently:
-        -   `BothSucceedNoWarnings`: expects both proof creation and proof verification to succeed and
-            issue no warnings.  In this case, revealed and decrypted values are checked to ensure that
-            they are for exactly the requested attributes and furthermore that the values are equal to
-            those signed in specified credentials.
-        -   `CreateProofFails`: requires that proof creation fails
-        -   `VerifyProofFails`: requires that proof creation succeeds and then verification fails
-        -   `CreateOrVerifyFails`: requires that, either proof creation fails, or it succeeds but
-            verification of the generated proof fails.  This expectation is sometimes useful when it is
-            required that a proof is not successfully created and then verified, but it does not matter
-            which step fails.  In some cases, some underlying ZKP libraries fail to generate a
-            proof, while others generate a proof that does not verify successfully.  This
-            `CreateVerifyExpectation` is useful in such cases.
-
-3.  API method(s) invoked
-
-    -   `create_proof`
-    -   `verify_proof`
+-   Attempts to create and then verify a proof satisfying all requirements added previously for
+    specified Holder, and checks that the outcome is consistent with specified `CreateVerifyExpectation`.
+-   An error is generated if specified Holder cannot satisfy previously added requirements because,
+    for example, specified Holder does not have a credential signed by an Issuer for a previously
+    added requirement, does not have an `AccumulatorMembershipWitness` for a required
+    `AccumlatorBatchSeqNo`, etc.
+-   note that, if previous steps include `Decrypt` requirements for specified Holder, subsequent
+    `CreateAndVerifyProof` steps model an `Authority` verifying a proof created by specified Holder,
+    rather than a generic Verifier; this is because the decryption requires `AuthoritySecretData` for
+    each attribute to be decrypted.  If there are decryption requirements for multiple Authorities,
+    the step models Verifier having `AuthoritySecretData` for all of them.  While this is not
+    particularly realistic, it is useful for testing generality.
 
 
-<a id="orgc0f5a47"></a>
+<a id="orgda88719"></a>
+
+#### Arguments
+
+-   `HolderLabel`
+-   `CreateVerifyExpectation`: expected outcome for attempt to create and then verify a proof
+    consistent with established requirement.  Possible values are currently:
+    -   `BothSucceedNoWarnings`: expects both proof creation and proof verification to succeed and
+        issue no warnings.  In this case, revealed and decrypted values are checked to ensure that
+        they are for exactly the requested attributes and furthermore that the values are equal to
+        those signed in specified credentials.
+    -   `CreateProofFails`: requires that proof creation fails
+    -   `VerifyProofFails`: requires that proof creation succeeds and then verification fails
+    -   `CreateOrVerifyFails`: requires that, either proof creation fails, or it succeeds but
+        verification of the generated proof fails.  This expectation is sometimes useful when it is
+        required that a proof is not successfully created and then verified, but it does not matter
+        which step fails.  In some cases, some underlying ZKP libraries fail to generate a
+        proof, while others generate a proof that does not verify successfully.  This
+        `CreateVerifyExpectation` is useful in such cases.
+
+
+<a id="orgc9cdd2c"></a>
+
+#### API method(s) invoked
+
+-   `create_proof`
+-   `verify_proof`
+
+
+<a id="org56e3141"></a>
 
 ### CreateAuthority
 
 -   Creates new Authority with associated `AuthorityData`
 
-1.  Arguments
 
-    -   `AuthorityLabel`: label to identify new Authority
+<a id="orgd84e53c"></a>
 
-2.  API method(s) invoked
+#### Arguments
 
-    -   `create_authority_data`
+-   `AuthorityLabel`: label to identify new Authority
 
 
-<a id="org2bd0570"></a>
+<a id="org4d1fc19"></a>
+
+#### API method(s) invoked
+
+-   `create_authority_data`
+
+
+<a id="orgbdb5695"></a>
 
 ### EncryptFor
 
-1.  Effects
 
-    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-        requiring that it encrypts (for specified Authority) specified attribute from credential
-        signed by specified Issuer
+<a id="org6111bbd"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `HolderLabel`
-    -   `IssuerLabel`
-    -   `CredAttrIndex`:
-    -   `AuthorityLabel`: label identifying `Authority` for whom specified attribute is to be encrypted
-
-3.  API method(s) invoked
-
-    -   none
+-   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+    requiring that it encrypts (for specified Authority) specified attribute from credential
+    signed by specified Issuer
 
 
-<a id="orgbbe30db"></a>
+<a id="org99b2aaa"></a>
+
+#### Arguments
+
+-   `HolderLabel`
+-   `IssuerLabel`
+-   `CredAttrIndex`:
+-   `AuthorityLabel`: label identifying `Authority` for whom specified attribute is to be encrypted
+
+
+<a id="org6295b4b"></a>
+
+#### API method(s) invoked
+
+-   none
+
+
+<a id="org079ce20"></a>
 
 ### Decrypt
 
-1.  Effects
 
-    -   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
-        requiring that specified attribute from credential signed by specified Issuer is decrypted
+<a id="orgdcd882c"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `HolderLabel`
-    -   `IssuerLabel`
-    -   `CredAttrIndex`
-    -   `AuthorityLabel`: label identifying `Authority` to decrypt specified attribute
-
-3.  API method(s) invoked
-
-    -   none
+-   adds to requirements for subsequent `CreateAndVerifyProof` steps for specified Holder,
+    requiring that specified attribute from credential signed by specified Issuer is decrypted
 
 
-<a id="orgca4837d"></a>
+<a id="org826bbf2"></a>
+
+#### Arguments
+
+-   `HolderLabel`
+-   `IssuerLabel`
+-   `CredAttrIndex`
+-   `AuthorityLabel`: label identifying `Authority` to decrypt specified attribute
+
+
+<a id="org47d3916"></a>
+
+#### API method(s) invoked
+
+-   none
+
+
+<a id="org54a1a03"></a>
 
 ### VerifyDecryption
 
-1.  Effects
 
-    -   Verifies correct decryption for each `DecryptResponse` generated by most recent `CreateAndProof`
-        step by specified Holder
+<a id="org84261d2"></a>
 
-2.  Arguments
+#### Effects
 
-    -   `HolderLabel`
-
-3.  API method(s) invoked
-
-    -   `verify_decryption`
-    
-    <a id="org536e2a8"></a>
+-   Verifies correct decryption for each `DecryptResponse` generated by most recent `CreateAndProof`
+    step by specified Holder
 
 
-<a id="org5d5feab"></a>
+<a id="org421a3a5"></a>
+
+#### Arguments
+
+-   `HolderLabel`
+
+
+<a id="org3d4ce53"></a>
+
+#### API method(s) invoked
+
+-   `verify_decryption`
+
+<a id="org580d133"></a>
+
+
+<a id="org216e1fa"></a>
 
 ## Overriding tests
 
@@ -672,58 +848,56 @@ We would like to improve the override system.  In the meantime, it is documented
 [../../generate-tests-from-json/src/lib.rs](../../generate-tests-from-json/src/lib.rs).
 
 
-<a id="orgda89d6e"></a>
+<a id="org477305a"></a>
 
 ## Test framework files
 
-Located in [../../tests/vcp](../../tests/vcp) :
+Located in [../../tests/vcp/](../../tests/vcp/):
 
     data_for_tests.rs
-    json_test_runner_ac2c.rs
-    json_test_runner_dnc.rs
     test_framework
-        steps.rs                   : The main file of the testing framework.
-                                     Defines the TestSteps.
+        steps.rs                                : The main file of the testing framework.
+                                                  Defines the TestSteps.
         tests
-            framework_tests.rs     : Rust code that tests the framework itself
+            framework_tests.rs                  : Rust code that tests the framework itself
     
-            run_json_tests_ac2c.rs : Test the framework itself
-                                     with CryptoInterface instantiated with AC2C
-                                     using JSON tests located in
-                                     ./tests/data/JSON/TestSequences/TestingFramework
+        types.rs                                : types used by the test framework, in particular TestState
     
-            run_json_tests_dnc.rs  : Test the framework itself
-                                     with CryptoInterface instantiated with DNC
-                                     using JSON tests located in
-                                     ./tests/data/JSON/TestSequences/TestingFramework
-    
-        types.rs                   : types used by the test framework, in particular TestState
-    
-        utility_functions.rs       : useful routines to compose common operations
+        utility_functions.rs                    : useful routines to compose common operations
         utils.rs
     
-    zkp_functionality_tests        : This directory runs tests that use the test framework
-                                     to test ZKP functionality provided by CryptoInterface.
+    zkp_backends
+        ac2c
+            run_json_test_framework_tests.rs    : Test the framework itself
+                                                  with CryptoInterface instantiated with AC2C
+                                                  using JSON tests located in
+                                                  ./tests/data/JSON/TestSequences/TestingFramework
     
-        run_json_tests_ac2c.rs     : Instantiates CryptoInterface with AC2C and runs the JSON tests located in
-                                     ./tests/data/JSON/TestSequences/LicenseSubscription
-                                     with overrides defined in
-                                     ./tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/AC2C.json
+            run_json_zkp_functionality_tests.rs : Instantiates CryptoInterface with AC2C and runs the JSON tests located in
+                                                  ./tests/data/JSON/TestSequences/LicenseSubscription
+                                                  with overrides defined in
+                                                 ./tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/AC2C.json
     
-        run_json_tests_dnc.rs      : Instantiates CryptoInterface with DNC and runs the JSON tests located in
-                                     ./tests/data/JSON/TestSequences/LicenseSubscription
-                                     with overrides defined in
-                                     ./tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/DNC.json
+            run_zkp_functionality_tests.rs      : Instantiates CryptoInterface with AC2C and runs the tests
+                                                  defined in zkp_functionality_tests/test_definitions.rs
+        dnc
+            run_json_test_framework_tests.rs    : Test the framework itself
+                                                  with CryptoInterface instantiated with DNC
+                                                  using JSON tests located in
+                                                  ./tests/data/JSON/TestSequences/TestingFramework
     
-        test_ac2c.rs               : Instantiates CryptoInterface with AC2C and runs the tests
-                                     defined in test_definitions.rs
+            run_json_zkp_functionality_tests.rs : Instantiates CryptoInterface with DNC and runs the JSON tests located in
+                                                  ./tests/data/JSON/TestSequences/LicenseSubscription
+                                                  with overrides defined in
+                                                 ./tests/data/JSON/TestSequences/LicenseSubscription/LibrarySpecificOverrides/DNC.json
     
-        test_definitions.rs        : ZKP functionality tests written in Rust (rather than JSON).
+    zkp_functionality_tests
+        test_definitions.rs                     : ZKP functionality tests written in Rust (rather than JSON).
 
 Note: the other tests located in [tests/vcp](../../tests/vcp) (various unit tests) can be ignored.
 
 
-<a id="orge4292aa"></a>
+<a id="org42ffd66"></a>
 
 # The VCP architecture
 
@@ -773,7 +947,7 @@ VCP is comprised of three main parts
         verify) for a specific underlying ZKP library
 
 
-<a id="orgc16dad2"></a>
+<a id="orgfc65776"></a>
 
 ## General
 
@@ -799,7 +973,7 @@ Both the general `create_proof` and `verify_proof` then pass that info to "speci
 create and verify.  The AC2C versions are shown in the above diagram.
 
 
-<a id="org319296f"></a>
+<a id="org9a8bf4f"></a>
 
 ## Specific
 
@@ -818,16 +992,16 @@ along with disclosed values.
 to verify the proof.
 
 
-<a id="org2c3da01"></a>
+<a id="orgf8ac575"></a>
 
 # Guide to `src/vcp` code
 
 
-<a id="org7a3fd4b"></a>
+<a id="org01c8d6b"></a>
 
 ## Directory structure
 
-VCP code resides in the `src/vcp` directory.
+VCP code resides in the [../../src/vcp/](../../src/vcp/) directory.
 
 The top level directory contains:
 
@@ -838,99 +1012,97 @@ The top level directory contains:
 The directory structure for the interfaces used by `PlatformApi` is:
 
     interfaces
-        crypto_interface.rs                   : function types that a specific ZKP library must implement
-        non_primitives.rs                     : function types for functions provided by VCP
+        crypto_interface.rs               : function types that a specific ZKP library must implement
+    
+        non_primitives.rs                 : function types for functions provided by VCP
         primitives
-            types.rs                          : data declarations for data used by CryptoInterface functions
+            types.rs                      : data declarations for data used by CryptoInterface functions
     
-        primitives.rs                         : function types for the functions in CryptoInterface
+        primitives.rs                     : function types for the functions in CryptoInterface
     
-        types.rs                              : data declarations for data used in PlatformApi and CryptoInterface
+        types.rs                          : data declarations for data used in PlatformApi and CryptoInterface
 
 The directory structure for the "general" implementation is:
 
     impl
-        common
-            catch_unwind_util.rs
-            general
-                presentation_request_setup.rs : translates proof requests to proof instructions and equality requirements
+        catch_unwind_util.rs
+        general
+            presentation_request_setup.rs : translates proof requests to proof instructions and equality requirements
     
-                proof.rs                      : general create_proof, verify_proof and verify_decryption functions
-                                                that call specific ZKP library implementations of primitives
-            json
-                shared_params.rs              : utilities for working with shared parameters
-                util.rs
-            to_from_api.rs                    : definitions of functions to convert between API types and
-                                                specific ZKP library implementation types
-    
-            types.rs                          : data declarations available for any specific implementation to use
+            proof.rs                      : general create_proof, verify_proof and verify_decryption functions
+                                            that call specific ZKP library implementations of primitives
+        json
+            shared_params.rs              : utilities for working with shared parameters
             util.rs
+        to_from_api.rs                    : definitions of functions to convert between API types and
+                                            specific ZKP library implementation types
+    
+        types.rs                          : data declarations available for any specific implementation to use
+        util.rs
 
 The directory structure for the AC2C implementation of `CryptoInterface` is:
 
-    impl
-        zkp_backends
-            ac2c
-                accumulators.rs               : AC2C VB implementation of CryptoInterface accumulator primitives
+    zkp_backends
+        ac2c
+            accumulators.rs               : AC2C VB implementation of CryptoInterface accumulator primitives
     
-                authority.rs                  : AC2C implementation of CryptoInterface authority primitives
+            authority.rs                  : AC2C implementation of CryptoInterface authority primitives
     
-                crypto_interface_ac2c.rs      : Provides the AC2C implementation of CryptoInterface
+            crypto_interface_ac2c.rs      : Provides the AC2C implementation of CryptoInterface
     
-                presentation_request_setup.rs : Functions in this file are used by the following proof.rs file.
-                                                Generate AC2C proof statements and equality statements
-                                                from proof instructions (derived from proof requirements).
-                                                Also, generate AC2C PresentationCredentials from signatures and witnesses
+            presentation_request_setup.rs : Functions in this file are used by the following proof.rs file.
+                                            Generate AC2C proof statements and equality statements
+                                            from proof instructions (derived from proof requirements).
+                                            Also, generate AC2C PresentationCredentials from signatures and witnesses
     
-                proof.rs                      : AC2C implementations of specific_create_proof,
-                                                specific_verify_proof functions (and in future, specific_verify_decryption,
-                                                when AC2C supports it)
+            proof.rs                      : AC2C implementations of specific_create_proof,
+                                            specific_verify_proof functions (and in future, specific_verify_decryption,
+                                            when AC2C supports it)
     
-                range_proof.rs                : AC2C implementation of range proof operations
+            range_proof.rs                : AC2C implementation of range proof operations
     
-                signer.rs                     : AC2C implementations of "signer" (a.k.a Issuer)
-                                                primitive functions (e.g., create keys, sign)
+            signer.rs                     : AC2C implementations of "signer" (a.k.a Issuer)
+                                            primitive functions (e.g., create keys, sign)
     
-                to_from_api/*                 : functions to convert between API data types and AC2C data types
+            to_from_api/*                 : functions to convert between API data types and AC2C data types
 
 The directory structure for the DNC implementation of `CryptoInterface` is:
 
-    impl
-        zkp_backends
-            dnc
-                accumulators.rs               : DNC VB implementation of CryptoInterface accumulator primitives
+    zkp_backends
+        dnc
+            accumulators.rs               : DNC VB implementation of CryptoInterface accumulator primitives
     
-                authority.rs                  : DNC implementation of CryptoInterface authority primitives
+            authority.rs                  : DNC implementation of CryptoInterface authority primitives
     
-                crypto_interface_dnc.rs       : Provides the AC2C implementation of CryptoInterface
+            crypto_interface_dnc.rs       : Provides the AC2C implementation of CryptoInterface
     
-                generate_frs.rs               : Turns user values to be signed into "FR"s (i.e., field elements)
+            generate_frs.rs               : Turns user values to be signed into "FR"s (i.e., field elements)
     
-                in_memory_state.rs            : A non-production-ready "database" to hold state
-                                                associated with an accumulator
+            in_memory_state.rs            : A non-production-ready "database" to hold state
+                                            associated with an accumulator
     
-                proof.rs                      : DNC implementations of specific_create_proof,
-                                                specific_verify_proof and specific_verify_decryption functions
+            proof.rs                      : DNC implementations of specific_create_proof,
+                                            specific_verify_proof and specific_verify_decryption functions
     
-                range_proof.rs                : DNC implementation of range proof operations
+            range_proof.rs                : DNC implementation of range proof operations
     
-                reversible_encoding.rs        : Used for verifiable encryption
+            reversible_encoding.rs        : Used for verifiable encryption
     
-                signer.rs                     : DNC implementations of "signer" (a.k.a Issuer)
-                                                primitive functions (e.g., create keys, sign)
+            signer.rs                     : DNC implementations of "signer" (a.k.a Issuer)
+                                            primitive functions (e.g., create keys, sign)
     
-                to_from_api/*                 : functions to convert between API data types and DNC data types
+            to_from_api/*                 : functions to convert between API data types and DNC data types
     
-                types.rs                      : Type aliases used in the DNC implementation
+            types.rs                      : Type aliases used in the DNC implementation
 
-<a id="org018c529"></a>
+<a id="orgdfd0ea2"></a>
 
 
-<a id="org2f28cf9"></a>
+<a id="org43963f5"></a>
 
 ## Example of connecting a specific ZKP library to `PlatformApi`
 
-In [./impl/zkp_backends/ac2c/crypto_interface_ac2c.rs](./impl/zkp_backends/ac2c/crypto_interface_ac2c.rs), the AC2C implementation initializes a `CryptoInterface`
+In [./zkp_backends/ac2c/crypto_interface.rs](./zkp_backends/ac2c/crypto_interface.rs) the AC2C implementation initializes a `CryptoInterface`
 ([./interfaces/crypto_interface.rs](./interfaces/crypto_interface.rs)) struct with "pointers" to the AC2C implementation of
 [./interfaces/primitives.rs](./interfaces/primitives.rs). That initialized struct is referenced as `CRYPTO_INTERFACE_AC2C`.
 
@@ -942,10 +1114,10 @@ the non-primitive, `create_proof`, `verify_proof`, and `verify_decryption` funct
 `PlatformAPI` function, which are then assigned to their associated fields.
 
 An example of making this connection can be seen in the `run_json_test_ac2c` function in
-[../../tests/vcp/json_test_runner_ac2c.rs](../../tests/vcp/json_test_runner_ac2c.rs).
+[../../tests/vcp/zkp_functionality_tests/test_definitions.rs](../../tests/vcp/zkp_functionality_tests/test_definitions.rs).
 
 
-<a id="orgb747785"></a>
+<a id="org878e10e"></a>
 
 ## Creating an Issuer's public and secret data (e.g., keys)
 
@@ -960,8 +1132,8 @@ It takes
     -   this is the "schema" for credentials that will be issued and signed by the Issuer
 
 Assuming the AC2C implementation of primitives are connected to `PlatformApi`,
-as described in <a id="org316a825"></a>,
-then `create_signer_data` (in [./impl/zkp_backends/ac2c/signer.rs](./impl/zkp_backends/ac2c/signer.rs)) is invoked.
+as described in <a id="orgfd04c8b"></a>,
+then `create_signer_data` (in [./zkp_backends/ac2c/signer.rs](./zkp_backends/ac2c/signer.rs)) is invoked.
 
 The `create_signer_data` implementation
 
@@ -980,7 +1152,7 @@ The `create_signer_data` implementation
 An Issuer would securely store the private data and make the public data available.
 
 
-<a id="orgd216e33"></a>
+<a id="orgc47446e"></a>
 
 ## Issuer signing a credential
 
@@ -993,7 +1165,7 @@ It takes
 -   a list of `DataValue` ([./interfaces/types.rs](./interfaces/types.rs))
 -   `SignerData` (from `create_signer_data` above)
 
-The AC2C implementation of `sign` is in [./impl/zkp_backends/ac2c/signer.rs](./impl/zkp_backends/ac2c/signer.rs).
+The AC2C implementation of `sign` is in [./zkp_backends/ac2c/signer.rs](./zkp_backends/ac2c/signer.rs).
 
 That `sign` implementation
 
@@ -1002,11 +1174,11 @@ That `sign` implementation
 -   returns a `Signature` (an opaque representation of an AC2C signature)
 
 
-<a id="org3f74c15"></a>
+<a id="org1b21ee0"></a>
 
 ## Creating a proof
 
-The general `create_proof` function ([./impl/common/general/proof.rs](./impl/common/general/proof.rs)) takes
+The general `create_proof` function ([./impl/general/proof.rs](./impl/general/proof.rs)) takes
 
 -   proof requirements : `HashMap<CredentialLabel, CredentialReqs>`
     -   `CredentialLabel`
@@ -1037,7 +1209,7 @@ Using the above input, the general `create_proof` function
 
 -   gets the values to reveal from the list of `DataValue`
 -   transforms human-friendly `CredentialReqs` into machine-friendly "proof instructions" and equality requirements
-    -   via `presentation_request_setup` ([./impl/common/general/presentation_request_setup.rs](./impl/common/general/presentation_request_setup.rs))
+    -   via `presentation_request_setup` ([./impl/general/presentation_request_setup.rs](./impl/general/presentation_request_setup.rs))
     -   the "proof instructions" returned by `presentation_request_setup` are of type `ProofInstructionGeneral<ResolvedDisclosure>`
     -   `ProofInstructionGeneral` identifies the credential and attribute for which a proof is required, and also the index of a "related" proof instruction, namely the proof instruction for the proof of knowledge of signature covering the relevant attribute
     -   There is one `ResolvedDisclosure` constructor for each type of proof supported:
@@ -1050,19 +1222,19 @@ Using the above input, the general `create_proof` function
 -   calls the specific ZKP library function `specific_prover`, passing the proof instructions, equality requirements, signatures, etc.
     -   Each ZKP backend we have implemented specifies its own library-specific type of "proof instruction"; we call them `ProofInstructionGeneral<SupportedDisclosure>` in both cases, but this is not a requirement.
 
-The AC2C `specific_prover` (named `specific_prover_ac2c` in [./impl/zkp_backends/ac2c/proof.rs](./impl/zkp_backends/ac2c/proof.rs))
+The AC2C `specific_prover` (named `specific_prover_ac2c` in [./zkp_backends/ac2c/proof.rs](./zkp_backends/ac2c/proof.rs)).
 
 -   creates an AC2C `Presentation` (i.e., "proof") ([../presentation.rs](../presentation.rs))
 -   wraps that proof in a VCP opaque data type
 -   returns `DataForVerifier` that contains the VCP proof and any warnings
 
 
-<a id="org4d080ec"></a>
+<a id="orgc5c7cd4"></a>
 
 ## Verifying a proof
 
 Like the general `create_proof` function,
-the general `verify_proof` function ([./impl/common/general/proof.rs](./impl/common/general/proof.rs)) takes
+the general `verify_proof` function ([./impl/general/proof.rs](./impl/general/proof.rs)) takes
 
 -   proof requirements : `HashMap<CredentialLabel, CredentialReqs>`
 -   shared parameters : `HashMap<SharedParamKey, SharedParamValue>`
@@ -1079,12 +1251,12 @@ not empty, verification fails.
 After transforming `CredentialReqs` into proof instructions and equality requirements and
 after validating those requirements against schemas it calls the `specific_verifier` function.
 
-The AC2C `specific_verifier` (named `specific_verifier_ac2c` in [./impl/zkp_backends/ac2c/proof.rs](./impl/zkp_backends/ac2c/proof.rs))
+The AC2C `specific_verifier` (named `specific_verifier_ac2c` in [./zkp_backends/ac2c/proof.rs](./zkp_backends/ac2c/proof.rs))
 converts the VCP information and data into formats used by AC2C, and then calls
 the AC2C `Presentation:verify` to verify the proof.
 
 
-<a id="orga740e3d"></a>
+<a id="org030dff1"></a>
 
 ## Proofs with revealed values
 
@@ -1093,8 +1265,8 @@ Attributes whose values are to be revealed are specified in the `disclosed: Disc
 `Disclosed` ([./interfaces/types.rs](./interfaces/types.rs)) is a list of indices into the list of `DataValue` that were signed,
 specifying which values should be disclosed.
 
-Both the general `create_proof` and `verify_proof` functions ([./impl/common/general/proof.rs](./impl/common/general/proof.rs)) call
-`presentation_request_setup` ([./impl/common/general/presentation_request_setup.rs](./impl/common/general/presentation_request_setup.rs)) that calls
+Both the general `create_proof` and `verify_proof` functions ([./impl/general/proof.rs](./impl/general/proof.rs)) call
+`presentation_request_setup` ([./impl/general/presentation_request_setup.rs](./impl/general/presentation_request_setup.rs)) that calls
 `get_proof_instructions` to transform `CredentialReqs` into proof instructions.
 For each credential request, the translation happens in `get_proof_instructions_for_cred`.
 
@@ -1105,10 +1277,10 @@ For revealed values, the `ProofInstructionGeneral` that gets returned is
 -   for each reveal value: a list of tuples : `(index, value, ClaimType)`
 
 Both the general `create_proof` and `verify_proof` functions go on to call their specific variants,
-in the AC2C case, `specific_prover_ac2c` and `specific_verifier_ac2c` ([./impl/zkp_backends/ac2c/proof.rs](./impl/zkp_backends/ac2c/proof.rs)).
+in the AC2C case, `specific_prover_ac2c` and `specific_verifier_ac2c` ([./zkp_backends/ac2c/proof.rs](./zkp_backends/ac2c/proof.rs)).
 
 The specific functions call `presentation_schema_from` which calls
-`transform_instruction` ([./impl/zkp_backends/ac2c/presentation_request_setup.rs](./impl/zkp_backends/ac2c/presentation_request_setup.rs)) to
+`transform_instruction` ([./zkp_backends/ac2c/presentation_request_setup.rs](./zkp_backends/ac2c/presentation_request_setup.rs)) to
 transform the `ProofInstructionGeneral<ResolvedDisclosure>` into a
 `ProofInstructionGeneral<SupportedDisclosure>`.
 That function returns a proof instruction that contains `SupportedDisclosure::SignatureAndReveal` that contains
@@ -1116,7 +1288,7 @@ That function returns a proof instruction that contains `SupportedDisclosure::Si
 -   an `anoncreds-v2-rs` `IssuerPublic`
 -   `HashMap<CredAttrIndex, (DataValue, ClaimType)>`
 
-`SupportedDisclosure` is then given to `generate_statements` ([./impl/zkp_backends/ac2c/presentation_request_setup.rs](./impl/zkp_backends/ac2c/presentation_request_setup.rs)).
+`SupportedDisclosure` is then given to `generate_statements` ([./zkp_backends/ac2c/presentation_request_setup.rs](./zkp_backends/ac2c/presentation_request_setup.rs)).
 For `SupportedDisclosure::SignatureAndReveal`, `generate_statements` creates an `anoncreds-v2-rs`
 `SignatureStatement` containing
 
@@ -1132,7 +1304,7 @@ At this point `specific_prover_ac2c` calls `anoncreds-v2-rs` `Presentation::crea
 
 -   the `PresentationSchema`
 -   `anoncreds-v2-rs` `IndexMap<CredentialLabel, PresentationCredential>`
-    -   created by a call to `presentation_credentials_from` ([./impl/zkp_backends/ac2c/proof.rs](./impl/zkp_backends/ac2c/proof.rs))
+    -   created by a call to `presentation_credentials_from` ([./zkp_backends/ac2c/proof.rs](./zkp_backends/ac2c/proof.rs))
 
 That `anoncreds-v2-rs` `Presentation` (i.e., proof) is returned from `specific_prover_ac2c`.
 
@@ -1140,7 +1312,7 @@ In the `specific_verifier_ac2c` case, it calls `anoncreds-v2-rs` `Presentation::
 the `PresentationSchema` to verify the proof.
 
 
-<a id="org8443a94"></a>
+<a id="org35c6441"></a>
 
 ## Proofs with range proofs
 
@@ -1177,7 +1349,7 @@ which creates two `anoncreds-v2-rs` statements:
 Those statements are then used to create and verify proofs
 
 
-<a id="orgcc62cac"></a>
+<a id="org14cb6cb"></a>
 
 ## Proofs with verifiable encryption
 
@@ -1204,7 +1376,7 @@ which creates a `anoncreds-v2-rs` `VerifiableEncryptionStatement`
 NOTE: AC2C does not yet support decryption.
 
 
-<a id="orge989318"></a>
+<a id="org6c3c375"></a>
 
 ## Proofs with equalities between attributes
 
@@ -1229,7 +1401,7 @@ where each `EqualityReq` is a list of pairs that point to values that should be 
 `EqualityStatement` for each equality.
 
 
-<a id="org99a00eb"></a>
+<a id="orga327e1d"></a>
 
 ## Proofs with accumulators
 
@@ -1258,7 +1430,7 @@ The AC2C implementation then transforms that `ResolvedDisclosure` into
 which creates a `anoncreds-v2-rs` `MembershipStatement`
 
 
-<a id="org93efbe8"></a>
+<a id="org12a6593"></a>
 
 ## Accumulator functions
 
@@ -1269,5 +1441,5 @@ There are functions for ([./api.rs](./api.rs), [./interfaces/primitives.rs](./in
 -   adding and removing elements from accumulators and getting witnesses for those elements
 -   updating existing witnesses after elements have been added to or removed from an accumulator
 
-The AC2C versions are in [./impl/zkp_backends/ac2c/accumulators.rs](./impl/zkp_backends/ac2c/accumulators.rs).
+The AC2C versions are in [./zkp_backends/ac2c/accumulators.rs](./zkp_backends/ac2c/accumulators.rs).
 

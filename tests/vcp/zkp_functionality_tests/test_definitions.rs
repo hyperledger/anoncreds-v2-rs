@@ -28,26 +28,29 @@ pub enum TestHandler {
 
 #[macro_export]
 macro_rules! per_crypto_library_test {
-    ($platform_api: expr, $lib_spec: expr) => {
+    ($crypto_interface: expr, $lib_spec: expr) => {
         mod spec {
             // -----------------------------------------------------------------------------
+            use super::*;
+            use credx::vcp::api::*;
             use credx::vcp::r#impl::util::*;
-            use credx::vcp::types::*;
-            use credx::vcp::*;
             // -----------------------------------------------------------------------------
             use $crate::vcp::data_for_tests as td;
-            use $crate::vcp::zkp_functionality_tests::test_definitions::*;
-            // -----------------------------------------------------------------------------
-            use lazy_static::*;
-            use maplit::*;
-            use std::collections::*;
             // -----------------------------------------------------------------------------
 
-            $crate::pok_and_reveal_metadata_test! { $platform_api }
-            $crate::sign_create_verify_test! { $platform_api, $lib_spec }
+            $crate::pok_and_reveal_metadata_test! {
+                &credx::vcp::api_utils::implement_platform_api_using(&$crypto_interface)
+            }
+            $crate::sign_create_verify_test! {
+                &credx::vcp::api_utils::implement_platform_api_using(&$crypto_interface),
+                $lib_spec
+            }
             // decrReqUnitSpec
             // accumAddRemoveSpec
-            $crate::look_at_warnings_test! { $platform_api, $lib_spec }
+            $crate::look_at_warnings_test! {
+                &credx::vcp::api_utils::implement_platform_api_using($crypto_interface),
+                $lib_spec
+            }
         }
     };
 }
@@ -427,39 +430,6 @@ macro_rules! range_test {
                         &hashmap!(),
                     );
                 });
-            }
-
-            // This is not really generic since we currently expect a
-            // DNC-specific exception.
-            #[test]
-            // TODO: use the slow_slow_test macro defined in utils
-            #[cfg_attr(any(feature = "ignore_slow", feature = "ignore_slow_slow"),ignore)]
-            fn slowslow_out_of_range_honest_prover_should_refuse_to_create_proof() {
-                it_with(
-                    $lib_spec,
-                    "RANGE_PROOF_OUT_OF_RANGE_SPECIFIC_EXCEPTIONS",
-                    || {
-                        let shared = add_rng_params_with_altered_range_to_exclude_signed_value(
-                            SHARED.to_owned(),
-                        );
-                        expect_create_proof_to_throw(
-                            $platform_api,
-                            &PROOF_REQS,
-                            &shared,
-                            &D_SIG_CD,
-                            &S_SIG_CD,
-                            |err| {
-                                let err_str = format!("{err:?}");
-                                let err_infix = "proof_G1_new ProofG1::new: LegoGroth16Error(SynthesisError(Unsatisfiable))".to_string();
-                                assert!(
-                                    err_str.contains(&err_infix),
-                                    "expected error infix \"{err_infix}\" but the actual error is \"{err_str}\""
-                                );
-                                true
-                            },
-                        );
-                    },
-                )
             }
 
             lazy_static! {

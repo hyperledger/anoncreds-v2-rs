@@ -1,6 +1,6 @@
 pub mod accumulators;
 pub mod authority;
-pub mod crypto_interface_dnc;
+pub mod crypto_interface;
 pub mod in_memory_state;
 pub mod generate_frs;
 pub mod proof;

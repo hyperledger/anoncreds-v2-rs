@@ -10,17 +10,15 @@ extern crate serde_json;
 use std::fs;
 use std::collections::HashMap;
 
-/// Summary: for each file in `<dir_path>`, generate a test function with the
-/// body `<test_runner>(<file_path>)`, where <test_runner> is the name of a function
-/// that loads a test from <file_path> and runs it.
+/// Summary: for each file in `<dir_path>`, generate a test function that runs the test represented
+/// in a JSON file loaded from `<file_path>` using a PlatformAPI generated from <crypto_interface>.
 ///
 /// `input` should have the form:
 /// ```ignore
-/// <test_runner>, <dir_path>, <override_path>
+/// <crypto_interface>, <dir_path>, <override_path>
 /// ```
 /// where:
-/// <test_runner> is the name of a function of type `impl Fn(&str)` that
-///   can load a JSON file and run the test it represents,
+/// <crypto_interface> is the name of CryptoInterface,
 /// <dir_path> is a directory path for JSON test files, and
 /// <override_path> is a path to a file containing any library-specific overrides
 /// to use.
@@ -205,8 +203,8 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
 
     let input: pm2::TokenStream = input.into();
     let input_tokens = input.into_iter().collect::<Vec<_>>();
-    let (test_runner, dir_path_lit, override_fn_lit) = match &input_tokens[..] {
-        [pm2::TokenTree::Ident(test_runner),
+    let (crypto_interface, dir_path_lit, override_fn_lit) = match &input_tokens[..] {
+        [pm2::TokenTree::Ident(crypto_interface),
          pm2::TokenTree::Punct(sep1),
          pm2::TokenTree::Literal(dir_path_lit),
          pm2::TokenTree::Punct(sep2),
@@ -214,12 +212,12 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
         ]
             if sep1.as_char() == ',' && sep2.as_char() == ',' =>
         {
-            (test_runner, dir_path_lit, override_fn_lit)
+            (crypto_interface, dir_path_lit, override_fn_lit)
         }
-        _ => panic!("invalid input; should be of the form `<test_runner>, \"<dir_path>\"`"),
+        _ => panic!("invalid input; should be of the form `<crypto_interface>, \"<dir_path>\"`"),
     };
     // running example continued:
-    //   test_runner = `run_func`
+    //   crypto_interface = `CRYPTO_INTERFACE_AC2C_PS`
     //   dir_path_lit = `"my/target/dir"`
     //   override_fn_lit = `my/target/dir/overrides.json`
 
@@ -325,7 +323,15 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
                 unused_overrides.remove(lupstrref);
                 ts.extend(quote!{
                     fn #test_name_id() {
-                        #test_runner(#file_path_lit)
+                        extern crate credx;
+                        use credx::vcp::api_utils::implement_platform_api_using;
+                        if let Err(e) =
+                            crate::vcp::test_framework::run_test_from_json_file(
+                                &implement_platform_api_using(&#crypto_interface),
+                                #file_path_lit.to_string())
+                        {
+                            panic!("run_json_test failed with {:?}", e)
+                        }
                     }
                 })},
             Some(TestHandler::Fail(s)) => {
