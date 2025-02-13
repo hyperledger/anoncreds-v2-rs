@@ -2,7 +2,7 @@
 use crate::vcp::{Error, VCPResult};
 use crate::vcp::api::PlatformApi;
 use crate::vcp::crypto_interface::CryptoInterface;
-use crate::vcp::r#impl::common::general::proof::*;
+use crate::vcp::r#impl::general::proof::*;
 use crate::vcp::non_primitives::*;
 use crate::vcp::primitives::*;
 // ---------------------------------------------------------------------------

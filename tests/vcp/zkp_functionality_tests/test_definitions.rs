@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 use credx::vcp::api;
-use credx::vcp::r#impl::common::json::util::encode_to_text;
-use credx::vcp::r#impl::common::util::{merge_maps, pp, three_lvl_map_to_vec_of_tuples};
+use credx::vcp::r#impl::json::util::encode_to_text;
+use credx::vcp::r#impl::util::{merge_maps, pp, three_lvl_map_to_vec_of_tuples};
 // ----------------------------------------------------------------------------
 use crate::vcp::data_for_tests as td;
 use crate::vcp::test_framework as tf;
@@ -31,7 +31,7 @@ macro_rules! per_crypto_library_test {
     ($platform_api: expr, $lib_spec: expr) => {
         mod spec {
             // -----------------------------------------------------------------------------
-            use credx::vcp::r#impl::common::util::*;
+            use credx::vcp::r#impl::util::*;
             use credx::vcp::types::*;
             use credx::vcp::*;
             // -----------------------------------------------------------------------------

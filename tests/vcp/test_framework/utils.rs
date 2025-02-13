@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 use credx::vcp::{Error, VCPResult};
 use credx::vcp::api;
-use credx::vcp::r#impl::common::util::*;
+use credx::vcp::r#impl::util::*;
 // -----------------------------------------------------------------------------
 use crate::vcp::test_framework::steps::*;
 use crate::vcp::test_framework::types::*;

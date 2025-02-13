@@ -2,7 +2,7 @@
 // ------------------------------------------------------------------------------
 use credx::vcp::*;
 use credx::vcp::VCPResult;
-use credx::vcp::r#impl::zkp_backends::ac2c::crypto_interface_ac2c::*;
+use credx::vcp::zkp_backends::ac2c::crypto_interface_ac2c::*;
 // ------------------------------------------------------------------------------
 use crate::vcp::data_for_tests as td;
 use crate::vcp::test_framework as tf;
@@ -17,9 +17,9 @@ macro_rules! testing_framework_test {
         mod testing_framework {
             // -----------------------------------------------------------------
             use credx::vcp::api_utils::implement_platform_api_using;
-            use credx::vcp::r#impl::common::util::*;
-            use credx::vcp::r#impl::zkp_backends::ac2c::crypto_interface_ac2c::*;
+            use credx::vcp::r#impl::util::*;
             use credx::vcp::types::*;
+            use credx::vcp::zkp_backends::ac2c::crypto_interface_ac2c::*;
             // -----------------------------------------------------------------
             use $crate::vcp::data_for_tests as td;
             use $crate::vcp::test_framework as tf;

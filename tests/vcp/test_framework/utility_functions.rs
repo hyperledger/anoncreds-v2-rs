@@ -3,7 +3,7 @@ use credx::str_vec_from;
 use credx::vcp::{Error, VCPResult};
 use credx::vcp::api;
 use credx::vcp::crypto_interface::*;
-use credx::vcp::r#impl::common::util::*;
+use credx::vcp::r#impl::util::*;
 // ---------------------------------------------------------------------------
 pub use crate::vcp::test_framework::AccumsForSigner;
 // ---------------------------------------------------------------------------
