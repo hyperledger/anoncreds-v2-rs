@@ -5,6 +5,7 @@ use crate::vcp::interfaces::crypto_interface::*;
 use crate::vcp::interfaces::types::*;
 use crate::vcp::VCPResult;
 // ------------------------------------------------------------------------------
+use crate::{random_string, CredxResult};
 use crate::claim::{ClaimType, HashedClaim, RevocationClaim};
 use crate::credential::{ClaimSchema, CredentialSchema};
 use crate::error::*;
@@ -18,7 +19,6 @@ use crate::prelude::{
 };
 use crate::presentation::{Presentation, PresentationSchema};
 use crate::statement::{RevocationStatement, SignatureStatement};
-use crate::{random_string, CredxResult};
 // ------------------------------------------------------------------------------
 extern crate alloc;
 use indexmap::indexmap;

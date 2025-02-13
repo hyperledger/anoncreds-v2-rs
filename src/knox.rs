@@ -1,6 +1,7 @@
 #![allow(clippy::all)]
 /// Accumulator methods
 pub mod accumulator;
+pub mod bbs;
 /// ECC group operations
 pub mod ecc_group;
 /// Pointcheval Sanders signatures

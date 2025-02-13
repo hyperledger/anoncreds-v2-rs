@@ -1,7 +1,9 @@
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::VerifiableEncryptionStatement;
 use crate::CredxResult;
-use blsful::inner_types::{ff::Field, group::Curve, G1Projective, Scalar};
+use blsful::inner_types::{G1Projective, Scalar};
+use elliptic_curve::{ff::Field, group::Curve};
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
@@ -11,20 +13,17 @@ pub(crate) struct VerifiableEncryptionBuilder<'a> {
     c1: G1Projective,
     c2: G1Projective,
     statement: &'a VerifiableEncryptionStatement<G1Projective>,
-    message: Scalar,
     b: Scalar,
     r: Scalar,
 }
 
-impl<'a> PresentationBuilder for VerifiableEncryptionBuilder<'a> {
-    fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
-        let message_proof = self.b + challenge * self.message;
+impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for VerifiableEncryptionBuilder<'_> {
+    fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
         let blinder_proof = self.r + challenge * self.b;
         VerifiableEncryptionProof {
             id: self.statement.id.clone(),
             c1: self.c1,
             c2: self.c2,
-            message_proof,
             blinder_proof,
         }
         .into()
@@ -58,7 +57,6 @@ impl<'a> VerifiableEncryptionBuilder<'a> {
             c1,
             c2,
             statement,
-            message,
             b,
             r,
         })
@@ -74,8 +72,6 @@ pub struct VerifiableEncryptionProof {
     pub c1: G1Projective,
     /// The C2 El-Gamal component
     pub c2: G1Projective,
-    /// The schnorr message proof
-    pub message_proof: Scalar,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
 }

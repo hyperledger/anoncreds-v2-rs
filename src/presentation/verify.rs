@@ -1,8 +1,10 @@
 use super::*;
+use crate::knox::short_group_sig_core::short_group_traits::ProofOfSignatureKnowledge;
+use std::collections::BTreeMap;
 
-impl Presentation {
+impl<S: ShortGroupSignatureScheme> Presentation<S> {
     /// Verify this presentation
-    pub fn verify(&self, schema: &PresentationSchema, nonce: &[u8]) -> CredxResult<()> {
+    pub fn verify(&self, schema: &PresentationSchema<S>, nonce: &[u8]) -> CredxResult<()> {
         let mut transcript = Transcript::new(b"credx presentation");
         Self::add_curve_parameters_challenge_contribution(&mut transcript);
         transcript.append_message(b"nonce", nonce);
@@ -10,7 +12,7 @@ impl Presentation {
 
         let (signature_statements, predicate_statements) = Self::split_statements(schema);
 
-        let mut verifiers = Vec::<ProofVerifiers>::with_capacity(schema.statements.len());
+        let mut verifiers = Vec::<ProofVerifiers<S>>::with_capacity(schema.statements.len());
         for (id, sig_statement) in &signature_statements {
             match (sig_statement, self.proofs.get(*id)) {
                 (Statements::Signature(ss), Some(PresentationProofs::Signature(proof))) => {
@@ -32,12 +34,22 @@ impl Presentation {
         for (id, pred_statement) in &predicate_statements {
             match (pred_statement, self.proofs.get(*id)) {
                 (Statements::Revocation(aa), Some(PresentationProofs::Revocation(proof))) => {
-                    let verifier = RevocationVerifier::new(aa, proof, nonce);
+                    let hidden_messages =
+                        self.get_sig_hidden_message_proofs(schema, &aa.reference_id)?;
+                    let message_proof = hidden_messages
+                        .get(&aa.claim)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    let verifier = RevocationVerifier::new(aa, proof, nonce, *message_proof);
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }
                 (Statements::Membership(mm), Some(PresentationProofs::Membership(proof))) => {
-                    let verifier = MembershipVerifier::new(mm, proof, nonce);
+                    let hidden_messages =
+                        self.get_sig_hidden_message_proofs(schema, &mm.reference_id)?;
+                    let message_proof = hidden_messages
+                        .get(&mm.claim)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    let verifier = MembershipVerifier::new(mm, proof, nonce, *message_proof);
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }
@@ -54,7 +66,16 @@ impl Presentation {
                     Statements::Commitment(statement),
                     Some(PresentationProofs::Commitment(proof)),
                 ) => {
-                    let verifier = CommitmentVerifier { statement, proof };
+                    let hidden_messages =
+                        self.get_sig_hidden_message_proofs(schema, &statement.reference_id)?;
+                    let message_proof = hidden_messages
+                        .get(&statement.claim)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    let verifier = CommitmentVerifier {
+                        statement,
+                        proof,
+                        message_proof: *message_proof,
+                    };
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }
@@ -62,7 +83,16 @@ impl Presentation {
                     Statements::VerifiableEncryption(statement),
                     Some(PresentationProofs::VerifiableEncryption(proof)),
                 ) => {
-                    let verifier = VerifiableEncryptionVerifier { statement, proof };
+                    let hidden_messages =
+                        self.get_sig_hidden_message_proofs(schema, &statement.reference_id)?;
+                    let message_proof = hidden_messages
+                        .get(&statement.claim)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    let verifier = VerifiableEncryptionVerifier {
+                        statement,
+                        proof,
+                        message_proof: *message_proof,
+                    };
                     verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
                     verifiers.push(verifier.into());
                 }
@@ -114,5 +144,43 @@ impl Presentation {
         }
 
         Ok(())
+    }
+
+    fn get_sig_hidden_message_proofs(
+        &self,
+        schema: &PresentationSchema<S>,
+        reference_id: &String,
+    ) -> CredxResult<BTreeMap<usize, Scalar>> {
+        let sig_proof = self
+            .proofs
+            .get(reference_id)
+            .ok_or(Error::InvalidPresentationData)?;
+        match sig_proof {
+            PresentationProofs::Signature(s) => {
+                match schema
+                    .statements
+                    .get(&s.id)
+                    .ok_or(Error::InvalidPresentationData)?
+                {
+                    Statements::Signature(sig_st) => {
+                        let disclosed_messages: Vec<(usize, Scalar)> = s
+                            .disclosed_messages
+                            .iter()
+                            .map(|(idx, scalar)| (*idx, *scalar))
+                            .collect();
+                        let hidden_messages = s
+                            .pok
+                            .get_hidden_message_proofs(
+                                &sig_st.issuer.verifying_key,
+                                disclosed_messages.as_slice(),
+                            )
+                            .map_err(|_| Error::InvalidPresentationData)?;
+                        Ok(hidden_messages)
+                    }
+                    _ => Err(Error::InvalidPresentationData),
+                }
+            }
+            _ => Err(Error::InvalidPresentationData),
+        }
     }
 }

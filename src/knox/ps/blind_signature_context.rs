@@ -1,7 +1,9 @@
-use super::SecretKey;
+use super::{PublicKey, SecretKey};
+use crate::knox::short_group_sig_core::short_group_traits::BlindSignatureContext as BlindSignatureContextTrait;
 use crate::CredxResult;
-use blsful::inner_types::{group::Curve, G1Affine, G1Projective, Scalar};
+use blsful::inner_types::{G1Affine, G1Projective, Scalar};
 use core::convert::TryFrom;
+use elliptic_curve::group::Curve;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -81,13 +83,17 @@ impl BlindSignatureContext {
             proofs,
         })
     }
+}
+
+impl BlindSignatureContextTrait for BlindSignatureContext {
+    type SecretKey = SecretKey;
 
     /// Assumes the proof of hidden messages
     /// If other proofs were included, those will need to be verified another way
-    pub fn verify(
+    fn verify(
         &self,
         known_messages: &[usize],
-        sk: &SecretKey,
+        sk: &Self::SecretKey,
         nonce: Scalar,
     ) -> CredxResult<bool> {
         let mut known = BTreeSet::new();
@@ -110,6 +116,8 @@ impl BlindSignatureContext {
         scalars.push(-self.challenge);
 
         let mut transcript = Transcript::new(b"new blind signature");
+        let pk = PublicKey::from(sk);
+        transcript.append_message(b"public key", pk.to_bytes().as_ref());
         let mut res = [0u8; 64];
 
         let commitment = G1Projective::sum_of_products(points.as_ref(), scalars.as_ref());

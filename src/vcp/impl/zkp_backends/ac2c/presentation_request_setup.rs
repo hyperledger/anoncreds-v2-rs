@@ -7,6 +7,7 @@ use crate::vcp::r#impl::zkp_backends::ac2c::to_from_api::range_proof_to_from_api
 use crate::vcp::interfaces::crypto_interface::*;
 use crate::vcp::interfaces::primitives::types::*;
 // ------------------------------------------------------------------------------
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::prelude::*;
 use crate::prelude::vb20;
 // ------------------------------------------------------------------------------
@@ -20,10 +21,10 @@ use std::ops::ControlFlow;
 use std::str::FromStr;
 // ------------------------------------------------------------------------------
 
-pub fn presentation_schema_from(
+pub fn presentation_schema_from<S: ShortGroupSignatureScheme>(
     prf_instrs: &[ProofInstructionGeneral<ResolvedDisclosure>],
     eqs: &EqualityReqs,
-) -> VCPResult<WarningsAndResult<PresentationSchema>> {
+) -> VCPResult<WarningsAndResult<PresentationSchema<S>>> {
     let WarningsAndResult {
         warnings: warns,
         result: supported_disclosures,
@@ -57,13 +58,13 @@ pub fn presentation_schema_from(
 
 type PresentationCredentialLabel = String;
 
-pub fn presentation_credentials_from(
+pub fn presentation_credentials_from<S: ShortGroupSignatureScheme>(
     sigs_and_related_data: &HashMap<CredentialLabel, SignatureAndRelatedData>,
-) -> VCPResult<IndexMap<CredentialLabel, PresentationCredential>> {
-    let mut pres_creds : IndexMap<PresentationCredentialLabel, PresentationCredential> = IndexMap::new();
+) -> VCPResult<IndexMap<CredentialLabel, PresentationCredential<S>>> {
+    let mut pres_creds : IndexMap<PresentationCredentialLabel, PresentationCredential<S>> = IndexMap::new();
     for (clbl, SignatureAndRelatedData { signature, values:_, accumulator_witnesses }) in sigs_and_related_data {
-        let cb : CredentialBundle       = from_api(signature)?;
-        let pc : PresentationCredential = cb.credential.into();
+        let cb : CredentialBundle<S>       = from_api(signature)?;
+        let pc : PresentationCredential<S> = cb.credential.into();
         pres_creds.insert(stmt_label_for(clbl), pc);
         for (aidx, wit) in accumulator_witnesses {
             let mw : vb20::MembershipWitness = from_api(wit)?;
@@ -148,16 +149,16 @@ fn stmt_label_for(l: &str) -> String {
 }
 
 #[derive(Debug)]
-enum SupportedDisclosure {
+enum SupportedDisclosure<S: ShortGroupSignatureScheme> {
     RangeProof(Box<RangeProofCommitmentSetup>, u64, u64),
-    SignatureAndReveal(Box<IssuerPublic>, Vec<u64>),
+    SignatureAndReveal(Box<IssuerPublic<S>>, Vec<u64>),
     InAccumProof(Box<vb20::PublicKey>, vb20::Accumulator),
     EncryptedFor(PublicKey<Bls12381G2Impl>)
 }
 
-fn transform_instruction(
+fn transform_instruction<S: ShortGroupSignatureScheme>(
     pig : &ProofInstructionGeneral<ResolvedDisclosure>
-) -> VCPResult<Validation<ProofInstructionGeneral<SupportedDisclosure>>>
+) -> VCPResult<Validation<ProofInstructionGeneral<SupportedDisclosure<S>>>>
 {
     match pig {
 
@@ -213,7 +214,8 @@ fn transform_instruction(
                 (EncryptedForResolved { auth_pub_spk, auth_pub_data })
         } => {
             let AuthorityPublicData(authority_as_issuer) = auth_pub_data;
-            let IssuerPublic { verifiable_encryption_key, .. } = from_api(&SignerPublicSetupData(authority_as_issuer.clone()))?;
+            let IssuerPublic::<S> { verifiable_encryption_key, .. } =
+                from_api(&SignerPublicSetupData(authority_as_issuer.clone()))?;
             Ok(success(ProofInstructionGeneral {
                 cred_label       : cred_label.clone(),
                 attr_idx_general : *attr_idx_general,
@@ -224,12 +226,12 @@ fn transform_instruction(
     }
 }
 
-fn transform_instructions(
+fn transform_instructions<S: ShortGroupSignatureScheme>(
     prf_instrs: &[ProofInstructionGeneral<ResolvedDisclosure>],
-) -> VCPResult<WarningsAndResult<Vec<ProofInstructionGeneral<SupportedDisclosure>>>> {
+) -> VCPResult<WarningsAndResult<Vec<ProofInstructionGeneral<SupportedDisclosure<S>>>>> {
     let (warnings0, instrs): (
         Vec<Warning>,
-        Vec<ProofInstructionGeneral<SupportedDisclosure>>,
+        Vec<ProofInstructionGeneral<SupportedDisclosure<S>>>,
     ) = prf_instrs
         .iter()
         .map(transform_instruction)
@@ -245,9 +247,9 @@ fn transform_instructions(
     })
 }
 
-fn generate_statements(
-    discls: &[ProofInstructionGeneral<SupportedDisclosure>],
-) -> Vec<Statements> {
+fn generate_statements<S: ShortGroupSignatureScheme>(
+    discls: &[ProofInstructionGeneral<SupportedDisclosure<S>>],
+) -> Vec<Statements<S>> {
     discls
         .iter()
         .map(
@@ -257,12 +259,12 @@ fn generate_statements(
                  discl_general,
                  ..
              }|
-             -> Vec<Statements> {
+             -> Vec<Statements<S>> {
                 match discl_general {
                     SupportedDisclosure::SignatureAndReveal(issuer_pub, idxs) => {
                         let mut disclosed = BTreeSet::<String>::new();
                         idxs.iter().for_each(|x| { disclosed.insert(attr_label_for_idx(*x)); });
-                        Vec::from([<Statements>::from(SignatureStatement {
+                        Vec::from([<Statements<S>>::from(SignatureStatement {
                                 disclosed,
                                 id : stmt_label_for(c_lbl),
                                 issuer : *issuer_pub.clone(),
@@ -275,7 +277,7 @@ fn generate_statements(
                         } = **commitment_setup;
                         let sig_stmt_id = stmt_label_for(c_lbl);
                         let commitment_stmnt_id = id_for("CommitmentStatement", c_lbl, a_idx);
-                        let commitment_statement = <Statements>::from(CommitmentStatement {
+                        let commitment_statement = <Statements<S>>::from(CommitmentStatement {
                                 id : commitment_stmnt_id.clone(),
                                 reference_id : sig_stmt_id.clone(),
                                 message_generator : msg_gen,
@@ -283,7 +285,7 @@ fn generate_statements(
                                 claim : *a_idx as usize,
                             });
                         let rng_stmt_id = id_for("RangeStatement", c_lbl, a_idx);
-                        let range_statement = <Statements>::from(RangeStatement {
+                        let range_statement = <Statements<S>>::from(RangeStatement {
                             id : rng_stmt_id,
                             reference_id : commitment_stmnt_id,
                             signature_id : sig_stmt_id,
@@ -296,7 +298,7 @@ fn generate_statements(
                     SupportedDisclosure::InAccumProof(pk, acc) => {
                         let sig_stmt_id          = stmt_label_for(c_lbl);
                         let mem_stmt_id          = membership_label_for(c_lbl, a_idx);
-                        let membership_statement = <Statements>::from(MembershipStatement {
+                        let membership_statement = <Statements<S>>::from(MembershipStatement {
                             id               : mem_stmt_id,
                             reference_id     : sig_stmt_id,
                             accumulator      : *acc,
@@ -308,7 +310,7 @@ fn generate_statements(
                     SupportedDisclosure::EncryptedFor(public_key) => {
                         let sig_stmt_id          = stmt_label_for(c_lbl);
                         let mem_stmt_id          = encrypted_for_label_for(c_lbl, a_idx);
-                        let encryption_statement = <Statements>::from(VerifiableEncryptionStatement {
+                        let encryption_statement = <Statements<S>>::from(VerifiableEncryptionStatement {
                             // NOTE: It seems that G1Projective::GENERATOR is always used, so we
                             // hard code it here, but in principle there could be different
                             // generators that would have to be stored alongside the public key
@@ -331,7 +333,9 @@ fn id_for(label: &str, clbl : &str, aidx : &u64) -> String {
 }
 
 
-fn generate_equality_statements(eq_reqs: &[EqualityReq]) -> Vec<Statements> {
+fn generate_equality_statements<S: ShortGroupSignatureScheme>(
+    eq_reqs: &[EqualityReq]) -> Vec<Statements<S>>
+{
     eq_reqs
         .iter()
         .map(|er| {
@@ -344,7 +348,7 @@ fn generate_equality_statements(eq_reqs: &[EqualityReq]) -> Vec<Statements> {
                 er.sort();
                 er
             });
-            <Statements>::from(EqualityStatement {
+            <Statements<S>>::from(EqualityStatement {
                 id: eq_stmt_id,
                 ref_id_claim_index: er
                     .iter()

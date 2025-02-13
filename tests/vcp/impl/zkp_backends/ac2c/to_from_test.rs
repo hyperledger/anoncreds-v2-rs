@@ -7,12 +7,30 @@ use credx::vcp::types::*;
 // ------------------------------------------------------------------------------
 use crate::vcp::data_for_tests as td;
 // ------------------------------------------------------------------------------
+use credx::knox::bbs::BbsScheme;
+use credx::knox::ps::PsScheme;
+use credx::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use credx::prelude::{CredentialSchema,Issuer,IssuerPublic};
 // ------------------------------------------------------------------------------
+use paste;
+// ------------------------------------------------------------------------------
+
+macro_rules! run_to_from_test_with {
+    ($schmid:ident, $scheme:ident) => {
+        paste::item! {
+            #[test]
+            fn [< to_from_test_ $schmid >]() -> Result<(),vcp::Error> {
+                to_from_test::<$scheme>()
+            }
+        }
+    }
+}
+
+run_to_from_test_with!(bbs, BbsScheme);
+run_to_from_test_with!(ps, PsScheme);
 
 #[allow(unused_variables)]
-#[test]
-fn to_from_test() -> Result<(),vcp::Error> {
+fn to_from_test<S: ShortGroupSignatureScheme>() -> Result<(),vcp::Error> {
     let sdcts = &td::D_CTS;
     // println!("create_signer_data: sdcts: {:?}", sdcts.to_vec());
     let schema_claims = create_schema_claims(sdcts)?;
@@ -21,7 +39,7 @@ fn to_from_test() -> Result<(),vcp::Error> {
         Some("fake description"),
         &[],
         &schema_claims).map_err(|e| vcp::convert_to_crypto_library_error("AC2C", "to_from_test", e))?;
-    let (issuer_public, issuer_secret) = Issuer::new(&cred_schema);
+    let (issuer_public, issuer_secret) = Issuer::<S>::new(&cred_schema);
     // println!("issuer_public: {:?}", issuer_public);
     // println!("issuer_secret: {:?}", issuer_secret);
 
@@ -38,13 +56,13 @@ fn to_from_test() -> Result<(),vcp::Error> {
     // println!("signer_public_data : {:?}", signer_public_data);
     // println!("signer_secret_data : {:?}", signer_secret_data);
 
-    let (s, sdcts) : (IssuerPublic, Vec<ClaimType>) = from_api(&signer_public_data)?;
+    let (s, sdcts) : (IssuerPublic<S>, Vec<ClaimType>) = from_api(&signer_public_data)?;
     // println!("from_api(*signer_public_data): s: {:?}", s);
     // println!("from_api(*signer_public_data): sdcts: {:?}", sdcts);
 
-    let (issuer_public, issuer_secret) = Issuer::new(&cred_schema);
+    let (issuer_public, issuer_secret) = Issuer::<S>::new(&cred_schema);
     let x   = to_api((issuer_public, sdcts.to_vec()))?;
-    let z1  : Issuer = from_api(&signer_secret_data)?;
+    let z1  : Issuer<S> = from_api(&signer_secret_data)?;
     let z2  = to_api(z1)?;
     let sd2 = SignerData::new(x,z2);
     //println!("{:#?}", sd2);

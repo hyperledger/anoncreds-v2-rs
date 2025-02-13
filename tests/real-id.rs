@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use blsful::inner_types::{ExpandMsgXmd, G1Projective};
 use chrono::{Duration, Local, NaiveDate};
+use credx::knox::ps::PsScheme;
+use credx::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use credx::{
     claim::{ClaimData, ClaimType, HashedClaim, NumberClaim, RevocationClaim},
     credential::{ClaimSchema, CredentialBundle, CredentialSchema},
@@ -34,7 +36,7 @@ fn real_id_implementation() {
     let _ = env_logger::builder().is_test(true).try_init();
 
     // Setup: The issuers publish credential schemas in verifiable data registry (VDR)
-    let (vdr, bank_wallet, dos_wallet, ssa_wallet) = issuer_setup();
+    let (vdr, bank_wallet, dos_wallet, ssa_wallet) = issuer_setup::<PsScheme>();
 
     // Department of Public Safety (DPS) creates presentation schema for the claims it requires from various issuers to verify the applicant for the purpose of issuing a Real ID
     let real_id_presentation_schema = create_real_id_presentation_schema(&vdr);
@@ -76,13 +78,13 @@ fn real_id_implementation() {
     assert!(verification_status.is_ok(), "{:?}", verification_status);
 }
 
-fn create_real_id_presentation_with_selective_disclosure(
-    real_id_presentation_schema: &PresentationSchema,
-    vc_soc_sec: &CredentialBundle,
-    vc_passport: &CredentialBundle,
-    vc_bank_stmt: &CredentialBundle,
+fn create_real_id_presentation_with_selective_disclosure<S: ShortGroupSignatureScheme>(
+    real_id_presentation_schema: &PresentationSchema<S>,
+    vc_soc_sec: &CredentialBundle<S>,
+    vc_passport: &CredentialBundle<S>,
+    vc_bank_stmt: &CredentialBundle<S>,
     nonce: &[u8],
-) -> Result<Presentation, credx::prelude::Error> {
+) -> Result<Presentation<S>, credx::prelude::Error> {
     let mut soc_sec_sig_st_id = Default::default();
     let mut dos_passport_sig_st_id = Default::default();
     let mut bank_statement_sig_st_id = Default::default();
@@ -109,7 +111,7 @@ fn create_real_id_presentation_with_selective_disclosure(
         }
     }
 
-    let alice_credentials_for_real_id: IndexMap<String, PresentationCredential> = indexmap! {
+    let alice_credentials_for_real_id: IndexMap<String, PresentationCredential<S>> = indexmap! {
         soc_sec_sig_st_id => vc_soc_sec.credential.clone().into(),
         dos_passport_sig_st_id => vc_passport.credential.clone().into(),
         bank_statement_sig_st_id => vc_bank_stmt.credential.clone().into(),
@@ -124,7 +126,9 @@ fn create_real_id_presentation_with_selective_disclosure(
     alice_real_id_presentation
 }
 
-fn create_real_id_presentation_schema(vdr: &HashMap<String, IssuerPublic>) -> PresentationSchema {
+fn create_real_id_presentation_schema<S: ShortGroupSignatureScheme>(
+    vdr: &HashMap<String, IssuerPublic<S>>,
+) -> PresentationSchema<S> {
     // Claims needed from Social Security Card issued by SSA
     let ssa_soc_sec_statements = create_soc_sec_statements_for_realid(&vdr);
     let soc_security_schema = vdr.get(SSA_DID).unwrap().schema.clone();
@@ -153,7 +157,7 @@ fn create_real_id_presentation_schema(vdr: &HashMap<String, IssuerPublic>) -> Pr
     };
 
     // Final step for creating the presentation schema
-    let mut real_id_statements: Vec<Statements> = Vec::new();
+    let mut real_id_statements: Vec<Statements<S>> = Vec::new();
     real_id_statements.append(&mut ssa_soc_sec_statements.to_vec());
     real_id_statements.append(&mut dos_passport_statements.to_vec());
     real_id_statements.append(&mut bank_statement_statements.to_vec());
@@ -164,9 +168,9 @@ fn create_real_id_presentation_schema(vdr: &HashMap<String, IssuerPublic>) -> Pr
     real_id_presentation_schema
 }
 
-fn create_bank_statement_statements_for_realid(
-    vdr: &HashMap<String, IssuerPublic>,
-) -> [Statements; 5] {
+fn create_bank_statement_statements_for_realid<S: ShortGroupSignatureScheme>(
+    vdr: &HashMap<String, IssuerPublic<S>>,
+) -> [Statements<S>; 5] {
     let bank_public = vdr.get(&BANK_DID.to_string()).unwrap();
     let current_date = Local::now().date_naive();
     let schema = bank_public.schema.clone();
@@ -240,7 +244,7 @@ fn create_bank_statement_statements_for_realid(
         claim: schema.claim_indices.get_index_of("account_number").unwrap(),
     };
 
-    let bank_statement_statements: [Statements; 5] = [
+    let bank_statement_statements: [Statements<S>; 5] = [
         bank_statement_sig_st.into(),
         bank_statement_acc_st.into(),
         bank_statement_comm_st_start_date.into(),
@@ -251,9 +255,9 @@ fn create_bank_statement_statements_for_realid(
     bank_statement_statements
 }
 
-fn create_dos_passport_statements_for_realid(
-    vdr: &HashMap<String, IssuerPublic>,
-) -> [Statements; 7] {
+fn create_dos_passport_statements_for_realid<S: ShortGroupSignatureScheme>(
+    vdr: &HashMap<String, IssuerPublic<S>>,
+) -> [Statements<S>; 7] {
     let dos_public = vdr.get(&DOS_DID.to_string()).unwrap();
     let schema = dos_public.schema.clone();
     let current_date = Local::now().date_naive();
@@ -365,7 +369,7 @@ fn create_dos_passport_statements_for_realid(
             .unwrap(),
     };
 
-    let dos_passport_statements: [Statements; 7] = [
+    let dos_passport_statements: [Statements<S>; 7] = [
         dos_passport_sig_st.into(),
         dos_passport_acc_st.into(),
         dos_passport_comm_st_dob.into(),
@@ -378,7 +382,9 @@ fn create_dos_passport_statements_for_realid(
     dos_passport_statements
 }
 
-fn create_soc_sec_statements_for_realid(vdr: &HashMap<String, IssuerPublic>) -> [Statements; 3] {
+fn create_soc_sec_statements_for_realid<S: ShortGroupSignatureScheme>(
+    vdr: &HashMap<String, IssuerPublic<S>>,
+) -> [Statements<S>; 3] {
     let ssa_public = vdr.get(&SSA_DID.to_string()).unwrap();
     let schema = ssa_public.schema.clone();
 
@@ -404,7 +410,7 @@ fn create_soc_sec_statements_for_realid(vdr: &HashMap<String, IssuerPublic>) -> 
         claim: schema.claim_indices.get_index_of("soc_sec_number").unwrap(),
     };
 
-    let soc_sec_statements: [Statements; 3] = [
+    let soc_sec_statements: [Statements<S>; 3] = [
         soc_sec_sig_st.into(),
         soc_sec_acc_st.into(),
         soc_sec_verenc_st.into(),
@@ -413,14 +419,14 @@ fn create_soc_sec_statements_for_realid(vdr: &HashMap<String, IssuerPublic>) -> 
     soc_sec_statements
 }
 
-fn issuer_setup() -> (
-    HashMap<String, IssuerPublic>,
-    HashMap<String, Issuer>,
-    HashMap<String, Issuer>,
-    HashMap<String, Issuer>,
+fn issuer_setup<S: ShortGroupSignatureScheme>() -> (
+    HashMap<String, IssuerPublic<S>>,
+    HashMap<String, Issuer<S>>,
+    HashMap<String, Issuer<S>>,
+    HashMap<String, Issuer<S>>,
 ) {
     // issuer setup
-    let mut vdr: HashMap<String, IssuerPublic> = HashMap::new();
+    let mut vdr: HashMap<String, IssuerPublic<S>> = HashMap::new();
     // setup bank
     let bank_wallet = setup_bank(&mut vdr);
     // setup dos
@@ -431,8 +437,10 @@ fn issuer_setup() -> (
     (vdr, bank_wallet, dos_wallet, ssa_wallet)
 }
 
-fn setup_ssa(vdr: &mut HashMap<String, IssuerPublic>) -> HashMap<String, Issuer> {
-    let mut ssa_wallet: HashMap<String, Issuer> = HashMap::new();
+fn setup_ssa<S: ShortGroupSignatureScheme>(
+    vdr: &mut HashMap<String, IssuerPublic<S>>,
+) -> HashMap<String, Issuer<S>> {
+    let mut ssa_wallet: HashMap<String, Issuer<S>> = HashMap::new();
 
     let soc_sec_claims = define_soc_sec_claims_schemas();
     assert!(!soc_sec_claims.is_empty(), "{:?}", soc_sec_claims);
@@ -445,15 +453,17 @@ fn setup_ssa(vdr: &mut HashMap<String, IssuerPublic>) -> HashMap<String, Issuer>
     )
     .unwrap();
 
-    let (ssa_public, mut ssa) = Issuer::new(&vc_soc_sec_schema);
+    let (ssa_public, ssa) = Issuer::new(&vc_soc_sec_schema);
     vdr.insert(SSA_DID.to_string(), ssa_public);
     ssa_wallet.insert(SSA_DID.to_string(), ssa);
 
     ssa_wallet
 }
 
-fn setup_dos(vdr: &mut HashMap<String, IssuerPublic>) -> HashMap<String, Issuer> {
-    let mut dos_wallet: HashMap<String, Issuer> = HashMap::new();
+fn setup_dos<S: ShortGroupSignatureScheme>(
+    vdr: &mut HashMap<String, IssuerPublic<S>>,
+) -> HashMap<String, Issuer<S>> {
+    let mut dos_wallet: HashMap<String, Issuer<S>> = HashMap::new();
 
     // Passport Claim Schemas
     let passport_claims = define_passport_claims_schemas();
@@ -467,15 +477,17 @@ fn setup_dos(vdr: &mut HashMap<String, IssuerPublic>) -> HashMap<String, Issuer>
     )
     .unwrap();
 
-    let (dos_public, mut dos) = Issuer::new(&vc_passport_schema);
+    let (dos_public, dos) = Issuer::new(&vc_passport_schema);
     vdr.insert(DOS_DID.to_string(), dos_public);
     dos_wallet.insert(DOS_DID.to_string(), dos);
 
     dos_wallet
 }
 
-fn setup_bank(vdr: &mut HashMap<String, IssuerPublic>) -> HashMap<String, Issuer> {
-    let mut bank_wallet: HashMap<String, Issuer> = HashMap::new();
+fn setup_bank<S: ShortGroupSignatureScheme>(
+    vdr: &mut HashMap<String, IssuerPublic<S>>,
+) -> HashMap<String, Issuer<S>> {
+    let mut bank_wallet: HashMap<String, Issuer<S>> = HashMap::new();
     let bank_stmt_claims = define_bank_statement_claims_schemas();
     assert!(!bank_stmt_claims.is_empty(), "{:?}", bank_stmt_claims);
 
@@ -487,7 +499,7 @@ fn setup_bank(vdr: &mut HashMap<String, IssuerPublic>) -> HashMap<String, Issuer
     )
     .unwrap();
 
-    let (bank_a_public, mut bank_a) = Issuer::new(&vc_bank_stmt_schema);
+    let (bank_a_public, bank_a) = Issuer::new(&vc_bank_stmt_schema);
     vdr.insert(BANK_DID.to_string(), bank_a_public);
     bank_wallet.insert(BANK_DID.to_string(), bank_a);
 
@@ -644,11 +656,11 @@ fn define_bank_statement_claims_schemas() -> Vec<ClaimSchema> {
     schema_claims.to_vec()
 }
 
-fn request_bank_statement_credential(
-    bank_wallet: HashMap<String, Issuer>,
-) -> CredxResult<CredentialBundle> {
+fn request_bank_statement_credential<S: ShortGroupSignatureScheme>(
+    bank_wallet: HashMap<String, Issuer<S>>,
+) -> CredxResult<CredentialBundle<S>> {
     let current_date = Local::now().date_naive();
-    let mut bank_a: Issuer = bank_wallet.get(&BANK_DID.to_string()).unwrap().to_owned();
+    let mut bank_a: Issuer<S> = bank_wallet.get(&BANK_DID.to_string()).unwrap().to_owned();
 
     // Start date is 45 days in the past. Map dates to integers - it's the number of days since 1/1/1900
     let forty_five_days_ago = current_date - Duration::days(45);
@@ -673,9 +685,9 @@ fn request_bank_statement_credential(
     Ok(vc_bank_stmt)
 }
 
-fn request_passport_credential(
-    dos_wallet: HashMap<String, Issuer>,
-) -> CredxResult<CredentialBundle> {
+fn request_passport_credential<S: ShortGroupSignatureScheme>(
+    dos_wallet: HashMap<String, Issuer<S>>,
+) -> CredxResult<CredentialBundle<S>> {
     // Map dates to integers - it's the number of days since 1/1/1900
     let dob = chrono::NaiveDate::from_ymd_opt(2000, 02, 17).unwrap();
     let dob_since_1900 = days_since_1_jan_1900(dob)?;
@@ -702,9 +714,9 @@ fn request_passport_credential(
     Ok(vc_passport)
 }
 
-fn request_social_security_credential(
-    ssa_wallet: HashMap<String, Issuer>,
-) -> CredxResult<CredentialBundle> {
+fn request_social_security_credential<S: ShortGroupSignatureScheme>(
+    ssa_wallet: HashMap<String, Issuer<S>>,
+) -> CredxResult<CredentialBundle<S>> {
     let claims: [ClaimData; 3] = [
         RevocationClaim::from(Uuid::new_v4().to_string()).into(),
         HashedClaim::from("123-456-789").into(),

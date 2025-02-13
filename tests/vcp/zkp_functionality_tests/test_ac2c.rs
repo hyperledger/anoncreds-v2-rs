@@ -5,9 +5,10 @@ use lazy_static::lazy_static;
 use maplit::hashmap;
 // -----------------------------------------------------------------------------
 
+// TODO: generalise to include testing with provided CRYPTO_INTERFACE
 crate::per_crypto_library_test! {
     &credx::vcp::api_utils::implement_platform_api_using(
-        credx::vcp::r#impl::zkp_backends::ac2c::crypto_interface_ac2c::CRYPTO_INTERFACE_AC2C.to_owned()),
+        credx::vcp::r#impl::zkp_backends::ac2c::crypto_interface_ac2c::CRYPTO_INTERFACE_AC2C_PS.to_owned()),
     &crate::vcp::zkp_functionality_tests::test_ac2c::SPECIFIC_TEST_OUTCOMES
 }
 

@@ -1,8 +1,8 @@
 // ------------------------------------------------------------------------------
+use crate::get_location_and_backtrace_on_panic;
 use crate::vcp::VCPResult;
 use crate::vcp::Error;
 use crate::vcp::UnexpectedError;
-use crate::get_location_and_backtrace_on_panic;
 // ------------------------------------------------------------------------------
 use indexmap::IndexMap;
 use std;

@@ -6,6 +6,7 @@ use crate::vcp::r#impl::common::to_from_api::*;
 use crate::vcp::r#impl::zkp_backends::ac2c::presentation_request_setup::attr_label_for_idx;
 use crate::vcp::interfaces::crypto_interface::*;
 // ------------------------------------------------------------------------------
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::prelude;
 use crate::prelude::{
     ClaimData,ClaimSchema,CredentialSchema,
@@ -15,13 +16,13 @@ use crate::prelude::{
 use std::sync::Arc;
 // ------------------------------------------------------------------------------
 
-pub fn create_signer_data() -> CreateSignerData {
+pub fn create_signer_data<S: ShortGroupSignatureScheme>() -> CreateSignerData {
     Arc::new(|_rng_seed, sdcts| {
         let schema_claims = create_schema_claims(sdcts)?;
         let cred_schema = get_location_and_backtrace_on_panic!(
             CredentialSchema::new(Some(LABEL), Some(DESCRIPTION), &[], &schema_claims)
                 .map_err(|e| convert_to_crypto_library_error("AC2C", "create_signer_data", e)))?;
-        let (issuer_public, issuer_secret) = Issuer::new(&cred_schema);
+        let (issuer_public, issuer_secret) = Issuer::<S>::new(&cred_schema);
         Ok(SignerData::new(
             to_api((issuer_public, sdcts.to_vec()))?,
             to_api(issuer_secret)?,
@@ -29,13 +30,13 @@ pub fn create_signer_data() -> CreateSignerData {
     })
 }
 
-pub fn sign() -> Sign {
+pub fn sign<S: ShortGroupSignatureScheme>() -> Sign {
     Arc::new(|_rng_seed, vals, sd| {
         let SignerData {
             signer_public_data,
             signer_secret_data,
         } = sd;
-        let (_s, sdcts) : (IssuerPublic, Vec<ClaimType>) = from_api(signer_public_data)?;
+        let (_s, sdcts) : (IssuerPublic<S>, Vec<ClaimType>) = from_api(signer_public_data)?;
         let mut claim_data = vals_to_claim_data(&sdcts, vals)?;
         let rev_claim_data = RevocationClaim::from("NOT USED").into();
         claim_data.push(rev_claim_data);
@@ -43,7 +44,7 @@ pub fn sign() -> Sign {
         // adds an element to the opinionated revocation accumulator
         // stored inside `Issuer`.
         // We ignore the accumulator, so the `mut` is to satisfy the compiler.
-        let mut issuer : Issuer = from_api(signer_secret_data)?;
+        let mut issuer : Issuer<S> = from_api(signer_secret_data)?;
         // cannot use get_location_and_backtrace_on_panic! (in its current form) here because
         // the type `&mut issuer::Issuer` may not be safely transferred across an unwind boundary
         let sig = issuer

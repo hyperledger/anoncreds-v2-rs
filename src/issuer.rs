@@ -4,23 +4,27 @@ use crate::claim::{Claim, ClaimData, RevocationClaim};
 use crate::credential::{Credential, CredentialBundle};
 use crate::knox::{
     accumulator::vb20::{self, Accumulator, Element, MembershipWitness},
-    ps, Knox,
+    short_group_sig_core::short_group_traits::{
+        PublicKey as _, SecretKey as _, ShortGroupSignatureScheme, Signature,
+    },
+    Knox,
 };
 use crate::{random_string, CredxResult};
 use blsful::{inner_types::*, *};
 use log::debug;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::num::NonZeroUsize;
 
 /// An issuer of a credential
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Issuer {
+pub struct Issuer<S: ShortGroupSignatureScheme> {
     /// The issuer's unique id
     pub id: String,
     /// The schema for this issuer
     pub schema: CredentialSchema,
     /// The credential signing key for this issuer
-    pub signing_key: ps::SecretKey,
+    pub signing_key: S::SecretKey,
     /// The revocation update key for this issuer
     pub revocation_key: vb20::SecretKey,
     /// The verifiable decryption key for this issuer
@@ -31,13 +35,13 @@ pub struct Issuer {
 
 /// The public data for an issuer
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct IssuerPublic {
+pub struct IssuerPublic<S: ShortGroupSignatureScheme> {
     /// The issuer's unique id
     pub id: String,
     /// The schema for this issuer
     pub schema: CredentialSchema,
     /// The credential verifying key for this issuer
-    pub verifying_key: ps::PublicKey,
+    pub verifying_key: S::PublicKey,
     /// The revocation registry verifying key for this issuer
     pub revocation_verifying_key: vb20::PublicKey,
     /// The verifiable encryption key for this issuer
@@ -46,24 +50,27 @@ pub struct IssuerPublic {
     pub revocation_registry: Accumulator,
 }
 
-impl From<&Issuer> for IssuerPublic {
-    fn from(i: &Issuer) -> Self {
+impl<S: ShortGroupSignatureScheme> From<&Issuer<S>> for IssuerPublic<S> {
+    fn from(i: &Issuer<S>) -> Self {
         i.get_public()
     }
 }
 
-impl From<&mut Issuer> for IssuerPublic {
-    fn from(i: &mut Issuer) -> Self {
+impl<S: ShortGroupSignatureScheme> From<&mut Issuer<S>> for IssuerPublic<S> {
+    fn from(i: &mut Issuer<S>) -> Self {
         i.get_public()
     }
 }
 
-impl Issuer {
+impl<S: ShortGroupSignatureScheme> Issuer<S> {
     /// Create a new Issuer
-    pub fn new(schema: &CredentialSchema) -> (IssuerPublic, Self) {
+    pub fn new(schema: &CredentialSchema) -> (IssuerPublic<S>, Self) {
         let id = random_string(16, rand::thread_rng());
-        let (verifying_key, signing_key) =
-            ps::Issuer::new_keys(schema.claims.len(), rand::thread_rng()).unwrap();
+        let (verifying_key, signing_key) = S::new_keys(
+            NonZeroUsize::new(schema.claims.len()).expect("non-zero"),
+            rand::thread_rng(),
+        )
+        .unwrap();
         let (pubkkey, seckey) = Knox::new_bls381g1_keys(rand::thread_rng());
         let revocation_verifying_key = vb20::PublicKey(pubkkey.0);
         let revocation_key = vb20::SecretKey(seckey.0);
@@ -94,7 +101,7 @@ impl Issuer {
     }
 
     /// Sign the claims into a credential
-    pub fn sign_credential(&mut self, claims: &[ClaimData]) -> CredxResult<CredentialBundle> {
+    pub fn sign_credential(&mut self, claims: &[ClaimData]) -> CredxResult<CredentialBundle<S>> {
         // Check if claim data matches schema and validators
         if claims.len() != self.schema.claims.len() {
             return Err(Error::InvalidClaimData("claims.len != schema.claims.len"));
@@ -157,7 +164,7 @@ impl Issuer {
         self.revocation_registry
             .elements
             .insert(revocation_claim.value.clone());
-        let signature = ps::Signature::new(&self.signing_key, &attributes)
+        let signature = S::Signature::create(&self.signing_key, &attributes)
             .map_err(|_| Error::InvalidSigningOperation)?;
         let credential_bundle = CredentialBundle {
             issuer: IssuerPublic::from(self),
@@ -178,9 +185,9 @@ impl Issuer {
     /// Blind sign a credential where only a subset of the claims are known
     pub fn blind_sign_credential(
         &mut self,
-        request: &BlindCredentialRequest,
+        request: &BlindCredentialRequest<S>,
         claims: &BTreeMap<String, ClaimData>,
-    ) -> CredxResult<BlindCredentialBundle> {
+    ) -> CredxResult<BlindCredentialBundle<S>> {
         if request.blind_claim_labels.len() + claims.len() != self.schema.claims.len() {
             return Err(Error::InvalidClaimData(
                 "blind_claims.len + known_claims.len != schema.claims.len",
@@ -256,7 +263,7 @@ impl Issuer {
             .elements
             .insert(revocation_claim.value.clone());
 
-        let signature = ps::Issuer::blind_sign(
+        let signature = S::blind_sign(
             &request.blind_signature_context,
             &self.signing_key,
             &messages,
@@ -302,8 +309,8 @@ impl Issuer {
         self.revocation_registry.revoke(&self.revocation_key, &c)
     }
 
-    fn get_public(&self) -> IssuerPublic {
-        let verifying_key = ps::PublicKey::from(&self.signing_key);
+    fn get_public(&self) -> IssuerPublic<S> {
+        let verifying_key = self.signing_key.public_key();
         let revocation_verifying_key = vb20::PublicKey::from(&self.revocation_key);
         #[allow(unused_qualifications)]
         let verifiable_encryption_key =
@@ -319,7 +326,7 @@ impl Issuer {
     }
 }
 
-impl IssuerPublic {
+impl<S: ShortGroupSignatureScheme> IssuerPublic<S> {
     /// Add data to transcript
     pub fn add_challenge_contribution(&self, transcript: &mut merlin::Transcript) {
         transcript.append_message(b"issuer id", self.id.as_bytes());

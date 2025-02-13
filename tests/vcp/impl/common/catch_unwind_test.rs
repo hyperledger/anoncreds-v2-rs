@@ -1,9 +1,9 @@
 // ------------------------------------------------------------------------------
+use credx::get_location_and_backtrace_on_panic;
 use credx::vcp::VCPResult;
 use credx::vcp::Error;
 use credx::vcp::UnexpectedError;
 use credx::vcp::r#impl::common::catch_unwind_util::*;
-use credx::get_location_and_backtrace_on_panic;
 // ------------------------------------------------------------------------------
 use indexmap::IndexMap;
 use std;

@@ -2,6 +2,7 @@ use blsful::inner_types::*;
 use credx::claim::{ClaimType, NumberClaim, RevocationClaim};
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::error;
+use credx::knox::bbs::BbsScheme;
 use credx::prelude::Issuer;
 use credx::presentation::{Presentation, PresentationSchema};
 use credx::statement::{
@@ -44,7 +45,7 @@ fn test_out_of_range_panic() -> CredxResult<()> {
         },
     ];
     let cred_schema = CredentialSchema::new(Some(LABEL), Some(DESCRIPTION), &[], &schema_claims)?;
-    let (issuer_public, mut issuer) = Issuer::new(&cred_schema);
+    let (issuer_public, mut issuer) = Issuer::<BbsScheme>::new(&cred_schema);
     let credential = issuer.sign_credential(&[
         RevocationClaim::from(CRED_ID).into(),
         NumberClaim::from(5).into(),

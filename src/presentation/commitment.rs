@@ -1,7 +1,9 @@
+use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::CommitmentStatement;
 use crate::CredxResult;
-use blsful::inner_types::{ff::Field, group::Curve, G1Projective, Scalar};
+use blsful::inner_types::{G1Projective, Scalar};
+use elliptic_curve::{group::Curve, Field};
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
@@ -10,19 +12,16 @@ use serde::{Deserialize, Serialize};
 pub(crate) struct CommitmentBuilder<'a> {
     pub(crate) commitment: G1Projective,
     pub(crate) statement: &'a CommitmentStatement<G1Projective>,
-    pub(crate) message: Scalar,
     pub(crate) b: Scalar,
     pub(crate) r: Scalar,
 }
 
-impl<'a> PresentationBuilder for CommitmentBuilder<'a> {
-    fn gen_proof(self, challenge: Scalar) -> PresentationProofs {
-        let message_proof = self.b + challenge * self.message;
+impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for CommitmentBuilder<'_> {
+    fn gen_proof(self, challenge: Scalar) -> PresentationProofs<S> {
         let blinder_proof = self.r + challenge * self.b;
         CommitmentProof {
             id: self.statement.id.clone(),
             commitment: self.commitment,
-            message_proof,
             blinder_proof,
         }
         .into()
@@ -39,7 +38,6 @@ impl<'a> CommitmentBuilder<'a> {
         transcript: &mut Transcript,
     ) -> CredxResult<Self> {
         let r = Scalar::random(&mut rng);
-
         let commitment = statement.message_generator * message + statement.blinder_generator * b;
         let blind_commitment = statement.message_generator * b + statement.blinder_generator * r;
 
@@ -55,7 +53,6 @@ impl<'a> CommitmentBuilder<'a> {
         Ok(Self {
             commitment,
             statement,
-            message,
             b,
             r,
         })
@@ -69,8 +66,6 @@ pub struct CommitmentProof {
     pub id: String,
     /// The commitment
     pub commitment: G1Projective,
-    /// The schnorr message proof
-    pub message_proof: Scalar,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
 }
