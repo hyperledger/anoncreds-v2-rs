@@ -66,6 +66,8 @@ pub fn sign_s_cred(h_lbl: tf::HolderLabel) -> tf::TestStep {
 lazy_static! {
     pub static ref CREATE_D_ISSUER: tf::TestStep =
         tf::TestStep::CreateIssuer(td::D_ISSUER_LABEL.to_owned(), td::D_CTS.to_vec());
+    pub static ref CREATE_D_ISSUER_WITH_VE: tf::TestStep =
+        tf::TestStep::CreateIssuer(td::D_ISSUER_LABEL.to_owned(), td::D_CTS_WITH_VE.to_vec());
     pub static ref CREATE_S_ISSUER: tf::TestStep =
         tf::TestStep::CreateIssuer(td::S_ISSUER_LABEL.to_owned(), td::S_CTS.to_vec());
     pub static ref CREATE_POLICE_AUTHORITY: tf::TestStep =

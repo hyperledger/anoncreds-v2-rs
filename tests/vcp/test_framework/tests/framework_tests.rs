@@ -491,7 +491,7 @@ macro_rules! initial_test_via_new_framework_test {
             #[test]
             fn adds_decrypt_req() {
                 let mut ts = tf::start_test($platform_api, vec![CREATE_POLICE_AUTHORITY.to_owned()]).unwrap();
-                tf::extend_test($platform_api, vec![CREATE_D_ISSUER.to_owned(),sign_d_cred(td::HOLDER_1.to_owned())], &mut ts).unwrap();
+                tf::extend_test($platform_api, vec![CREATE_D_ISSUER_WITH_VE.to_owned(),sign_d_cred(td::HOLDER_1.to_owned())], &mut ts).unwrap();
                 tf::extend_test($platform_api, vec![ENCRYPT_FOR_POLICE_AUTHORITY.to_owned(),], &mut ts).unwrap();
                 tf::extend_test($platform_api, vec![DECRYPT_FOR_POLICE_AUTHORITY.to_owned(),], &mut ts).unwrap();
                 let y = ts.decrypt_requests.get(&td::HOLDER_1.to_owned()).cloned().unwrap_or_default();
