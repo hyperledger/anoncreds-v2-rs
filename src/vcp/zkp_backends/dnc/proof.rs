@@ -32,7 +32,7 @@ use vb_accumulator::prelude::PositiveAccumulator;
 use vb_accumulator::prelude::PublicKey            as VbaPublicKey;
 use vb_accumulator::prelude::SetupParams          as VbaSetupParams;
 // ------------------------------------------------------------------------------
-use ark_bls12_381::{Bls12_381, Fr};
+use ark_bls12_381::{Bls12_381, Fr, G1Affine};
 use ark_std::collections::{BTreeMap,BTreeSet};
 use ark_std::rand::SeedableRng;
 use ark_std::rand::rngs::StdRng;
@@ -577,7 +577,7 @@ enum SupportedDisclosure {
     InAccumProof(Box<VbaSetupParams::<Bls12_381>>,
                  Box<VbaPublicKey::<Bls12_381>>,
                  Box<MembershipProvingKey::<G1>>,
-                 PositiveAccumulator::<Bls12_381>,
+                 PositiveAccumulator::<G1Affine>,
                  AccumulatorBatchSeqNo),
 }
 

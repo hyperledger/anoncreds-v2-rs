@@ -84,14 +84,14 @@ impl VcpTryFrom<&api::MembershipProvingKey> for VbaMembershipProvingKey::<G1> {
 
 // ------------------------------------------------------------------------------
 
-impl VcpTryFrom<PositiveAccumulator::<Bls12_381>> for api::Accumulator {
-    fn vcp_try_from(x: PositiveAccumulator::<Bls12_381>) -> VCPResult<api::Accumulator> {
+impl VcpTryFrom<PositiveAccumulator::<G1Affine>> for api::Accumulator {
+    fn vcp_try_from(x: PositiveAccumulator::<G1Affine>) -> VCPResult<api::Accumulator> {
         Ok(api::Accumulator(to_opaque_json(&x)?))
     }
 }
 
-impl VcpTryFrom<&api::Accumulator> for PositiveAccumulator::<Bls12_381> {
-    fn vcp_try_from(x: &api::Accumulator) -> VCPResult<PositiveAccumulator::<Bls12_381>> {
+impl VcpTryFrom<&api::Accumulator> for PositiveAccumulator::<G1Affine> {
+    fn vcp_try_from(x: &api::Accumulator) -> VCPResult<PositiveAccumulator::<G1Affine>> {
         from_opaque_json(&x.0)
     }
 }
@@ -114,15 +114,15 @@ impl VcpTryFrom<&api::AccumulatorPublicData> for (VbaSetupParams::<Bls12_381>,  
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct AccumulatorSecretDataOpaque {
-    pub acc : PositiveAccumulator::<Bls12_381>,
+    pub acc : PositiveAccumulator::<G1Affine>,
     pub ims : InMemoryStateOpaque,
     pub kp  : VbaKeypair::<Bls12_381>,
 }
 
-impl VcpTryFrom<(&PositiveAccumulator::<Bls12_381>,
+impl VcpTryFrom<(&PositiveAccumulator::<G1Affine>,
                  &InMemoryState::<Fr>,
                  &VbaKeypair::<Bls12_381>)> for api::AccumulatorSecretData {
-    fn vcp_try_from((acc,ims,kp): (&PositiveAccumulator::<Bls12_381>,
+    fn vcp_try_from((acc,ims,kp): (&PositiveAccumulator::<G1Affine>,
                                    &InMemoryState::<Fr>,
                                    &VbaKeypair::<Bls12_381>)) -> VCPResult<api::AccumulatorSecretData> {
         let ims : InMemoryStateOpaque = to_api(ims)?;
@@ -130,10 +130,10 @@ impl VcpTryFrom<(&PositiveAccumulator::<Bls12_381>,
     }
 }
 
-impl VcpTryFrom<&api::AccumulatorSecretData> for (PositiveAccumulator::<Bls12_381>,
+impl VcpTryFrom<&api::AccumulatorSecretData> for (PositiveAccumulator::<G1Affine>,
                                                   InMemoryState::<Fr>,
                                                   VbaKeypair::<Bls12_381>) {
-    fn vcp_try_from(x: &api::AccumulatorSecretData) -> VCPResult<(PositiveAccumulator::<Bls12_381>,
+    fn vcp_try_from(x: &api::AccumulatorSecretData) -> VCPResult<(PositiveAccumulator::<G1Affine>,
                                                                   InMemoryState::<Fr>,
                                                                   VbaKeypair::<Bls12_381>)> {
         let AccumulatorSecretDataOpaque { acc, ims, kp} = from_opaque_json(&x.0)?;
@@ -171,7 +171,7 @@ pub fn to_api_accumulator_data(
     sp  : &VbaSetupParams::<Bls12_381>,
     kp  : &VbaKeypair::<Bls12_381>,
     ims : &InMemoryState::<Fr>,
-    acc : &PositiveAccumulator::<Bls12_381>
+    acc : &PositiveAccumulator::<G1Affine>
 ) -> VCPResult<api::AccumulatorData>
 {
     let ad = api::AccumulatorData {
@@ -187,7 +187,7 @@ pub fn from_api_accumulator_data(
 ) -> VCPResult<(VbaSetupParams::<Bls12_381>,
                 VbaKeypair::<Bls12_381>,
                 InMemoryState::<Fr>,
-                PositiveAccumulator::<Bls12_381>)>
+                PositiveAccumulator::<G1Affine>)>
 {
     let api::AccumulatorData { accumulator_public_data, accumulator_secret_data } = ad;
     let (sp, _pk)          = from_api(accumulator_public_data)?;
