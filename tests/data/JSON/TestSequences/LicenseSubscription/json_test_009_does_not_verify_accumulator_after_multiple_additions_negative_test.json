@@ -1,5 +1,5 @@
 {"descr": "does_not_verify_accumulator_after_multiple_additions_negative_test",
- "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-02-06",
+ "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-03-07",
  "testseq": [{"contents": ["DMV",
                            ["CTText", "CTInt", "CTText", "CTInt", "CTAccumulatorMember"]],
               "tag": "CreateIssuer"},
@@ -180,5 +180,6 @@
              {"contents": ["Holder1", "DMV", 4, 10], "tag": "InAccum"},
              {"contents": ["Holder1", "SubscriptionCorp", 1, 1],
               "tag": "InAccum"},
-             {"contents": ["Holder1", "CreateProofFails"],
+             {"contents": ["Holder1", "Strict",
+                           {"contents": [], "tag": "CreateProofFails"}],
               "tag": "CreateAndVerifyProof"}]}

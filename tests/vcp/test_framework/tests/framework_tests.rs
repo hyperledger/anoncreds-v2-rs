@@ -20,6 +20,7 @@ macro_rules! testing_framework_test {
             use credx::vcp::api_utils::implement_platform_api_using;
             use credx::vcp::r#impl::util::*;
             use credx::vcp::types::*;
+            use credx::vcp::types::ProofMode::*;
             // -----------------------------------------------------------------
             use $crate::vcp::data_for_tests as td;
             use $crate::vcp::test_framework as tf;
@@ -76,6 +77,7 @@ macro_rules! pok_and_reveal_metadata_test_test {
                         COMMON_SETUP.to_owned(),
                         vec![tf::TestStep::CreateAndVerifyProof(
                             td::HOLDER_1.to_owned(),
+                            Strict,
                             tf::CreateVerifyExpectation::BothSucceedNoWarnings,
                         )],
                     ]
@@ -94,7 +96,8 @@ macro_rules! pok_and_reveal_metadata_test_test {
                         COMMON_SETUP.to_owned(),
                         vec![tf::TestStep::CreateAndVerifyProof(
                             td::HOLDER_1.to_owned(),
-                            tf::CreateVerifyExpectation::CreateProofFails,
+                            Strict,
+                            tf::CreateVerifyExpectation::CreateProofFails(vec!()),
                         )],
                     ]
                     .concat(),
@@ -112,6 +115,7 @@ macro_rules! pok_and_reveal_metadata_test_test {
                         COMMON_SETUP.to_owned(),
                         vec![tf::TestStep::CreateAndVerifyProof(
                             td::HOLDER_1.to_owned(),
+                            Strict,
                             tf::CreateVerifyExpectation::VerifyProofFails,
                         )],
                     ]
@@ -130,6 +134,7 @@ macro_rules! pok_and_reveal_metadata_test_test {
                         COMMON_SETUP.to_owned(),
                         vec![tf::TestStep::CreateAndVerifyProof(
                             td::HOLDER_1.to_owned(),
+                            Strict,
                             tf::CreateVerifyExpectation::CreateOrVerifyFails,
                         )],
                     ]
@@ -160,6 +165,7 @@ macro_rules! pok_and_reveal_metadata_and_eqs_test {
                             ),
                             tf::TestStep::CreateAndVerifyProof(
                                 td::HOLDER_1.to_owned(),
+                                Strict,
                                 tf::CreateVerifyExpectation::BothSucceedNoWarnings,
                             ),
                         ],
@@ -184,6 +190,7 @@ macro_rules! pok_and_reveal_metadata_and_eqs_test {
                             ),
                             tf::TestStep::CreateAndVerifyProof(
                                 td::HOLDER_1.to_owned(),
+                                Strict,
                                 tf::CreateVerifyExpectation::BothSucceedNoWarnings,
                             ),
                         ],
@@ -207,6 +214,7 @@ macro_rules! pok_and_reveal_metadata_and_eqs_test {
                             ),
                             tf::TestStep::CreateAndVerifyProof(
                                 td::HOLDER_1.to_owned(),
+                                Strict,
                                 tf::CreateVerifyExpectation::CreateOrVerifyFails,
                             ),
                         ],
@@ -565,7 +573,7 @@ macro_rules! initial_test_via_new_framework_test {
                         sign_s_cred(td::HOLDER_1.to_owned()),
                         tf::TestStep::Reveal(td::HOLDER_1.to_owned(), td::D_ISSUER_LABEL.to_owned(), vec![ td::D_META_IDX ]),
                         tf::TestStep::Reveal(td::HOLDER_1.to_owned(), td::S_ISSUER_LABEL.to_owned(), vec![ td::S_META_IDX ]),
-                        tf::TestStep::CreateAndVerifyProof(td::HOLDER_1.to_owned(), tf::CreateVerifyExpectation::BothSucceedNoWarnings),
+                        tf::TestStep::CreateAndVerifyProof(td::HOLDER_1.to_owned(), Strict, tf::CreateVerifyExpectation::BothSucceedNoWarnings),
                     ],
                 )
             }

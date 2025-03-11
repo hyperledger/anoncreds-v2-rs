@@ -15,16 +15,74 @@ pub fn presentation_request_setup(
     pres_reqs: &HashMap<CredentialLabel, CredentialReqs>,
     shared_params: &HashMap<SharedParamKey, SharedParamValue>,
     vals_to_reveal: &HashMap<CredentialLabel, HashMap<CredAttrIndex, DataValue>>,
+    proof_mode: &ProofMode,
 ) -> VCPResult<(
     Vec<ProofInstructionGeneral<ResolvedDisclosure>>,
     EqualityReqs,
 )> {
     let res_prf_insts = get_proof_instructions(shared_params, pres_reqs, vals_to_reveal)?;
     let eq_reqs = equality_reqs_from_pres_reqs_general(pres_reqs)?;
+    if (*proof_mode != ProofMode::TestBackend) {
+        for eq_req in eq_reqs.clone() {
+            check_equalities_have_same_claim_types::main(pres_reqs, shared_params, eq_req)?
+        };
+    }
+    // We could also check that values are the same if called by the prover, which would help to
+    // catch mistakes by honest provers, but verification will fail if values differ anyway.
     Ok((res_prf_insts, eq_reqs))
 }
 
 // ----------------------------------------------------------------------------
+
+mod check_equalities_have_same_claim_types {
+    use super::*;
+    use crate::issuer::IssuerPublic;
+    use crate::str_vec_from;
+    use crate::vcp::r#impl::util::*;
+
+    pub fn main(
+        pres_reqs: &HashMap<CredentialLabel, CredentialReqs>,
+        shared_params: &HashMap<SharedParamKey, SharedParamValue>,
+        eq_req: EqualityReq) -> VCPResult<()> {
+        let claim_types : Vec<ClaimType> = eq_req
+            .iter()
+            .map(|x| go(pres_reqs, shared_params, x.clone()))
+            .collect::<Vec<_>>()
+            .into_iter()
+            .collect::<VCPResult<_>>()?;
+        match claim_types.first() {
+            None => Ok(()),
+            Some(ct) => {
+                for ct1 in &claim_types[1..] {
+                    if ct1 != ct {
+                        return Err(Error::General(ic_semi(&str_vec_from!(
+                            "checkEqualitiesHaveSameClaimTypes",
+                            "multiple claim types",
+                            format!("{claim_types:?}"),
+                            format!("{eq_req:?}")))))
+                    }
+                };
+                Ok(())
+            }
+        }
+    }
+
+    fn go (
+        pres_reqs: &HashMap<CredentialLabel, CredentialReqs>,
+        shared_params: &HashMap<SharedParamKey, SharedParamValue>,
+        (c_lbl, a_idx): (CredentialLabel, CredAttrIndex)) -> VCPResult<ClaimType> {
+        let issuer_lbl = lookup_throw_if_absent(&c_lbl, pres_reqs, Error::General,
+                                                &["TODO ERROR 1".to_string()])?
+            .signer_label.clone();
+        let (SignerPublicData {signer_public_schema: schema, ..}) =
+            decode_from_text(
+                "Unable to decode IssuerPublic from shared parameters",
+                lookup_one_text(&issuer_lbl, shared_params)?)?;
+        lookup_throw_if_out_of_bounds(&schema, a_idx as usize, Error::General,
+                                      &["TODO ERROR 2".to_string()]).copied()
+    }
+}
+
 
 pub fn get_proof_instructions(
     sparms: &HashMap<SharedParamKey, SharedParamValue>,
@@ -200,8 +258,7 @@ fn get_proof_instructions_for_cred(
     Ok([vec![sig_res], in_accum_res, in_range_res, en_f_res].concat())
 }
 
-/// Check that all Equality Reqs reference existing credentials, and attributes
-/// are in range, and ClaimTypes and Values match.
+/// Check that all Equality Reqs reference existing credentials, and attribute indices are in range
 fn equality_reqs_from_pres_reqs_general(
     pres_reqs: &HashMap<CredentialLabel, CredentialReqs>,
 ) -> VCPResult<EqualityReqs> {
@@ -251,7 +308,6 @@ fn equality_reqs_from_pres_reqs_general(
         all_eq_pairs_sorted.push((*v).clone());
     }
     all_eq_pairs_sorted.sort();
-    // TODO: check all equality pairs correct according to DataValues
     Ok(all_eq_pairs_sorted)
 }
 

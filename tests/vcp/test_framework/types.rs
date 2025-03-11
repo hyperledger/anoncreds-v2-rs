@@ -1,5 +1,6 @@
 // -----------------------------------------------------------------------------
 use credx::vcp::api;
+use credx::vcp::types::ProofMode;
 use credx::vcp::VCPResult;
 // -----------------------------------------------------------------------------
 use serde::{Deserialize, Serialize};
@@ -132,9 +133,10 @@ impl std::fmt::Debug for TestState {
 /// warnings allowed, for each? Or just save everything in state, enabling
 /// "external" validation?
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Serialize, Deserialize)]
+#[serde(tag = "tag", content = "contents")]
 pub enum CreateVerifyExpectation {
     BothSucceedNoWarnings,
-    CreateProofFails,
+    CreateProofFails(Vec<String>),
     /// implies createProof succeeds
     VerifyProofFails,
     CreateOrVerifyFails,
@@ -217,7 +219,11 @@ pub enum TestStep {
         api::CredAttrIndex,
         Vec<(IssuerLabel, api::CredAttrIndex)>,
     ),
-    CreateAndVerifyProof(HolderLabel, CreateVerifyExpectation),
+    CreateAndVerifyProof(
+        HolderLabel,
+        ProofMode,
+        CreateVerifyExpectation
+    ),
     CreateAuthority(api::AuthorityLabel),
     EncryptFor(
         HolderLabel,
@@ -231,7 +237,7 @@ pub enum TestStep {
         api::CredAttrIndex,
         api::AuthorityLabel
     ),
-    VerifyDecryption(HolderLabel),
+    VerifyDecryption(HolderLabel,ProofMode),
 }
 
 pub type TestSequence = Vec<TestStep>;

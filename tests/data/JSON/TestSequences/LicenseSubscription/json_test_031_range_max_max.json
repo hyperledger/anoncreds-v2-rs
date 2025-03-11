@@ -1,6 +1,6 @@
 {"comment": "this test ensures that we cannot successfully create a range proof with a value larger than the maximum value supported, as reported by the underlying library's getRangeProofMaxValue.",
  "descr": "range_max_max",
- "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-02-06",
+ "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag TODO - enabling proof mode",
  "testseq": [{"contents": ["DMV",
                            ["CTText", "CTInt", "CTText", "CTInt", "CTAccumulatorMember"]],
               "tag": "CreateIssuer"},
@@ -16,5 +16,6 @@
              {"contents": ["Holder1", "DMV", 1, 0, 0,
                            {"replaceUpperBoundWithMaxSupportedPlusOffset": 0}],
               "tag": "InRange"},
-             {"contents": ["Holder1", "BothSucceedNoWarnings"],
+             {"contents": ["Holder1", "Strict",
+                           {"tag": "BothSucceedNoWarnings"}],
               "tag": "CreateAndVerifyProof"}]}
