@@ -1,0 +1,47 @@
+# This Makefile is included in the Java example.  It may be used for other languages too.
+# The Java Makefile first defines LANGUAGE, GEN_DIR and (optionally GENERATE_CONFIG)
+# before including this Makefile.
+
+ARTIFACT_ID                = vcp-demo-client
+ARTIFACT_VERSION           = 0.1.0
+
+COM_dot_EXAMPLE_dot_VCP    = com.example.vcp
+COM_slash_EXAMPLE_slash_VCP= com/example/vcp
+
+CODE_GEN_DIR               = $(GEN_DIR)/code
+SWAGGER_DIR                = $(GEN_DIR)/swagger
+SWAGGER_FILE               = $(SWAGGER_DIR)/vcp-server-swagger.json
+
+CLIENT                     = client
+
+API_PACKAGE                = $(CLIENT).api
+API_PACKAGE_WITH_SLASH     = $(CLIENT)/api
+
+MODEL_PACKAGE              = $(CLIENT).model
+MODEL_PACKAGE_WITH_SLASH   = $(CLIENT)/model
+
+get-vcp-server-swagger:
+	rm    -f $(SWAGGER_FILE)
+	mkdir -p $(SWAGGER_DIR)
+	curl http://localhost:8080/openapi.json -o $(SWAGGER_FILE)
+
+install-openapi-cli:
+	nix-shell -p openapi-generator-cli
+
+# TODO: --skip-validate-spec : because the spec fails validation : investigate why
+codegen:
+	rm    -rf $(CODE_GEN_DIR)
+	mkdir  -p $(CODE_GEN_DIR)
+	openapi-generator-cli \
+           generate \
+           --skip-validate-spec \
+           $(GENERATE_CONFIG) \
+           --generator-name   $(LANGUAGE) \
+           --group-id         $(COM_dot_EXAMPLE_dot_VCP) \
+           --api-package      $(COM_dot_EXAMPLE_dot_VCP).$(API_PACKAGE) \
+           --artifact-id      $(ARTIFACT_ID) \
+           --artifact-version $(ARTIFACT_VERSION) \
+           --model-package    $(COM_dot_EXAMPLE_dot_VCP).$(MODEL_PACKAGE) \
+           --input-spec       $(SWAGGER_FILE) \
+           --output           $(CODE_GEN_DIR)
+

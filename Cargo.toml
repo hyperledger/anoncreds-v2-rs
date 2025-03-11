@@ -55,6 +55,13 @@ blake2 = { version = "0.10", default-features = false }
 paste = "1.0"
 # ----- to generate tests
 generate-tests-from-json = { path = "generate-tests-from-json" }
+# ----- for REST API
+schemars = "0.8.21"
+
+[workspace]
+members = [
+        "server",
+]
 
 [dev-dependencies]
 lazy_static = "1.5.0"

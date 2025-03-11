@@ -1,0 +1,1720 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "vcp_server",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/vcp/createSignerData": {
+      "post": {
+        "summary": "Create the secret and public data used to sign and verify credentials.",
+        "description": "Returns SignerData.",
+        "operationId": "createSignerData",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "rngSeed",
+            "in": "query",
+            "description": "A seed for a random number generator. Defaults to zero if not given.",
+            "schema": {
+              "description": "A seed for a random number generator. Defaults to zero if not given.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0,
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ClaimType"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignerData"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/createAccumulatorData": {
+      "post": {
+        "summary": "Create an accumulator and its associated secret/public data.",
+        "description": "Returns CreateAccumulatorResponse.",
+        "operationId": "createAccumulatorData",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "rngSeed",
+            "in": "query",
+            "description": "A seed for a random number generator. Defaults to zero if not given.",
+            "schema": {
+              "description": "A seed for a random number generator. Defaults to zero if not given.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0,
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAccumulatorResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/sign": {
+      "post": {
+        "summary": "Create a signature from the given values and SignerData.",
+        "description": "Returns Signature.",
+        "operationId": "sign",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "rngSeed",
+            "in": "query",
+            "description": "A seed for a random number generator. Defaults to zero if not given.",
+            "schema": {
+              "description": "A seed for a random number generator. Defaults to zero if not given.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0,
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Signature"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/createAccumulatorElement": {
+      "post": {
+        "summary": "Create an accumulator element from the given text.",
+        "description": "Returns AccumulatorElement.",
+        "operationId": "createAccumulatorElement",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "required": true,
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccumulatorElement"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/accumulatorAddRemove": {
+      "post": {
+        "summary": "Add and/or remove elements from an accumulator.",
+        "description": "Returns AccumulatorAddRemoveResponse.",
+        "operationId": "accumulatorAddRemove",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "required": true,
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccumulatorAddRemoveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccumulatorAddRemoveResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/updateAccumulatorWitness": {
+      "post": {
+        "summary": "Update an accumulator witness.",
+        "description": "Returns AccumulatorMembershipWitness.",
+        "operationId": "updateAccumulatorWitness",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "required": true,
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAccumulatorWitnessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccumulatorMembershipWitness"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/createMembershipProvingKey": {
+      "post": {
+        "summary": "Create accumulator membership proving key.",
+        "description": "Returns MembershipProvingKey.",
+        "operationId": "createMembershipProvingKey",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "rngSeed",
+            "in": "query",
+            "description": "A seed for a random number generator. Defaults to zero if not given.",
+            "schema": {
+              "description": "A seed for a random number generator. Defaults to zero if not given.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0,
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembershipProvingKey"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/createRangeProofProvingKey": {
+      "post": {
+        "summary": "Create range proof proving key.",
+        "description": "Returns RangeProofProvingKey.",
+        "operationId": "createRangeProofProvingKey",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "rngSeed",
+            "in": "query",
+            "description": "A seed for a random number generator. Defaults to zero if not given.",
+            "schema": {
+              "description": "A seed for a random number generator. Defaults to zero if not given.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0,
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeProofProvingKey"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/getRangeProofMaxValue": {
+      "get": {
+        "summary": "Get the maximum value supported in range proofs for the specific zkpLib.",
+        "description": "Returns the maximum value.",
+        "operationId": "getRangeProofMaxValue",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "required": true,
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/createAuthorityData": {
+      "post": {
+        "summary": "Create authority data.  Used in verifiable encryption.",
+        "description": "Returns AuthorityData.",
+        "operationId": "createAuthorityData",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "rngSeed",
+            "in": "query",
+            "description": "A seed for a random number generator. Defaults to zero if not given.",
+            "schema": {
+              "description": "A seed for a random number generator. Defaults to zero if not given.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0,
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorityData"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/createProof": {
+      "post": {
+        "summary": "Create a proof with respect to proof requirements from a Verifier.",
+        "description": "Returns WarningsAndDataForVerifier.",
+        "operationId": "createProof",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "required": true,
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProofRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WarningsAndDataForVerifier"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/verifyProof": {
+      "post": {
+        "summary": "Verify a proof with respect to proof requirments.",
+        "description": "Returns WarningsAndDecryptResponses.",
+        "operationId": "verifyProof",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "required": true,
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyProofRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WarningsAndDecryptResponses"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/verifyDecryption": {
+      "post": {
+        "summary": "Verify a decryption.",
+        "description": "Returns list of Warnings.",
+        "operationId": "verifyDecryption",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "required": true,
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyDecryptionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Warning"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SignerData": {
+        "description": "Contains a Signer's secret and public data.",
+        "type": "object",
+        "required": [
+          "signerPublicData",
+          "signerSecretData"
+        ],
+        "properties": {
+          "signerPublicData": {
+            "$ref": "#/components/schemas/SignerPublicData"
+          },
+          "signerSecretData": {
+            "$ref": "#/components/schemas/SignerSecretData"
+          }
+        }
+      },
+      "SignerPublicData": {
+        "description": "A Signer's public keys and setup data.",
+        "type": "object",
+        "required": [
+          "signerPublicSchema",
+          "signerPublicSetupData"
+        ],
+        "properties": {
+          "signerPublicSetupData": {
+            "$ref": "#/components/schemas/SignerPublicSetupData"
+          },
+          "signerPublicSchema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClaimType"
+            }
+          }
+        }
+      },
+      "SignerPublicSetupData": {
+        "description": "Data resulting from a Signer's setup.",
+        "type": "string"
+      },
+      "ClaimType": {
+        "description": "How values are handled (e.g., accumulator member, encryptable text, text, int).",
+        "type": "string",
+        "enum": [
+          "CTText",
+          "CTEncryptableText",
+          "CTInt",
+          "CTAccumulatorMember"
+        ]
+      },
+      "SignerSecretData": {
+        "description": "A Signer's secret keys.",
+        "type": "string"
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "location",
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateAccumulatorResponse": {
+        "description": "Contains the AccumulatorData and the Accumulator.",
+        "type": "object",
+        "required": [
+          "accumulator",
+          "accumulatorData"
+        ],
+        "properties": {
+          "accumulatorData": {
+            "$ref": "#/components/schemas/AccumulatorData"
+          },
+          "accumulator": {
+            "$ref": "#/components/schemas/Accumulator"
+          }
+        }
+      },
+      "AccumulatorData": {
+        "description": "Contains an accumulator's secret and public data.",
+        "type": "object",
+        "required": [
+          "accumulatorPublicData",
+          "accumulatorSecretData"
+        ],
+        "properties": {
+          "accumulatorPublicData": {
+            "$ref": "#/components/schemas/AccumulatorPublicData"
+          },
+          "accumulatorSecretData": {
+            "$ref": "#/components/schemas/AccumulatorSecretData"
+          }
+        }
+      },
+      "AccumulatorPublicData": {
+        "description": "An accumulator's public keys.",
+        "type": "string"
+      },
+      "AccumulatorSecretData": {
+        "description": "An accumulator's secret keys.",
+        "type": "string"
+      },
+      "Accumulator": {
+        "description": "The value of an accumulator.",
+        "type": "string"
+      },
+      "Signature": {
+        "description": "A signature, based on the 'values', etc., given in a SignRequest.",
+        "type": "string"
+      },
+      "SignRequest": {
+        "description": "Sign the given values using the secret data, setup data and claim types (i.e., schema) in the given SignerData.",
+        "type": "object",
+        "required": [
+          "signerData",
+          "values"
+        ],
+        "properties": {
+          "values": {
+            "description": "The values to be signed.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataValue"
+            }
+          },
+          "signerData": {
+            "description": "See SignerData.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SignerData"
+              }
+            ]
+          }
+        }
+      },
+      "DataValue": {
+        "description": "An int or text value.",
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "contents",
+              "tag"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string",
+                "enum": [
+                  "DVInt"
+                ]
+              },
+              "contents": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "contents",
+              "tag"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string",
+                "enum": [
+                  "DVText"
+                ]
+              },
+              "contents": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "AccumulatorElement": {
+        "description": "An element that may be added to or removed from an accumulator.  Note, elements are created from text (see createAccumulatorElement).",
+        "type": "string"
+      },
+      "AccumulatorAddRemoveResponse": {
+        "description": "Response from call to AccumulatorAddRemove, including data to update witnesses, witnesses for added elements, and updated accumlator data and value.",
+        "type": "object",
+        "required": [
+          "accumulator",
+          "accumulatorData",
+          "witnessUpdateInfo",
+          "witnessesForNew"
+        ],
+        "properties": {
+          "witnessUpdateInfo": {
+            "description": "Data to use to update existing witnesses.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AccumulatorWitnessUpdateInfo"
+              }
+            ]
+          },
+          "witnessesForNew": {
+            "description": "A new witnesses for each element added.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AccumulatorMembershipWitness"
+            }
+          },
+          "accumulatorData": {
+            "description": "Updated accumulator data.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AccumulatorData"
+              }
+            ]
+          },
+          "accumulator": {
+            "description": "Updated accumulator value.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Accumulator"
+              }
+            ]
+          }
+        }
+      },
+      "AccumulatorWitnessUpdateInfo": {
+        "description": "Data used to update an AccumulatorMembershipWitness after elements have been added to and/or removed from an accumulator.",
+        "type": "string"
+      },
+      "AccumulatorMembershipWitness": {
+        "description": "A witness that a particular AccumulatorElement is a member of an accumulator.",
+        "type": "string"
+      },
+      "AccumulatorAddRemoveRequest": {
+        "description": "Elements (if any) to be added to, and elements (if any) to be removed from an accumulator.",
+        "type": "object",
+        "required": [
+          "accumulator",
+          "accumulatorData",
+          "additions",
+          "removals"
+        ],
+        "properties": {
+          "accumulatorData": {
+            "description": "See Accumulator Data.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AccumulatorData"
+              }
+            ]
+          },
+          "accumulator": {
+            "description": "See Accumulator.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Accumulator"
+              }
+            ]
+          },
+          "additions": {
+            "description": "Elements to be added. This is a map associating each element to be added with an (ephemeral) ID that can be used by the requester (e.g., Signer/Issuer) to determine who should receive the returned witness.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AccumulatorElement"
+            }
+          },
+          "removals": {
+            "description": "Elements to be removed.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccumulatorElement"
+            }
+          }
+        }
+      },
+      "UpdateAccumulatorWitnessRequest": {
+        "description": "Used to update an existing witness after additions and/or removals from an accumulator.",
+        "type": "object",
+        "required": [
+          "element",
+          "witness",
+          "witnessUpdateInfo"
+        ],
+        "properties": {
+          "witness": {
+            "description": "The existing witness before the update.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AccumulatorMembershipWitness"
+              }
+            ]
+          },
+          "element": {
+            "description": "The element used to create the existing witness.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AccumulatorElement"
+              }
+            ]
+          },
+          "witnessUpdateInfo": {
+            "description": "Data returned from accumulatorAddRemove.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AccumulatorWitnessUpdateInfo"
+              }
+            ]
+          }
+        }
+      },
+      "MembershipProvingKey": {
+        "description": "Key to use in accumlator membership proofs.",
+        "type": "string"
+      },
+      "RangeProofProvingKey": {
+        "description": "Key to use in range proofs.",
+        "type": "string"
+      },
+      "AuthorityData": {
+        "description": "Contains an Authority's secret, public, and decryption keys.",
+        "type": "object",
+        "required": [
+          "authorityDecryptionKey",
+          "authorityPublicData",
+          "authoritySecretData"
+        ],
+        "properties": {
+          "authorityPublicData": {
+            "description": "An Authority's public key.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AuthorityPublicData"
+              }
+            ]
+          },
+          "authoritySecretData": {
+            "description": "An Authority's secret key.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AuthoritySecretData"
+              }
+            ]
+          },
+          "authorityDecryptionKey": {
+            "description": "An Authority's decryption key.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AuthorityDecryptionKey"
+              }
+            ]
+          }
+        }
+      },
+      "AuthorityPublicData": {
+        "description": "An Authority's public key.",
+        "type": "string"
+      },
+      "AuthoritySecretData": {
+        "description": "An Authority's secret key.",
+        "type": "string"
+      },
+      "AuthorityDecryptionKey": {
+        "description": "An Authority's decryption key.",
+        "type": "string"
+      },
+      "WarningsAndDataForVerifier": {
+        "description": "Warnings and DataForVerifier.",
+        "type": "object",
+        "required": [
+          "dataForVerifier",
+          "warnings"
+        ],
+        "properties": {
+          "warnings": {
+            "description": "A list of warnings.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            }
+          },
+          "dataForVerifier": {
+            "description": "Data to be sent to Verifier.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DataForVerifier"
+              }
+            ]
+          }
+        }
+      },
+      "Warning": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "contents",
+              "tag"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string",
+                "enum": [
+                  "UnsupportedFeature"
+                ]
+              },
+              "contents": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "contents",
+              "tag"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string",
+                "enum": [
+                  "RevealPrivacyWarning"
+                ]
+              },
+              "contents": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer",
+                    "format": "uint64",
+                    "minimum": 0.0
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "maxItems": 3,
+                "minItems": 3
+              }
+            }
+          }
+        ]
+      },
+      "DataForVerifier": {
+        "description": "Data returned from 'createProof'.",
+        "type": "object",
+        "required": [
+          "proof",
+          "revealedIdxsAndVals"
+        ],
+        "properties": {
+          "revealedIdxsAndVals": {
+            "description": "Data values disclosed by (two-level map keyed by CredentialLabel and CredAttrIndex).",
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/DataValue"
+              }
+            }
+          },
+          "proof": {
+            "description": "A proof.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Proof"
+              }
+            ]
+          }
+        }
+      },
+      "Proof": {
+        "description": "A proof returned from createProof.",
+        "type": "string"
+      },
+      "CreateProofRequest": {
+        "description": "Information used for creating a proof.",
+        "type": "object",
+        "required": [
+          "nonce",
+          "proofReqs",
+          "sharedParams",
+          "sigsAndRelatedData"
+        ],
+        "properties": {
+          "proofReqs": {
+            "description": "Proof requirements as specified by the Verifier.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CredentialReqs"
+            }
+          },
+          "sharedParams": {
+            "description": "A map of parameter names to values (e.g., public keys).",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SharedParamValue"
+            }
+          },
+          "sigsAndRelatedData": {
+            "description": "A map of credential labels to SignatureAndRelatedData.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SignatureAndRelatedData"
+            }
+          },
+          "nonce": {
+            "description": "Arbitrary text.",
+            "type": "string"
+          }
+        }
+      },
+      "CredentialReqs": {
+        "description": "Proof requirements for a specific credential.",
+        "type": "object",
+        "required": [
+          "disclosed",
+          "encryptedFor",
+          "equalTo",
+          "inAccum",
+          "inRange",
+          "notInAccum",
+          "signerLabel"
+        ],
+        "properties": {
+          "signerLabel": {
+            "description": "A key into SharedParams to obtain the Signer's public data.",
+            "type": "string"
+          },
+          "disclosed": {
+            "description": "Specifies which attributes are to be selectively disclosed.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Disclosed"
+              }
+            ]
+          },
+          "inAccum": {
+            "description": "Specifies which attributes are to be proved PRESENT in a specified accumulator.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InAccum"
+              }
+            ]
+          },
+          "notInAccum": {
+            "description": "Specifies which attributes are to be proved ABSENT from a specified accumulator.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/NotInAccum"
+              }
+            ]
+          },
+          "inRange": {
+            "description": "Specifies which attributes are to be proved to be within a specified range.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InRange"
+              }
+            ]
+          },
+          "encryptedFor": {
+            "description": "Specifies which attributes are to be encrypted for a specified Authority.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EncryptedFor"
+              }
+            ]
+          },
+          "equalTo": {
+            "description": "Specifies which attributes in this credential are to be proved equal to other specified attributes (usually in other credentials).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EqualTo"
+              }
+            ]
+          }
+        }
+      },
+      "Disclosed": {
+        "description": "A list of indices for attributes that are to be disclosed.",
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      },
+      "InAccum": {
+        "description": "A list of 'InAccumInfo', each indicating an attribute to be proved present in an accumulator and SharedParam keys for relevant parameters.",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/InAccumInfo"
+        }
+      },
+      "InAccumInfo": {
+        "description": "Used to prove accumulator membership.",
+        "type": "object",
+        "required": [
+          "accumulatorLabel",
+          "accumulatorPublicDataLabel",
+          "accumulatorSeqNumLabel",
+          "index",
+          "membershipProvingKeyLabel"
+        ],
+        "properties": {
+          "index": {
+            "description": "Indicates which attribute is to be proved present in an accumulator.",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "accumulatorPublicDataLabel": {
+            "description": "A key into SharedParams to obtain an accumulator's public keys.",
+            "type": "string"
+          },
+          "membershipProvingKeyLabel": {
+            "description": "A key into SharedParams to obtain a MembershipProvingKey.",
+            "type": "string"
+          },
+          "accumulatorLabel": {
+            "description": "A key into SharedParams to obtain an Accumulator value.",
+            "type": "string"
+          },
+          "accumulatorSeqNumLabel": {
+            "description": "A key into SharedParams to obtain a sequence number. A holder needs this to find the appropriate witness.",
+            "type": "string"
+          }
+        }
+      },
+      "NotInAccum": {
+        "description": "Requirements for attributes to be proved ABSENT from an accumulator.  Out of date, not currently supported.",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/IndexAndLabel"
+        }
+      },
+      "IndexAndLabel": {
+        "description": "An index-label pair.",
+        "type": "object",
+        "required": [
+          "index",
+          "label"
+        ],
+        "properties": {
+          "index": {
+            "description": "An index specifying an attribute.",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "label": {
+            "description": "A key into SharedParams.",
+            "type": "string"
+          }
+        }
+      },
+      "InRange": {
+        "description": "A list of 'InRangeInfo', each indicating an attribute to be proved to be within a range and SharedParam keys for relevant parameters.",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/InRangeInfo"
+        }
+      },
+      "InRangeInfo": {
+        "description": "Information for range proof requirements.",
+        "type": "object",
+        "required": [
+          "index",
+          "maxLabel",
+          "minLabel",
+          "rangeProvingKeyLabel"
+        ],
+        "properties": {
+          "index": {
+            "description": "Specifies the index of the attribute to be proved to be within a specified range.",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "minLabel": {
+            "description": "A key into SharedParams used to obtain the minimum value in the specified range.",
+            "type": "string"
+          },
+          "maxLabel": {
+            "description": "A key into SharedParams used to obtain the maximum value in the specified range.",
+            "type": "string"
+          },
+          "rangeProvingKeyLabel": {
+            "description": "A key into SharedParams used to obtain the proving key to be used for the required range proof.",
+            "type": "string"
+          }
+        }
+      },
+      "EncryptedFor": {
+        "description": "A list of index-label pairs, each of which specifies an attribute to be encrypted and SharedParam key to obtain the Authority's public information.",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/IndexAndLabel"
+        }
+      },
+      "EqualTo": {
+        "description": "A list of 'EqInfo', each of which specifies an attribute to be proved equal to another specified attribute.",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/EqInfo"
+        }
+      },
+      "EqInfo": {
+        "description": "Information specifying equalities between values in different credentials.",
+        "type": "object",
+        "required": [
+          "fromIndex",
+          "toIndex",
+          "toLabel"
+        ],
+        "properties": {
+          "fromIndex": {
+            "description": "The index of the attribute in this credential that must be proved equal to another attribute (usually in another credential).",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "toLabel": {
+            "description": "The label of a credential containing the attribute that is to be proved equal to the attribute specified by fromIndex.",
+            "type": "string"
+          },
+          "toIndex": {
+            "description": "The index of the attribute in the credential specified by toLabel that is to be proved equal to the attribute specified by fromIndex.",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        }
+      },
+      "SharedParamValue": {
+        "description": "Either a single value or a list of of values.",
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "contents",
+              "tag"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string",
+                "enum": [
+                  "SPVOne"
+                ]
+              },
+              "contents": {
+                "$ref": "#/components/schemas/DataValue"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "contents",
+              "tag"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string",
+                "enum": [
+                  "SPVList"
+                ]
+              },
+              "contents": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DataValue"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "SignatureAndRelatedData": {
+        "description": "A Signature and other related data, including attribute values signed and witnesses for accumlators.",
+        "type": "object",
+        "required": [
+          "accumulatorWitnesses",
+          "signature",
+          "values"
+        ],
+        "properties": {
+          "signature": {
+            "description": "The signature from a Signer signing data values.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Signature"
+              }
+            ]
+          },
+          "values": {
+            "description": "The data values used to produce the signature.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataValue"
+            }
+          },
+          "accumulatorWitnesses": {
+            "description": "Accumulator witnesses.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AccumulatorMembershipWitness"
+            }
+          }
+        }
+      },
+      "WarningsAndDecryptResponses": {
+        "description": "Returned from 'verifyProof' if the given proof is valid.",
+        "type": "object",
+        "required": [
+          "decryptResponses",
+          "warnings"
+        ],
+        "properties": {
+          "warnings": {
+            "description": "Warnings, e.g., unsupported features, potentially unintended requests, etc.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            }
+          },
+          "decryptResponses": {
+            "description": "Data values decrypted (three-level map keyed by CredentialLabel, CredAttrIndex and AuthorityLabel).",
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/DecryptResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "DecryptResponse": {
+        "description": "Decrypted values.",
+        "type": "object",
+        "required": [
+          "decryptionProof",
+          "value"
+        ],
+        "properties": {
+          "value": {
+            "description": "The decrypted value.",
+            "type": "string"
+          },
+          "decryptionProof": {
+            "description": "A proof that the value is correctly decrypted from proof created by Prover.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DecryptionProof"
+              }
+            ]
+          }
+        }
+      },
+      "DecryptionProof": {
+        "description": "Proof that specified value is correctly decrypted from proof created by Prover.",
+        "type": "string"
+      },
+      "VerifyProofRequest": {
+        "description": "Information (including the proof) to verify a proof.",
+        "type": "object",
+        "required": [
+          "dataForVerifier",
+          "decryptRequests",
+          "nonce",
+          "proofReqs",
+          "sharedParams"
+        ],
+        "properties": {
+          "proofReqs": {
+            "description": "Agreed proof requirements.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CredentialReqs"
+            }
+          },
+          "sharedParams": {
+            "description": "A map from parameter labels to associated parameter values.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SharedParamValue"
+            }
+          },
+          "dataForVerifier": {
+            "description": "See DataForVerifier.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DataForVerifier"
+              }
+            ]
+          },
+          "decryptRequests": {
+            "description": "A map from credential label to a map of credential attributed index to DecryptRequest.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/DecryptRequest"
+                }
+              }
+            }
+          },
+          "nonce": {
+            "description": "Arbitrary text.",
+            "type": "string"
+          }
+        }
+      },
+      "DecryptRequest": {
+        "description": "Keys for decryption.",
+        "type": "object",
+        "required": [
+          "authorityDecryptionKey",
+          "authoritySecretData"
+        ],
+        "properties": {
+          "authoritySecretData": {
+            "description": "Authority secret data.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AuthoritySecretData"
+              }
+            ]
+          },
+          "authorityDecryptionKey": {
+            "description": "Authority decryption key.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AuthorityDecryptionKey"
+              }
+            ]
+          }
+        }
+      },
+      "VerifyDecryptionRequest": {
+        "description": "Verify that each decrypted value is correct.",
+        "type": "object",
+        "required": [
+          "decryptResponses",
+          "decryptionKeys",
+          "nonce",
+          "proof",
+          "proofReqs",
+          "sharedParams"
+        ],
+        "properties": {
+          "proofReqs": {
+            "description": "Agreed proof requirements.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CredentialReqs"
+            }
+          },
+          "sharedParams": {
+            "description": "A map from parameter labels to associated parameter values.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SharedParamValue"
+            }
+          },
+          "proof": {
+            "description": "See Proof.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Proof"
+              }
+            ]
+          },
+          "decryptionKeys": {
+            "description": "Map from Authority label to decryption key.",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AuthorityDecryptionKey"
+            }
+          },
+          "decryptResponses": {
+            "description": "Map from credential label to credential attribute index to DecryptResponse.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/DecryptResponse"
+                }
+              }
+            }
+          },
+          "nonce": {
+            "description": "Arbitrary text.",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

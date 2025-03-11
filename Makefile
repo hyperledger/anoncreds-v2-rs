@@ -61,6 +61,7 @@ README_MD = ./src/vcp/README.md
 fix-readme-markdown:
 	sed -i -e 's/<sub>/_/g'  $(README_MD)
 	sed -i -e 's/<\/sub>//g' $(README_MD)
+	sed -i -e 's/server\/README.md/server\/README.org/g' $(README_MD)
 	sed -i '1i<!--- DO NOT EDIT.  GENERATED FROM README.org --->' $(README_MD)
 
 

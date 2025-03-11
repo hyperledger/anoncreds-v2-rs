@@ -1,0 +1,125 @@
+#+TITLE: Verifiable Credentials Platform (VCP) Server
+
+#+OPTIONS: broken-links:t
+#+OPTIONS: toc:t
+
+* Introduction
+
+This crate contains an HTTP/REST server for the VCP API.
+
+* Build
+
+#+begin_src bash
+cd <directory-of-this-README>
+make build
+#+end_src
+
+* Run
+
+#+begin_src bash
+cd <directory-of-this-README>
+make run
+#+end_src
+
+When you start up the server you will see something similar to:
+
+#+begin_src bash
+Configured for debug.
+>> address: 127.0.0.1
+>> port: 8080
+...
+Routes:
+>> GET /openapi.json
+>> (sign) POST /vcp/sign?<rng_and_zkp..>
+>> (createProof) POST /vcp/createProof?<zkp..>
+...
+>> GET /rapidoc/
+...
+>> GET /swagger-ui/
+...
+Rocket has launched from http://127.0.0.1:8080
+#+end_src
+
+** Changing the listen port
+
+To change the listen port, edit [[./src/main.rs]]
+
+#+begin_src rust
+const PORT               : usize = 8080;
+#+end_src
+
+* OpenAPI
+
+The server provides an [[https://www.openapis.org/][OpenAPI]] (aka "Swagger") description:
+
+#+begin_src bash
+> curl http://127.0.0.1:8080/openapi.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "vcp_server",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/vcp/createSignerData": {
+      "post": {
+        "summary": "Create the secret and public data used to sign and verify messages.",
+...
+#+end_src
+
+This describes the API "routes" and data arguments and return values.
+For example, =createSignerData= can be called using =curl=:
+
+#+begin_src bash
+> curl --header "Content-Type: application/json" \
+       --request POST \
+       --data '["CTText","CTAccumulatorMember"]' \
+       http://localhost:8080/vcp/createSignerData?zkpLib=ac2c_ps&rngSeed=3
+
+{"signerPublicData":{"signerPublicSetupData":"ey...","signerPublicSchema":["CTText","CTAccumulatorMember"]},...
+#+end_src
+
+* Swagger-UI
+
+The server provides [[https://swagger.io/tools/swagger-ui/][swagger-ui]] at [[http://127.0.0.1:8080/swagger-ui]] that can be used to read the documentation.
+
+#+ATTR_LaTeX: :width 6.5in
+[[file:./README-images/vcp-server-swagger.png]]
+
+Swagger-ui can also be used to interact with the server.
+
+A request:
+
+#+ATTR_LaTeX: :width 6.5in
+[[file:./README-images/vcp-swagger-create-signer-date-request.png]]
+
+The response:
+
+#+ATTR_LaTeX: :width 6.5in
+[[file:./README-images/vcp-swagger-create-signer-date-response.png]]
+
+* RapiDoc
+
+The server also provides [[https://rapidocweb.com/][RapiDoc]] at [[http://127.0.0.1:8080/rapidoc]]  that can be used to read the documentation and to interact with the server.
+
+#+ATTR_LaTeX: :width 6.5in
+[[file:./README-images/vcp-rapidoc.png]]
+
+* Generating client code from the OpenAPI description.
+
+The OpenAPI description can be used to generate client code.
+
+See the [[./example-client/java/README.org][./example-client/java/README.org]].
+
+
+
+
+
+
+
+
+
+
+
+
+
