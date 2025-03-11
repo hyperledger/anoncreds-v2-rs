@@ -492,6 +492,17 @@ pub type RawIndex        = u64;
 pub type SharedParamKey  = String;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum ProofMode {
+    // Allow warnings when creating or verifying a proof
+    Loose,
+    // Forbid warnings
+    Strict,
+    // Allow warnings and also suppress errors from General, enabling testing backend calls even
+    // when General would throw an error for honest provers
+    TestBackend
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(content = "contents", tag = "tag")]
 pub enum Warning {
     UnsupportedFeature(String),

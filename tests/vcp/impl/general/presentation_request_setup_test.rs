@@ -2,6 +2,7 @@
 use credx::vcp::r#impl::general::presentation_request_setup::{get_proof_instructions, is_cred_resolved};
 use credx::vcp::r#impl::json::util::encode_to_text;
 use credx::vcp::primitives::types::*;
+use credx::vcp::Error;
 // ----------------------------------------------------------------------------
 use crate::vcp::data_for_tests as td;
 // ----------------------------------------------------------------------------
@@ -158,4 +159,74 @@ mod spec {
     // TODO: we need tests for equality_reqs_from_pres_reqs_general,
     // particularly to ensure that it keeps unrelated equivalence classes
     // separate
+
+    mod check_same_claim_types {
+        use credx::str_vec_from;
+        use credx::vcp::types::ProofMode::Strict;
+        use credx::vcp::r#impl::{general::presentation_request_setup::presentation_request_setup, util::ic_semi};
+
+        use super::*;
+
+        lazy_static! {
+            static ref D_SPD_VAL: SharedParamValue = SharedParamValue::SPVOne(DataValue::DVText(
+                encode_to_text(&SignerPublicData {
+                    signer_public_setup_data: SignerPublicSetupData("bogus".to_string()),
+                    signer_public_schema: td::D_CTS_WITH_VE.to_owned()
+                })
+                .unwrap()
+            ));
+            static ref S_SPD_VAL: SharedParamValue = SharedParamValue::SPVOne(DataValue::DVText(
+                encode_to_text(&SignerPublicData {
+                    signer_public_setup_data: SignerPublicSetupData("bogus".to_string()),
+                    signer_public_schema: td::D_CTS.to_owned()
+                })
+                .unwrap()
+            ));
+            static ref SHARED: HashMap<String, SharedParamValue> = hashmap!(
+                td::D_SPD_KEY.to_owned() => D_SPD_VAL.to_owned(),
+                td::S_SPD_KEY.to_owned() => S_SPD_VAL.to_owned(),
+            );
+            static ref PROOF_REQS: HashMap<CredentialLabel, CredentialReqs> = td::proof_reqs_with(
+                (vec![], vec![]),
+                (vec![], vec![]),
+                (vec![], vec![]),
+                (vec![EqInfo {
+                    from_index: td::D_SSN_IDX,
+                    to_label: td::S_CRED_LABEL.to_string(),
+                    to_index: td::S_SSN_IDX
+                }], vec![]),
+                (vec![], vec![]),
+            );
+            static ref REVEALS: HashMap<CredentialLabel, HashMap<CredAttrIndex, DataValue>> =
+                PROOF_REQS.iter().map(|(k,_)| (k.clone(), HashMap::<_,_>::new())).collect();
+
+        }
+
+        #[test]
+        fn detects_and_rejects_an_equality_requirement_for_attributes_with_different_claimtypes() {
+            match presentation_request_setup(&PROOF_REQS, &SHARED, &REVEALS, &Strict) {
+                Err(Error::General(t)) => {
+                    let expected_strings: Vec<_> = vec!["multiple claim types",
+                                                        "CTEncryptableText",
+                                                        "CTInt",
+                                                        &td::D_CRED_LABEL,
+                                                        &td::S_CRED_LABEL];
+                    for s in expected_strings.iter() {
+                        if !t.contains(s) {
+                            panic!("{}",ic_semi(&str_vec_from!(
+                                "check_same_claim_types",
+                                "error",
+                                t,
+                                "expected to contain all of",
+                                format!("{expected_strings:?}"),
+                                "does not contain",
+                                s)))
+                        }
+                    }
+                },
+                Err(e) => panic!("check_same_claim_types: unexpected error: {e:?}"),
+                Ok(_)  => panic!("check_same_claim_types: expected failure due to inconsistent ClaimTypes, but succeeded")
+            }
+        }
+    }
 }

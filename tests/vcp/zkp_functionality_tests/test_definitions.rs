@@ -1,5 +1,7 @@
 // ----------------------------------------------------------------------------
 use credx::vcp::api;
+use credx::vcp::types::ProofMode;
+use credx::vcp::types::ProofMode::*;
 use credx::vcp::r#impl::json::util::encode_to_text;
 use credx::vcp::r#impl::util::{merge_maps, pp, three_lvl_map_to_vec_of_tuples};
 // ----------------------------------------------------------------------------
@@ -84,6 +86,29 @@ lazy_static! {
                               td::POLICE_AUTHORITY_LABEL.to_owned());
 }
 
+pub fn succeeds_with_mode (proof_mode: ProofMode) ->
+    Vec<tf::TestStep> {
+        vec![tf::TestStep::CreateAndVerifyProof(
+                "Holder1".to_string(),
+                proof_mode,
+                tf::CreateVerifyExpectation::BothSucceedNoWarnings
+        )]
+    }
+
+pub fn proof_fails_with_mode (proof_mode: ProofMode, l: Vec<String>) ->
+    Vec<tf::TestStep> {
+        vec![tf::TestStep::CreateAndVerifyProof(
+                "Holder1".to_string(),
+                proof_mode,
+                tf::CreateVerifyExpectation::CreateProofFails(l)
+        )]
+    }
+
+pub fn proof_fails_with (l: Vec<String>) ->
+    Vec<tf::TestStep> {
+        proof_fails_with_mode(Strict,l)
+    }
+
 lazy_static! {
     pub static ref CREATE_ISSUERS: Vec<tf::TestStep> =
         vec![CREATE_D_ISSUER.to_owned(), CREATE_S_ISSUER.to_owned()];
@@ -114,16 +139,13 @@ lazy_static! {
         REVEAL_METADATA.to_owned()
     ]
     .concat();
-    pub static ref PROOF_SUCCEEDS: Vec<tf::TestStep> = vec![tf::TestStep::CreateAndVerifyProof(
-        "Holder1".to_string(),
-        tf::CreateVerifyExpectation::BothSucceedNoWarnings
-    )];
-    pub static ref PROOF_FAILS: Vec<tf::TestStep> = vec![tf::TestStep::CreateAndVerifyProof(
-        "Holder1".to_string(),
-        tf::CreateVerifyExpectation::CreateOrVerifyFails
-    )];
+
+    pub static ref SUCCEEDS: Vec<tf::TestStep> = succeeds_with_mode(Strict);
+
+    pub static ref FAILS: Vec<tf::TestStep> = proof_fails_with(vec!());
+
     pub static ref POK_AND_REVEAL_METADATA: Vec<tf::TestStep> =
-        [COMMON_SETUP.to_owned(), PROOF_SUCCEEDS.to_owned()].concat();
+        [COMMON_SETUP.to_owned(), SUCCEEDS.to_owned()].concat();
     pub static ref ADD_TO_ACCUMS: Vec<tf::TestStep> = vec![
         tf::TestStep::AccumulatorAddRemove(
             td::D_ISSUER_LABEL.to_owned(),
@@ -189,6 +211,7 @@ macro_rules! sign_create_verify_test {
     ($platform_api: expr, $lib_spec: expr) => {
         mod sign_create_verify {
             use super::*;
+            use credx::vcp::api::types::ProofMode::*;
 
             $crate::pok_test! { $platform_api, $lib_spec }
             $crate::revealed_test! { $platform_api, $lib_spec }
@@ -221,6 +244,7 @@ macro_rules! pok_test {
                 &d_sig_cd,
                 &s_sig_cd,
                 &hashmap!(),
+                Strict
             );
         }
     };
@@ -275,6 +299,7 @@ macro_rules! test_in_range {
                 &D_SIG_CD,
                 &S_SIG_CD,
                 &hashmap!(),
+                Strict
             );
         }
     };
@@ -298,6 +323,7 @@ macro_rules! test_out_of_range {
                 &SHARED,
                 &D_SIG_CD,
                 &S_SIG_CD,
+                Strict,
                 |err| {
                     let err_str = format!("{err:?}");
                     let err_infix = format!("General(\"indexes; [{}]; out of range for; 5; attributes\")", $i);
@@ -305,7 +331,6 @@ macro_rules! test_out_of_range {
                         err_str.contains(&err_infix),
                         "expected error infix \"{err_infix}\" but the actual error is \"{err_str}\""
                     );
-                    true
                 },
             );
         }
@@ -345,6 +370,7 @@ macro_rules! equalities_test {
                 &d_sig_cd,
                 &s_sig_cd,
                 &hashmap!(),
+                Strict
             );
         }
 
@@ -357,6 +383,7 @@ macro_rules! range_test {
     ($platform_api: expr, $lib_spec: expr) => {
         mod range_proofs {
             use super::*;
+            use $crate::vcp::test_utils::*;
 
             lazy_static! {
                 static ref SHARED_AND_SIGS: SignersAndSigs =
@@ -407,6 +434,7 @@ macro_rules! range_test {
                         &D_SIG_CD,
                         &S_SIG_CD,
                         &hashmap!(),
+                        Strict
                     )
                 });
             }
@@ -422,14 +450,22 @@ macro_rules! range_test {
                     let shared = add_rng_params_with_altered_range_to_exclude_signed_value(
                         SHARED.to_owned(),
                     );
-                    expect_flow_to_be_unsuccessful(
+                    expect_create_proof_to_throw(
                         $platform_api,
-                        $lib_spec,
                         &PROOF_REQS,
                         &shared,
                         &D_SIG_CD,
                         &S_SIG_CD,
-                        &hashmap!(),
+                        Strict,
+                        |err| {
+                            missing_case_insensitive_const(
+                                "out_of_range_generic",
+                                format!("{err:?}"),
+                                &["validateProofInstructionsAgainstValues",
+                                  "out of range",
+                                  "attribute index"
+                                ]).map(|err| panic!("{err:?}"));
+                        }
                     );
                 });
             }
@@ -661,6 +697,7 @@ macro_rules! expect_privacy_warnings {
                 &D_SIG_CD,
                 &S_SIG_CD,
                 &hashmap!(),
+                Loose
             )
         }
     };
@@ -750,6 +787,8 @@ pub fn it_with(lib_spec: &LibrarySpecificTestHandlers, label: TestLabel, k: impl
     }
 }
 
+#[allow(dead_code)]
+#[allow(clippy::too_many_arguments)]
 pub fn expect_flow_to_be_unsuccessful(
     platform_api : &api::PlatformApi,
     _lib_spec    : &LibrarySpecificTestHandlers,
@@ -760,13 +799,14 @@ pub fn expect_flow_to_be_unsuccessful(
     decrypt_reqs : &HashMap<api::CredentialLabel,
                             HashMap<api::CredAttrIndex,
                                     HashMap<api::AuthorityLabel, api::DecryptRequest>>>,
+    proof_mode   : ProofMode
 ) {
     let api::WarningsAndDataForVerifier { data_for_verifier: dfv, .. } =
-        match do_create_proof(platform_api, proof_reqs, shared, d_sig_cd, s_sig_cd) {
+        match do_create_proof(platform_api, proof_reqs, shared, d_sig_cd, s_sig_cd, proof_mode.clone()) {
             Err(_) => return,
             Ok(x) => x,
         };
-    let x = match do_verify_proof(platform_api, proof_reqs, shared, dfv, decrypt_reqs) {
+    let x = match do_verify_proof(platform_api, proof_reqs, shared, dfv, decrypt_reqs, proof_mode) {
         Err(_) => return,
         Ok(x) => x,
     };
@@ -786,13 +826,14 @@ pub fn expect_with_warnings(
     decrypt_reqs                   : &HashMap<api::CredentialLabel,
                                               HashMap<api::CredAttrIndex,
                                                       HashMap<api::AuthorityLabel, api::DecryptRequest>>>,
+    proof_mode   : ProofMode
 ) {
     // println!("EXPECT_WITH_WARNINGS");
     let api::WarningsAndDataForVerifier {
         warnings: warns_from_create_proof,
         data_for_verifier: dfv,
     }: api::WarningsAndDataForVerifier =
-        do_create_proof(platform_api, proof_reqs, shared, d_sig_cd, s_sig_cd).unwrap();
+        do_create_proof(platform_api, proof_reqs, shared, d_sig_cd, s_sig_cd, proof_mode.clone()).unwrap();
     expect_warns_from_create_proof(&warns_from_create_proof);
 
     let discls = &dfv.revealed_idxs_and_vals;
@@ -834,7 +875,7 @@ pub fn expect_with_warnings(
     let api::WarningsAndDecryptResponses {
         warnings: warns_from_verify_proof,
         decrypt_responses: decrypt_rsps,
-    } = do_verify_proof(platform_api, proof_reqs, shared, dfv, decrypt_reqs).unwrap();
+    } = do_verify_proof(platform_api, proof_reqs, shared, dfv, decrypt_reqs, proof_mode).unwrap();
     expect_warns_from_verify_proof(&warns_from_verify_proof);
 
     // TODO: Generalise so it works for arbitrary number of requests
@@ -853,6 +894,7 @@ pub fn expect_with_warnings(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn expect(
     platform_api : &api::PlatformApi,
     lib_spec     : &LibrarySpecificTestHandlers,
@@ -863,6 +905,7 @@ pub fn expect(
     decrypt_reqs : &HashMap<api::CredentialLabel,
                             HashMap<api::CredAttrIndex,
                                     HashMap<api::AuthorityLabel,api::DecryptRequest>>>,
+    proof_mode   : ProofMode
 ) {
     expect_with_warnings(
         |ws| {
@@ -886,6 +929,7 @@ pub fn expect(
         d_sig_cd,
         s_sig_cd,
         decrypt_reqs,
+        proof_mode
     )
 }
 
@@ -895,12 +939,13 @@ pub fn expect_create_proof_to_throw(
     shared         : &HashMap<api::SharedParamKey, api::SharedParamValue>,
     dsig_cd        : &(api::Signature, Vec<api::DataValue>, api::AccumulatorWitnesses),
     ssig_cd        : &(api::Signature, Vec<api::DataValue>, api::AccumulatorWitnesses),
-    fail_condition : impl Fn(api::Error) -> bool,
+    proof_mode     : ProofMode,
+    fail_condition : impl Fn(&api::Error),
 ) {
-    let err = do_create_proof(platform_api, proof_reqs, shared, dsig_cd, ssig_cd)
-        .err()
-        .unwrap();
-    fail_condition(err);
+    match do_create_proof(platform_api, proof_reqs, shared, dsig_cd, ssig_cd, proof_mode) {
+        Err(err) => fail_condition(&err),
+        Ok(_)    => panic!("create_proof expected to throw an error, but succeeded")
+    }
 }
 
 // TODO: expect_verification_to_throw
@@ -1059,6 +1104,7 @@ pub fn do_create_proof(
     shared                  : &HashMap<api::SharedParamKey, api::SharedParamValue>,
     (d_sig, d_vals, d_wits) : &(api::Signature, Vec<api::DataValue>, api::AccumulatorWitnesses),
     (s_sig, s_vals, s_wits) : &(api::Signature, Vec<api::DataValue>, api::AccumulatorWitnesses),
+    proof_mode              : ProofMode
 ) -> api::VCPResult<api::WarningsAndDataForVerifier> {
     let wr = (*platform_api.create_proof)(
         proof_reqs,
@@ -1069,6 +1115,7 @@ pub fn do_create_proof(
             td::S_CRED_LABEL.to_string() =>
                 api::SignatureAndRelatedData{ signature: s_sig.clone(), values: s_vals.clone(), accumulator_witnesses: s_wits.clone()},
         },
+        proof_mode,
         None,
     )?;
     pp("w", &wr.warnings);
@@ -1084,8 +1131,9 @@ fn do_verify_proof(
     decrypt_reqs : &HashMap<api::CredentialLabel,
                            HashMap<api::CredAttrIndex,
                                    HashMap<api::AuthorityLabel, api::DecryptRequest>>>,
+    proof_mode              : ProofMode
 ) -> api::VCPResult<api::WarningsAndDecryptResponses> {
-    let v = (*platform_api.verify_proof)(proof_reqs, shared, &dfv, decrypt_reqs, None)?;
+    let v = (*platform_api.verify_proof)(proof_reqs, shared, &dfv, decrypt_reqs, proof_mode, None)?;
     pp("verify", &v);
     Ok(v)
 }

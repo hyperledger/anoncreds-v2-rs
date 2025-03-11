@@ -12,8 +12,9 @@ use credx::vcp::interfaces::types::ClaimType::*;
 use credx::vcp::interfaces::types::DataValue::*;
 // -----------------------------------------------------------------------------
 use crate::vcp::test_framework::*;
-use crate::vcp::test_framework::types::PerturbDecryptedValue::*;
+use crate::vcp::test_framework::types::{CreateVerifyExpectation::*,PerturbDecryptedValue::*};
 use crate::vcp::test_framework::utility_functions as tuf;
+use crate::vcp::test_utils::missing_case_insensitive;
 // -----------------------------------------------------------------------------
 use maplit::hashmap;
 use std::collections::HashMap;
@@ -491,9 +492,12 @@ pub fn step_equality(
     })
 }
 
+// This function follows the structure of the Haskell prototype, but has become unwieldy.  TODO:
+// refactor both.
 pub fn step_create_and_verify_proof(
     platform_api: &api::PlatformApi,
     h_lbl: HolderLabel,
+    proof_mode: ProofMode,
     test_exp: CreateVerifyExpectation,
 ) -> AddTestStep {
     use step_create_and_verify_proof_support::*;
@@ -511,194 +515,192 @@ pub fn step_create_and_verify_proof(
         let shared_params = &ts.sparms; // TODO: Holder-specific?
 
         // populate accum witnesses
+        let err_or_sigs_and_related_data_with_wits : VCPResult<HashMap<IssuerLabelAsCredentialLabel,SignatureAndRelatedData>> = {
+            // The holder has to get the accumulator witnesses for the InAccum requests
+            // and put them into the map in sigsAndRD (which has an empty map for accumulator witnesses).
+            // First, find out what's requested.
+            let all_wits: HashMap<IssuerLabelAsCredentialLabel,api::AllAccumulatorWitnesses> =
+                ts.accum_witnesses.get(&h_lbl).cloned().unwrap_or_default();
 
-        // The holder has to get the accumulator witnesses for the InAccum requests
-        // and put them into the map in sigsAndRD (which has an empty map for accumulator witnesses).
-        // First, find out what's requested.
-        let all_wits: HashMap<IssuerLabelAsCredentialLabel,api::AllAccumulatorWitnesses> =
-            ts.accum_witnesses.get(&h_lbl).cloned().unwrap_or_default();
+            // We don't need to request revealing any attributes for getting ProofInstructions
+            // for InAccum requirements.
+            // But we do need to provide a map for each CredentialLabel
+            // because Proof.getValsToReveal uses mergeMaps and is therefore arguably too inflexible.
+            let to_reveal: HashMap<CredentialLabel,HashMap<CredAttrIndex,DataValue>> =
+                proof_reqs
+                .keys()
+                .map(|k| (k.clone(),HashMap::new()))
+                .collect();
 
-        // We don't need to request revealing any attributes for getting ProofInstructions
-        // for InAccum requirements.
-        // But we do need to provide a map for each CredentialLabel
-        // because Proof.getValsToReveal uses mergeMaps and is therefore arguably too inflexible.
-        let to_reveal: HashMap<CredentialLabel,HashMap<CredAttrIndex,DataValue>> =
-            proof_reqs
-            .keys()
-            .map(|k| (k.clone(),HashMap::new()))
-            .collect();
+            let witness_reqs = get_proof_instructions(shared_params, proof_reqs, &to_reveal)?;
 
-        let witness_reqs = get_proof_instructions(shared_params, proof_reqs, &to_reveal)?;
+            // collect all attributeIndex/sequenceNumber pairs,
+            // together for each credential label
+            let witness_reqs : Vec<(CredentialLabel,(CredAttrIndex,AccumulatorBatchSeqNo))> = witness_reqs
+                .into_iter()
+                .filter_map(|x| { match x {
+                    ProofInstructionGeneral {
+                        cred_label       : c_lbl,
+                        attr_idx_general : a_idx,
+                        discl_general    : ResolvedDisclosure::InAccumResolvedWrapper
+                            (InAccumResolved {
+                                public_data : _,
+                                mem_prv     : _,
+                                accumulator : _,
+                                seq_num     : sn
+                            }),
+                        ..
+                    } => {Some((c_lbl, (a_idx, sn)))},
+                    _ => None,
+                }})
+                .collect();
 
-        // collect all attributeIndex/sequenceNumber pairs,
-        // together for each credential label
-        let witness_reqs : Vec<(CredentialLabel,(CredAttrIndex,AccumulatorBatchSeqNo))> = witness_reqs
-            .into_iter()
-            .filter_map(|x| { match x {
-                ProofInstructionGeneral {
-                    cred_label       : c_lbl,
-                    attr_idx_general : a_idx,
-                    discl_general    : ResolvedDisclosure::InAccumResolvedWrapper
-                        (InAccumResolved {
-                            public_data : _,
-                            mem_prv     : _,
-                            accumulator : _,
-                            seq_num     : sn
-                        }),
-                    ..
-                } => {Some((c_lbl, (a_idx, sn)))},
-                _ => None,
-            }})
-            .collect();
+            // for each credential mentioned in proof request
+            // get SignatureAndRelatedData (with no accumulator witnesses, so far)
+            let mut sigs_and_rd =
+                proof_reqs
+                .keys()
+                .map(|c_lbl| { all_sigs_and_rd
+                               .get(c_lbl)
+                               .ok_or_else(|| Error::General(ic_semi(&str_vec_from!(
+                                   "step_create_and_verify_proof",
+                                   format!("{h_lbl}"),
+                                   "does not have a signed credential from",
+                                   format!("{c_lbl}")))))
+                               .map(|sard| (c_lbl.clone(), sard.clone()))})
+                .collect::<Result<HashMap<CredentialLabel,SignatureAndRelatedData>,Error>>()?;
 
-        // for each credential mentioned in proof request
-        // get SignatureAndRelatedData (with no accumulator witnesses, so far)
-        let mut sigs_and_rd =
-            proof_reqs
-            .keys()
-            .map(|c_lbl| { all_sigs_and_rd
-                           .get(c_lbl)
-                           .ok_or_else(|| Error::General(ic_semi(&str_vec_from!(
-                               "step_create_and_verify_proof",
-                               format!("{h_lbl}"),
-                               "does not have a signed credential from",
-                               format!("{c_lbl}")))))
-                           .map(|sard| (c_lbl.clone(), sard.clone()))})
-            .collect::<Result<HashMap<CredentialLabel,SignatureAndRelatedData>,Error>>()?;
-
-        // For each witness required, look it up and insert it into the correct SignaturesAndRelatedData
-        let res_w = witness_reqs
-            .into_iter()
-            .map(|(c_lbl,(a_idx,sn))| {
-                match sigs_and_rd.get_mut(&c_lbl) {
-                    // This is an INTERNAL (testing framework) error because we've already
-                    // looked up all signatures for credentials required by proof_reqs, and
-                    // witness_reqs are derived from proof_reqs
-                    None => panic!("{}", format!(
-                        "step_create_and_verify_proof; INTERNAL ERROR: {c_lbl} missing from sigs_and_rd")),
-                    Some(sard) => {
-                        match all_wits
-                            .get(&c_lbl).cloned().unwrap_or_default()
-                            .get(&a_idx).cloned().unwrap_or_default()
-                            .get(&sn) {
-                                None =>
-                                // This is a USER error: the holder (h_lbl) does not have the
-                                // necessary witness presumably because they have failed to update
-                                // their witnesses to ensure that they have one for the specifcied
-                                // seqiuence number
-                                    Err(Error::General(ic_semi(&str_vec_from!(
-                                        "step_create_and_verify_proof",
-                                        format!("{h_lbl}"),
-                                        "has no witness for",
-                                        format!("{c_lbl}"), format!("{a_idx}"), format!("{sn}"))))),
-                                Some (wit) => {
-                                    Ok(sard.accumulator_witnesses.insert(a_idx,wit.clone()))}}}}})
-            .collect::<Vec<_>>()
-            .into_iter()
-            .collect::<Result<Vec<_>,_>>();
-        // No `?` here because we want to check if the error (if any) is compatible with the test
-        // expectation.  For example, if the test requests a membership witness for a sequence
-        // number that the holder doesn't have, and expects failure, we want to see that the proof
-        // fails, so the test succeeds.  We would also like to report the error we have captured in
-        // case create_proof unexpectedly succeeds (which would be a bug of the underlying crypto
-        // library).
-
-        // Complicating matters further, the underlying library may panic and not throw an error, as
-        // is the case with AC2C, which currently panics with 'IndexMap: key not found',
-        // src/presentation/create.rs:111:26 in the missing witness case.
-
-        // For now, we just print out the following error and let create_proof run; this is not a satisfactory solution
-        // for example, this does not print out unless -- --nocapture is used.
-        if let Err(e) = res_w {
-            println!("step_create_and_verify_proof; create_proof should fail as not all required membership witnesses have been provided: {:?}",e)
-        }
+            // For each witness required, look it up and insert it into the correct SignaturesAndRelatedData
+            let _ = witness_reqs
+                .into_iter()
+                .map(|(c_lbl,(a_idx,sn))| {
+                    match sigs_and_rd.get_mut(&c_lbl) {
+                        // This is an INTERNAL (testing framework) error because we've already
+                        // looked up all signatures for credentials required by proof_reqs, and
+                        // witness_reqs are derived from proof_reqs
+                        None => panic!("{}", format!(
+                            "step_create_and_verify_proof; INTERNAL ERROR: {c_lbl} missing from sigs_and_rd")),
+                        Some(sard) => {
+                            match all_wits
+                                .get(&c_lbl).cloned().unwrap_or_default()
+                                .get(&a_idx).cloned().unwrap_or_default()
+                                .get(&sn) {
+                                    None =>
+                                    // This is a USER error: the holder (h_lbl) does not have the
+                                    // necessary witness presumably because they have failed to update
+                                    // their witnesses to ensure that they have one for the specifcied
+                                    // seqiuence number
+                                        Err(Error::General(ic_semi(&str_vec_from!(
+                                            "step_create_and_verify_proof",
+                                            format!("{h_lbl}"),
+                                            "has no witness for",
+                                            format!("{c_lbl}"), format!("{a_idx}"), format!("{sn}"))))),
+                                    Some (wit) => {
+                                        Ok(sard.accumulator_witnesses.insert(a_idx,wit.clone()))}}}}})
+                .collect::<Vec<_>>()
+                .into_iter()
+                .collect::<Result<Vec<_>,_>>();
+            Ok(sigs_and_rd)
+        };
 
         // Uncomment and run with: cargo test vcp::r#impl::test_framework::proof_system::direct::tests::test_001_reveal_metadata_from_two_credentials_equality_for_two_attributes -- --nocapture
         // poor_persons_test_get_value_for(ts);
 
-        let res_p = create_proof(
-            proof_reqs,
-            shared_params,
-            &sigs_and_rd,
-            None,
-        );
-        let wadfv = match res_p {
-            Ok(wadfv) => wadfv,
-            Err(Error::CryptoLibraryError(e)) => {
-                if [CreateVerifyExpectation::CreateProofFails,
-                    CreateVerifyExpectation::CreateOrVerifyFails
-                ].contains(&test_exp) {
-                    return Ok(());
-                } else {
-                    return Err(Error::General(format!("step_create_and_verify_proof; create_proof expected to succeed, but failed; {e:?}")));
-                }
-            },
-            // This catches all errors we're not expecting, including panics from the library
-            Err(e) => return Err(e)
-        };
-        let create_warns = &wadfv.warnings;
-        let dfv = &wadfv.data_for_verifier;
-        let d_reqs = ts.decrypt_requests.get(&h_lbl).cloned().unwrap_or_default();
-        let res_v = verify_proof(
-            proof_reqs,
-            shared_params,
-            dfv,
-            &d_reqs,
-            None,
-        );
-        let api::WarningsAndDecryptResponses { warnings : verify_warns,
-                                               decrypt_responses } = match res_v {
-            Err(e) => {
-                if [CreateVerifyExpectation::VerifyProofFails,
-                    CreateVerifyExpectation::CreateOrVerifyFails,
-                ].contains(&test_exp) {
-                    return Ok(());
-                } else {
-                    return Err(Error::General(format!(
-                        "step_create_verify_proof; verify_proof expected to succeed, but failed; {e:?}")));
-                }
+        let res_p = match err_or_sigs_and_related_data_with_wits {
+            Err(e) => Err(e),
+            Ok(sigs_and_rd) => {
+                create_proof(
+                    proof_reqs,
+                    shared_params,
+                    &sigs_and_rd,
+                    proof_mode.clone(),
+                    None)
             }
-            Ok(wadr) => wadr,
         };
 
-        match test_exp {
-            CreateVerifyExpectation::CreateProofFails => {
-                Err(Error::General(
-                    "step_create_and_verify_proof; create_proof expected to fail, but succeeded"
-                        .to_string(),
-                ))
-            }
-            CreateVerifyExpectation::VerifyProofFails => {
-                 Err(Error::General(
-                    "step_create_and_verify_proof; verify_proof expected to fail, but succeeded"
-                        .to_string(),
-                ))
-            }
-            CreateVerifyExpectation::CreateOrVerifyFails => {
-                 Err(Error::General(
-                    "step_create_and_verify_proof; create_proof or verify_proof expected to fail, but succeeded"
-                        .to_string(),
-                ))
-            },
-            CreateVerifyExpectation::BothSucceedNoWarnings => {
-                if !create_warns.is_empty() || !verify_warns.is_empty() {
-                    return Err(Error::General(
-                        format!("step_create_and_verify_proof; expected no warnings, got; {create_warns:?}; {verify_warns:?}")))
-                }
-                validate_disclosed_values(
-                    proof_reqs,
-                    &dfv.revealed_idxs_and_vals,
-                    &h_lbl,
-                    ts)?;
-                // Check that decrypted values are correct
-                validate_decrypt_responses(
-                    &decrypt_responses,
-                    &h_lbl,
-                    ts)?;
-                ts.warnings_and_data_for_verifier = wadfv;
-                ts.verification_warnings = verify_warns.to_vec();
-                let _ = ts.last_decrypt_responses.insert(h_lbl.to_owned(),decrypt_responses);
+        match res_p {
+            Err(e) => {
+                let cfp_exps = create_proof_fail_exps(test_exp.clone());
+                if cfp_exps.is_none() && test_exp != CreateOrVerifyFails {
+                    return Err(Error::General(ic_semi(&str_vec_from!(
+                        "stepCreateAndVerifyProof",
+                        "createProof expected to succeed, but failed",
+                        format!("{e:?}")))))
+                };
+                // If the test expectation specifcies strings to check for in the error, ...
+                cfp_exps.map(|x| {
+                    // Check for them, and if we get back an error (indicating missing strings), throw an error
+                    missing_case_insensitive("step_create_and_verify_proof", format!("{e:?}"), x)
+                        .map(|z| panic!("{:?}",ic_semi(&str_vec_from!(
+                            "create_proof failed as expected, but",
+                            format!("{z:?}")))))
+                });
                 Ok(())
+            },
+            Ok(ref wadfv@WarningsAndDataForVerifier { warnings: ref create_warns, data_for_verifier: ref dfv }) => {
+                let d_reqs = ts.decrypt_requests.get(&h_lbl).cloned().unwrap_or_default();
+                let res_v = verify_proof(
+                    proof_reqs,
+                    shared_params,
+                    dfv,
+                    &d_reqs,
+                    proof_mode.clone(),
+                    None,
+                );
+                match res_v {
+                    Err(e) => {
+                        if ![ VerifyProofFails, CreateOrVerifyFails ].contains(&test_exp) {
+                            return Err(Error::General(ic_semi(&str_vec_from!(
+                                "stepCreateAndVerifyProof",
+                                "verifyProof expected to succeed, but failed",
+                                format!("{e:?}")))))
+                        };
+                        Ok(())
+                    },
+                    Ok(WarningsAndDecryptResponses { warnings, decrypt_responses }) => {
+                        match &test_exp {
+                            CreateVerifyExpectation::CreateProofFails(l) => {
+                                Err(Error::General(ic_semi(&str_vec_from!(
+                                    "step_create_and_verify_proof",
+                                    "create_proof expected to fail, but succeeded",
+                                    "error expected to contain",
+                                    format!("{l:?}")))))
+                            }
+                            CreateVerifyExpectation::VerifyProofFails => {
+                                Err(Error::General(
+                                    "step_create_and_verify_proof; verify_proof expected to fail, but succeeded"
+                                        .to_string(),
+                                ))
+                            }
+                            CreateVerifyExpectation::CreateOrVerifyFails => {
+                                Err(Error::General(
+                                    "step_create_and_verify_proof; create_proof or verify_proof expected to fail, but succeeded"
+                                        .to_string(),
+                                ))
+                            },
+                            CreateVerifyExpectation::BothSucceedNoWarnings => {
+                                if !create_warns.is_empty() || !warnings.is_empty() {
+                                    return Err(Error::General(
+                                        format!("step_create_and_verify_proof; expected no warnings, got; {create_warns:?}; {warnings:?}")))
+                                }
+                                validate_disclosed_values(
+                                    proof_reqs,
+                                    &dfv.revealed_idxs_and_vals,
+                                    &h_lbl,
+                                    ts)?;
+                                // Check that decrypted values are correct
+                                validate_decrypt_responses(
+                                    &decrypt_responses,
+                                    &h_lbl,
+                                    ts)?;
+                                ts.warnings_and_data_for_verifier = wadfv.clone();
+                                ts.verification_warnings = warnings.to_vec();
+                                let _ = ts.last_decrypt_responses.insert(h_lbl.to_owned(),decrypt_responses);
+                                Ok(())
+                            }
+                        }
+                    }
+                }
             }
         }
     })
@@ -819,6 +821,13 @@ mod step_create_and_verify_proof_support {
                         ts0)
     }
 
+    pub fn create_proof_fail_exps(cve: CreateVerifyExpectation
+    ) -> Option<Vec<String>> {
+        match cve {
+            CreateProofFails(l) => Some(l),
+            _                   => None
+        }
+    }
 }
 
 pub fn step_update_accumulator_witness(
@@ -995,6 +1004,7 @@ fn perturb_value (dr: DecryptResponse) -> DecryptResponse {
     DecryptResponse { value: dr.value + "_", decryption_proof: dr.decryption_proof }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn verify_decrypt_responses(
     platform_api: &api::PlatformApi,
     proof_reqs: &HashMap<IssuerLabelAsCredentialLabel, api::CredentialReqs>,
@@ -1006,8 +1016,8 @@ pub fn verify_decrypt_responses(
                              HashMap<api::AuthorityLabel,api::DecryptRequest>>>,
     d_resps0: &HashMap<IssuerLabelAsCredentialLabel,
                      HashMap<api::CredAttrIndex,
-
-                             HashMap<api::AuthorityLabel,api::DecryptResponse>>>
+                             HashMap<api::AuthorityLabel,api::DecryptResponse>>>,
+    proof_mode: ProofMode
 ) -> VCPResult<()> {
     let platform_api = platform_api.clone();
     let d_resps = match perturb {
@@ -1018,7 +1028,7 @@ pub fn verify_decrypt_responses(
         .iter()
         .map(|(_,_,a_lbl,d_req)| (a_lbl.to_string(),d_req.authority_decryption_key.clone()))
         .collect::<HashMap<AuthorityLabel,AuthorityDecryptionKey>>();
-    match (platform_api.verify_decryption)(proof_reqs, shared_params, prf, &auth_dks, d_resps, None) {
+    match (platform_api.verify_decryption)(proof_reqs, shared_params, prf, &auth_dks, d_resps, proof_mode, None) {
         Err(e) => {
             if perturb != Perturb {
                 return Err(Error::General(ic_semi(&str_vec_from!(
@@ -1042,7 +1052,8 @@ pub fn verify_decrypt_responses(
 
 pub fn step_verify_decryption(
     platform_api: &api::PlatformApi,
-    h_lbl: HolderLabel
+    h_lbl: HolderLabel,
+    proof_mode: ProofMode
 ) -> AddTestStep {
     let platform_api = platform_api.clone();
     let h_lbl = h_lbl.clone();
@@ -1057,8 +1068,8 @@ pub fn step_verify_decryption(
             lookup_throw_if_absent(&h_lbl, &ts.last_decrypt_responses, Error::General,
                                    &str_vec_from!("step_verify_decryption", "no decryption responses found for holder"))?;
         let prf = &ts.warnings_and_data_for_verifier.data_for_verifier.proof.clone();
-        verify_decrypt_responses(&platform_api, proof_reqs, &ts.sparms, prf, Perturb,     d_reqs, d_resps)?;
-        verify_decrypt_responses(&platform_api, proof_reqs, &ts.sparms, prf, DontPerturb, d_reqs, d_resps)?;
+        verify_decrypt_responses(&platform_api, proof_reqs, &ts.sparms, prf, Perturb,     d_reqs, d_resps, proof_mode.clone())?;
+        verify_decrypt_responses(&platform_api, proof_reqs, &ts.sparms, prf, DontPerturb, d_reqs, d_resps, proof_mode.clone())?;
         Ok(())
     })
 }

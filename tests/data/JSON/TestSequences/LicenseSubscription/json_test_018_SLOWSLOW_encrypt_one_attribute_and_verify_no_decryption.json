@@ -1,6 +1,6 @@
 {"comment": "this test encrypts one attribute and verifies encryption, but does not request decryption",
  "descr": "SLOWSLOW_encrypt_one_attribute_and_verify_no_decryption",
- "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-02-06",
+ "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-03-07",
  "testseq": [{"contents": ["DMV",
                            ["CTText", "CTInt", "CTEncryptableText", "CTInt",
                             "CTAccumulatorMember"]],
@@ -16,5 +16,6 @@
               "tag": "SignCredential"},
              {"contents": "Police", "tag": "CreateAuthority"},
              {"contents": ["Holder1", "DMV", 2, "Police"], "tag": "EncryptFor"},
-             {"contents": ["Holder1", "BothSucceedNoWarnings"],
+             {"contents": ["Holder1", "Strict",
+                           {"tag": "BothSucceedNoWarnings"}],
               "tag": "CreateAndVerifyProof"}]}

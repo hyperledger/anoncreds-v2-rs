@@ -1,5 +1,6 @@
 {"comment": "This test expects a minimal test to pass, although it should fail (request for proof from holder that doesn't exist), so the test should fail; the purpose is to enable observing how the test framework reflects failures",
  "descr": "expected_to_fail_minimal",
- "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-02-06",
- "testseq": [{"contents": ["Holder1", "BothSucceedNoWarnings"],
+ "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-03-07",
+ "testseq": [{"contents": ["Holder1", "Strict",
+                           {"tag": "BothSucceedNoWarnings"}],
               "tag": "CreateAndVerifyProof"}]}

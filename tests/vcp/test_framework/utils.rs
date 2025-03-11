@@ -92,8 +92,8 @@ pub fn extend_test(
                 TestStep::Equality(h_lbl, i_lbl, a_idx, eqs) => {
                     (*step_equality(h_lbl, i_lbl, a_idx, eqs))(t_st)?
                 }
-                TestStep::CreateAndVerifyProof(h_lbl, test_exp) => {
-                    (*step_create_and_verify_proof(platform_api, h_lbl, test_exp))(t_st)?
+                TestStep::CreateAndVerifyProof(h_lbl, proof_mode, test_exp) => {
+                    (*step_create_and_verify_proof(platform_api, h_lbl, proof_mode, test_exp))(t_st)?
                 }
                 TestStep::CreateAuthority(a_lbl) => {
                     (*step_create_authority(platform_api, a_lbl))(t_st)?
@@ -104,8 +104,8 @@ pub fn extend_test(
                 TestStep::Decrypt(h_lbl, i_lbl, a_idx, a_lbl) => {
                     (*step_decrypt(h_lbl, i_lbl, a_idx, a_lbl))(t_st)?
                 }
-                TestStep::VerifyDecryption(h_lbl) => {
-                    (*step_verify_decryption(platform_api, h_lbl))(t_st)?
+                TestStep::VerifyDecryption(h_lbl, proof_mode) => {
+                    (*step_verify_decryption(platform_api, h_lbl, proof_mode))(t_st)?
                 }
         };
     };
@@ -141,6 +141,6 @@ macro_rules! make_test {
 }
 
 pub fn run_test(platform_api: &api::PlatformApi, t_seq: TestSequence) {
-    start_test(platform_api, t_seq).unwrap();
+    start_test(platform_api, t_seq).unwrap(); // Errors thrown from PresentationSetupRequestSetup end up here
 }
 

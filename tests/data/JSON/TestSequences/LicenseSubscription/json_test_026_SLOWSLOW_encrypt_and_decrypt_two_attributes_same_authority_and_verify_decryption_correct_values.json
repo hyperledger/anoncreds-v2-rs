@@ -1,6 +1,6 @@
 {"comment": "Same value encrypted for same authority, would benefit from optimisation that hasn't been done yet.",
  "descr": "SLOWSLOW_encrypt_and_decrypt_two_attributes_same_authority_and_verify_decryption_correct_values",
- "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-02-06",
+ "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-03-07",
  "testseq": [{"contents": ["DMV",
                            ["CTText", "CTInt", "CTEncryptableText", "CTInt",
                             "CTAccumulatorMember"]],
@@ -32,6 +32,7 @@
               "tag": "EncryptFor"},
              {"contents": ["Holder1", "SubscriptionCorp", 3, "Police"],
               "tag": "Decrypt"},
-             {"contents": ["Holder1", "BothSucceedNoWarnings"],
+             {"contents": ["Holder1", "Strict",
+                           {"tag": "BothSucceedNoWarnings"}],
               "tag": "CreateAndVerifyProof"},
-             {"contents": "Holder1", "tag": "VerifyDecryption"}]}
+             {"contents": ["Holder1", "Strict"], "tag": "VerifyDecryption"}]}

@@ -832,6 +832,21 @@ where
         .collect::<HashMap<K0,V1>>()
 }
 
+pub fn filter_map_1_lvl<K0,V0,V1>(
+    f1:fn(V0) -> bool,
+    f2:fn(V0) -> V1,
+    m: &HashMap<K0,V0>
+) -> HashMap<K0,V1>
+where
+    K0: Clone+Eq+Hash,
+    V0: Clone
+{
+    m.iter()
+        .filter(|(k,v)| f1((*v).clone()))
+        .map(|(k,v)| (k.clone(),f2(v.clone())))
+        .collect::<HashMap<K0,V1>>()
+}
+
 pub fn map_1_lvl_with_err<K0,V0,V1,E>(
     f:fn(V0) -> Result<V1,E>,
     m: &HashMap<K0,V0>
@@ -846,6 +861,21 @@ where
             Ok((k.clone(), r))
         })
         .collect::<Result<HashMap<K0,V1>,E>>()
+}
+
+pub fn filter_map_2_lvl<K0,K1,V0,V1>(
+    f1:fn(V0) -> bool,
+    f2:fn(V0) -> V1,
+    m: &HashMap<K0,HashMap<K1,V0>>
+) -> HashMap<K0,HashMap<K1,V1>>
+where
+    K0: Clone+Eq+Hash,
+    K1: Clone+Eq+Hash,
+    V0: Clone
+{
+    m.iter()
+        .map(|(k0,m1)| (k0.clone(),filter_map_1_lvl(f1,f2,m1)))
+        .collect()
 }
 
 pub fn map_2_lvl<K0,K1,V0,V1>(
@@ -921,6 +951,7 @@ where
 // is called in only two places, and in both cases, the original map is not required after the
 // call to this function.  Thus, it may be reasonable for this function to take a &mut for m,
 // which may help to avoid unnecessary clones.
+#[allow(clippy::type_complexity)]
 pub fn map_3_lvl_with_keys_partially_applied_with_error<A0,K0,K1,K2,V0,V1,E>(
     a0:A0,
     f: fn(A0,K0,K1,K2,V0) -> Result<V1,E>,

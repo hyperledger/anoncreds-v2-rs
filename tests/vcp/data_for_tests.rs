@@ -110,7 +110,16 @@ lazy_static! {
       ClaimType::CTText,
       ClaimType::CTAccumulatorMember,
       ClaimType::CTInt,
-      ClaimType::CTText, // CTEncryptableText
+      ClaimType::CTText,
+    ];
+}
+
+lazy_static! {
+    pub static ref S_CTS_WITH_VE: Vec<ClaimType> = vec![
+      ClaimType::CTText,
+      ClaimType::CTAccumulatorMember,
+      ClaimType::CTInt,
+      ClaimType::CTEncryptableText,
     ];
 }
 

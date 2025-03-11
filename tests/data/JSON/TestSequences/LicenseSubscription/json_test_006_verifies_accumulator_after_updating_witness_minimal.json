@@ -1,6 +1,6 @@
 {"comment": "This test does the minimal required to test witness update",
  "descr": "verifies_accumulator_after_updating_witness_minimal",
- "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-02-06",
+ "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-03-07",
  "testseq": [{"contents": ["DMV",
                            ["CTText", "CTInt", "CTText", "CTInt", "CTAccumulatorMember"]],
               "tag": "CreateIssuer"},
@@ -38,5 +38,6 @@
              {"contents": ["Holder1", "DMV", 4, 2], "tag": "InAccum"},
              {"contents": ["Holder1", "DMV", 4, 2],
               "tag": "UpdateAccumulatorWitness"},
-             {"contents": ["Holder1", "BothSucceedNoWarnings"],
+             {"contents": ["Holder1", "Strict",
+                           {"tag": "BothSucceedNoWarnings"}],
               "tag": "CreateAndVerifyProof"}]}

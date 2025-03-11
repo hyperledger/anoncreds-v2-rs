@@ -14,6 +14,7 @@ pub type CreateProof = Arc<
             &HashMap<CredentialLabel, CredentialReqs>,
             &HashMap<SharedParamKey, SharedParamValue>,
             &HashMap<CredentialLabel, SignatureAndRelatedData>,
+            ProofMode,
             Option<Nonce>,
         ) -> VCPResult<WarningsAndDataForVerifier>
         + Send
@@ -26,6 +27,7 @@ pub type VerifyProof = Arc<
             &HashMap<SharedParamKey, SharedParamValue>,
             &DataForVerifier,
             &HashMap<CredentialLabel, HashMap<CredAttrIndex, HashMap<AuthorityLabel, DecryptRequest>>>,
+            ProofMode,
             Option<Nonce>,
         ) -> VCPResult<WarningsAndDecryptResponses>
         + Send
@@ -39,6 +41,7 @@ pub type VerifyDecryption = Arc<
             &Proof,
             &HashMap<SharedParamKey, AuthorityDecryptionKey>,
             &HashMap<CredentialLabel, HashMap<CredAttrIndex, HashMap<AuthorityLabel, DecryptResponse>>>,
+            ProofMode,
             Option<Nonce>,
         ) -> VCPResult<Vec<Warning>>
         + Send
