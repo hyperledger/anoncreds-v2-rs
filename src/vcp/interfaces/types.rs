@@ -1,4 +1,6 @@
 // ------------------------------------------------------------------------------
+use schemars::JsonSchema;
+// ------------------------------------------------------------------------------
 use core::fmt;
 use serde::*;
 use std::collections::BTreeMap;
@@ -25,10 +27,13 @@ macro_rules! impl_Debug_for_OpaqueMaterial_wrapper {
 // ------------------------------------------------------------------------------
 // signer data
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Contains a Signer's secret and public data.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct SignerData {
+
     #[serde(rename = "signerPublicData")]
     pub signer_public_data: Box<SignerPublicData>,
+
     #[serde(rename = "signerSecretData")]
     pub signer_secret_data: SignerSecretData,
 }
@@ -40,10 +45,13 @@ impl SignerData {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+/// A Signer's public keys and setup data.
+#[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
 pub struct SignerPublicData {
+
     #[serde(rename = "signerPublicSetupData")]
     pub signer_public_setup_data: SignerPublicSetupData,
+
     #[serde(rename = "signerPublicSchema")]
     pub signer_public_schema: Vec<ClaimType>,
 }
@@ -55,18 +63,21 @@ impl SignerPublicData {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+/// Data resulting from a Signer's setup.
+#[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
 pub struct SignerPublicSetupData(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { SignerPublicSetupData }
 
-#[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
+/// A Signer's secret keys.
+#[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
 pub struct SignerSecretData(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { SignerSecretData }
 
 // ------------------------------------------------------------------------------
 // values to sign and how to encode them
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+/// How values are handled (e.g., accumulator member, encryptable text, text, int).
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, JsonSchema)]
 pub enum ClaimType {
     #[serde(rename = "CTText")]
     CTText,
@@ -95,7 +106,8 @@ impl Default for ClaimType {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+/// An int or text value.
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(content = "contents", tag = "tag")]
 pub enum DataValue {
     DVInt(u64),
@@ -111,27 +123,43 @@ impl fmt::Display for DataValue {
     }
 }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+/// A signature, based on the 'values', etc., given in a SignRequest.
+#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Signature(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { Signature }
 
 // ------------------------------------------------------------------------------
 // proof requirements
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Proof requirements for a specific credential.
+#[derive(Clone, Eq, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct CredentialReqs {
+
+    /// A key into SharedParams to obtain the Signer's public data.
     #[serde(rename = "signerLabel")]
     pub signer_label: SharedParamKey,
+
+    /// Specifies which attributes are to be selectively disclosed.
     #[serde(rename = "disclosed")]
     pub disclosed: Disclosed,
+
+    /// Specifies which attributes are to be proved PRESENT in a specified accumulator.
     #[serde(rename = "inAccum")]
     pub in_accum: InAccum,
+
+    /// Specifies which attributes are to be proved ABSENT from a specified accumulator.
     #[serde(rename = "notInAccum")]
     pub not_in_accum: NotInAccum,
+
+    /// Specifies which attributes are to be proved to be within a specified range.
     #[serde(rename = "inRange")]
     pub in_range: InRange,
+
+    /// Specifies which attributes are to be encrypted for a specified Authority.
     #[serde(rename = "encryptedFor")]
     pub encrypted_for: EncryptedFor,
+
+    /// Specifies which attributes in this credential are to be proved equal to other specified attributes (usually in other credentials).
     #[serde(rename = "equalTo")]
     pub equal_to: EqualTo,
 }
@@ -144,28 +172,40 @@ impl CredentialReqs {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// A list of indices for attributes that are to be disclosed.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Disclosed(pub Vec<RawIndex>);
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// A list of 'InAccumInfo', each indicating an attribute to be proved present in an accumulator and SharedParam keys for relevant parameters.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct InAccum(pub Vec<InAccumInfo>);
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+// TODO: remove?
+/// Requirements for attributes to be proved ABSENT from an accumulator.  Out of date, not currently supported.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct NotInAccum(pub Vec<IndexAndLabel>);
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// A list of 'InRangeInfo', each indicating an attribute to be proved to be within a range and SharedParam keys for relevant parameters.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct InRange(pub Vec<InRangeInfo>);
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// A list of index-label pairs, each of which specifies an attribute to be encrypted and SharedParam key to obtain the Authority's public information.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct EncryptedFor(pub Vec<IndexAndLabel>);
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// A list of 'EqInfo', each of which specifies an attribute to be proved equal to another specified attribute.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct EqualTo(pub Vec<EqInfo>);
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// An index-label pair.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct IndexAndLabel {
+
+    /// An index specifying an attribute.
     #[serde(rename = "index")]
     pub index: RawIndex,
+
+    /// A key into SharedParams.
     #[serde(rename = "label")]
     pub label: SharedParamKey,
 }
@@ -176,31 +216,46 @@ impl IndexAndLabel {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Information specifying equalities between values in different credentials.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct EqInfo {
+
+    /// The index of the attribute in this credential that must be proved equal to another attribute (usually in another credential).
     #[serde(rename = "fromIndex")]
     pub from_index: RawIndex,
+
+    /// The label of a credential containing the attribute that is to be proved equal to the attribute specified by fromIndex.
     #[serde(rename = "toLabel")]
     pub to_label: CredentialLabel,
+
+    /// The index of the attribute in the credential specified by toLabel that is to be proved equal to the attribute specified by fromIndex.
     #[serde(rename = "toIndex")]
     pub to_index: RawIndex,
 }
 
 impl EqInfo {
-    /// Information specifying equalities between values in different credentials.
     pub fn new(from_index: RawIndex, to_label: CredentialLabel, to_index: RawIndex, ) -> EqInfo {
         EqInfo { from_index, to_label, to_index }
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Information for range proof requirements.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct InRangeInfo {
+
+    /// Specifies the index of the attribute to be proved to be within a specified range.
     #[serde(rename = "index")]
     pub index: RawIndex,
+
+    /// A key into SharedParams used to obtain the minimum value in the specified range.
     #[serde(rename = "minLabel")]
     pub min_label: SharedParamKey,
+
+    /// A key into SharedParams used to obtain the maximum value in the specified range.
     #[serde(rename = "maxLabel")]
     pub max_label: SharedParamKey,
+
+    /// A key into SharedParams used to obtain the proving key to be used for the required range proof.
     #[serde(rename = "rangeProvingKeyLabel")]
     pub range_proving_key_label: SharedParamKey,
 }
@@ -212,17 +267,27 @@ impl InRangeInfo {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Used to prove accumulator membership.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct InAccumInfo {
+
+    /// Indicates which attribute is to be proved present in an accumulator.
     #[serde(rename = "index")]
     pub index: RawIndex,
+
+    /// A key into SharedParams to obtain an accumulator's public keys.
     #[serde(rename = "accumulatorPublicDataLabel")]
     pub accumulator_public_data_label: SharedParamKey,
+
+    /// A key into SharedParams to obtain a MembershipProvingKey.
     #[serde(rename = "membershipProvingKeyLabel")]
     pub membership_proving_key_label: SharedParamKey,
+
+    /// A key into SharedParams to obtain an Accumulator value.
     #[serde(rename = "accumulatorLabel")]
     pub accumulator_label: SharedParamKey,
-    /// Holder needs this to find appropriate witness
+
+    /// A key into SharedParams to obtain a sequence number. A holder needs this to find the appropriate witness.
     #[serde(rename = "accumulatorSeqNumLabel")]
     pub accumulator_seq_num_label: SharedParamKey,
 }
@@ -238,47 +303,61 @@ impl InAccumInfo {
 // ------------------------------------------------------------------------------
 // accumulators
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+/// The value of an accumulator.
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
 pub struct Accumulator(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { Accumulator }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+/// Key to use in accumlator membership proofs.
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
 pub struct MembershipProvingKey(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { MembershipProvingKey }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Contains an accumulator's secret and public data.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorData {
+
     #[serde(rename = "accumulatorPublicData")]
     pub accumulator_public_data: AccumulatorPublicData,
+
     #[serde(rename = "accumulatorSecretData")]
     pub accumulator_secret_data: AccumulatorSecretData,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+/// An accumulator's public keys.
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorPublicData(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorPublicData }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+/// An accumulator's secret keys.
+#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorSecretData(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorSecretData }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+/// A witness that a particular AccumulatorElement is a member of an accumulator.
+#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorMembershipWitness(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorMembershipWitness }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+/// An element that may be added to or removed from an accumulator.  Note, elements are created from text (see createAccumulatorElement).
+#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorElement(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorElement }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+/// Data used to update an AccumulatorMembershipWitness after elements have been added to and/or removed from an accumulator.
+#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorWitnessUpdateInfo(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorWitnessUpdateInfo }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+/// Used to identify the Holder associated with a value added to an accumulator, to enable sending its new witness.  Note: can be ephemeral: used only to enable Revocation Manager to add an element and provide Issuer with means to associate new witness with intended Holder.
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
+// TODO: this does not need to be OpaqueMaterial, String will suffice.  It is not specific to an underlying ZKP library.  Nonetheless,
+// perhaps it is useful to be able to display a truncated version for debugging.
 pub struct HolderID(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { HolderID }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+/// Contains the AccumulatorData and the Accumulator.
+#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct CreateAccumulatorResponse  {
     #[serde(rename = "accumulatorData")]
     pub accumulator_data  : AccumulatorData,
@@ -286,14 +365,23 @@ pub struct CreateAccumulatorResponse  {
     pub accumulator       : Accumulator,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Response from call to AccumulatorAddRemove, including data to update witnesses, witnesses for added elements, and updated accumlator data and value.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorAddRemoveResponse {
+
+    /// Data to use to update existing witnesses.
     #[serde(rename = "witnessUpdateInfo")]
     pub witness_update_info: AccumulatorWitnessUpdateInfo,
+
+    /// A new witnesses for each element added.
     #[serde(rename = "witnessesForNew")]
     pub witnesses_for_new: HashMap<HolderID, AccumulatorMembershipWitness>,
+
+    /// Updated accumulator data.
     #[serde(rename = "accumulatorData")]
     pub accumulator_data: AccumulatorData,
+
+    /// Updated accumulator value.
     #[serde(rename = "accumulator")]
     pub accumulator: Accumulator,
 }
@@ -301,31 +389,42 @@ pub struct AccumulatorAddRemoveResponse {
 // ------------------------------------------------------------------------------
 // range proof data
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+/// Key to use in range proofs.
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
 pub struct RangeProofProvingKey(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { RangeProofProvingKey }
 
 // ------------------------------------------------------------------------------
 // verifiable encryption data
 
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+/// An Authority's public key.
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, JsonSchema)]
 pub struct AuthorityPublicData(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AuthorityPublicData }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+/// An Authority's secret key.
+#[derive(Clone, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct AuthoritySecretData(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AuthoritySecretData }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+/// An Authority's decryption key.
+#[derive(Clone, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct AuthorityDecryptionKey(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AuthorityDecryptionKey }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Contains an Authority's secret, public, and decryption keys.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct AuthorityData {
+
+    /// An Authority's public key.
     #[serde(rename = "authorityPublicData")]
     pub authority_public_data: AuthorityPublicData,
+
+    /// An Authority's secret key.
     #[serde(rename = "authoritySecretData")]
     pub authority_secret_data: AuthoritySecretData,
+
+    /// An Authority's decryption key.
     #[serde(rename = "authorityDecryptionKey")]
     pub authority_decryption_key: AuthorityDecryptionKey,
 }
@@ -341,7 +440,8 @@ impl AuthorityData {
 // ------------------------------------------------------------------------------
 // Proof
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+/// A proof returned from createProof.
+#[derive(Clone, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Proof(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { Proof }
 
@@ -351,13 +451,20 @@ pub type AllAccumulatorWitnesses = HashMap<CredAttrIndex,BTreeMap<AccumulatorBat
 
 pub type AccumulatorWitnesses = HashMap<CredAttrIndex, AccumulatorMembershipWitness>;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// A Signature and other related data, including attribute values signed and witnesses for accumlators.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct SignatureAndRelatedData {
+
     #[serde(rename = "signature")]
+    /// The signature from a Signer signing data values.
     pub signature: Signature,
+
     #[serde(rename = "values")]
+    /// The data values used to produce the signature.
     pub values: Vec<DataValue>,
+
     #[serde(rename = "accumulatorWitnesses")]
+    /// Accumulator witnesses.
     pub accumulator_witnesses: AccumulatorWitnesses,
 }
 
@@ -371,15 +478,21 @@ impl SignatureAndRelatedData {
 // ------------------------------------------------------------------------------
 // decryption
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Keys for decryption.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct DecryptRequest {
+
+    /// Authority secret data.
     #[serde(rename = "authoritySecretData")]
     pub authority_secret_data: AuthoritySecretData,
+
+    /// Authority decryption key.
     #[serde(rename = "authorityDecryptionKey")]
     pub authority_decryption_key: AuthorityDecryptionKey,
 }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+/// Proof that specified value is correctly decrypted from proof created by Prover.
+#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct DecryptionProof(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { DecryptionProof }
 
@@ -390,10 +503,15 @@ impl DecryptRequest {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Decrypted values.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct DecryptResponse {
+
+    /// The decrypted value.
     #[serde(rename = "value")]
     pub value: String,
+
+    /// A proof that the value is correctly decrypted from proof created by Prover.
     #[serde(rename = "decryptionProof")]
     pub decryption_proof: DecryptionProof
 }
@@ -407,7 +525,8 @@ impl DecryptResponse {
 // ------------------------------------------------------------------------------
 // types passed between roles
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Either a single value or a list of of values.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(content = "contents", tag = "tag")]
 pub enum SharedParamValue {
     SPVOne(DataValue),
@@ -416,8 +535,10 @@ pub enum SharedParamValue {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CredAttrIndexAndDataValue {
+
     #[serde(rename = "index")]
     pub index: CredAttrIndex,
+
     #[serde(rename = "value")]
     pub value: Box<DataValue>,   // TO DISCUSS: why Box?
 }
@@ -428,10 +549,15 @@ impl CredAttrIndexAndDataValue {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Data returned from 'createProof'.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct DataForVerifier {
+
+    /// Data values disclosed by (two-level map keyed by CredentialLabel and CredAttrIndex).
     #[serde(rename = "revealedIdxsAndVals")]
     pub revealed_idxs_and_vals: HashMap<CredentialLabel, HashMap<CredAttrIndex, DataValue>>,
+
+    /// A proof.
     #[serde(rename = "proof")]
     pub proof: Proof,
 }
@@ -445,10 +571,15 @@ impl DataForVerifier {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Warnings and DataForVerifier.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct WarningsAndDataForVerifier {
+
+    /// A list of warnings.
     #[serde(rename = "warnings")]
     pub warnings: Vec<Warning>,
+
+    /// Data to be sent to Verifier.
     #[serde(rename = "dataForVerifier")]
     pub data_for_verifier: DataForVerifier
 }
@@ -459,10 +590,15 @@ impl WarningsAndDataForVerifier {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Returned from 'verifyProof' if the given proof is valid.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct WarningsAndDecryptResponses {
+
+    /// Warnings, e.g., unsupported features, potentially unintended requests, etc.
     #[serde(rename = "warnings")]
     pub warnings: Vec<Warning>,
+
+    /// Data values decrypted (three-level map keyed by CredentialLabel, CredAttrIndex and AuthorityLabel).
     #[serde(rename = "decryptResponses")]
     pub decrypt_responses: HashMap<CredentialLabel,
                                    HashMap<CredAttrIndex,
@@ -502,7 +638,7 @@ pub enum ProofMode {
     TestBackend
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(content = "contents", tag = "tag")]
 pub enum Warning {
     UnsupportedFeature(String),

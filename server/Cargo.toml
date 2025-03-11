@@ -1,0 +1,10 @@
+[package]
+name    = "vcp_server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+credx  = { version = "0.2.0", path = ".." }
+rocket = "0.5.1"
+rocket_okapi = { version = "0.9.0", features = ["swagger", "rapidoc"] }
+serde = { version = "1", features = ["serde_derive"] }

@@ -1,4 +1,4 @@
-g# to create a markdown file with a table of contents:
+# to create a markdown file with a table of contents:
 # - M-x org-md-export-to-markdown
 # - make fix-readme-markdown
 
@@ -55,9 +55,8 @@ From an application/user perspective, our abstraction is defined by the
 - By using the ~implement_platform_api_using~ function in [[./api_utils.rs][./api_utils.rs]] and providing an instance of
   ~CryptoInterface~, such as ~CRYPTO_INTERFACE_AC2C~ (defined in [[./zkp_backends/ac2c/crypto_interface.rs][./zkp_backends/ac2c/crypto_interface.rs]]) and calling
   its methods directly.  See [[connecting-zkp-libary-to-platform]] for more details.
-- By accessing the functionality via a Swagger/OpenAPI interface. We have built an HTTP
-  server serving such an interface built automatically from our Haskell prototype. However,
-  this is internal work, and is not up-to-date.  Future work includes implementing an HTTP server in Rust.
+- By accessing the functionality via a Swagger/OpenAPI interface. We have built an HTTP/REST
+  server serving such an interface.  See [[../../server/README.org][../../server/README.org]].
 - Via our test framework, described below.  We recommend this approach as the easiest way to get
   started gaining some familiarity with our interface because, as detailed below, the test framework
   handles a lot of common setup tasks and manages data for all roles, which a user would otherwise

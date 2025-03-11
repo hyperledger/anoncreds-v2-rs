@@ -55,7 +55,7 @@ where <S as ShortGroupSignatureScheme>::PublicKey: RefUnwindSafe,
                 .map_err(|e| convert_to_crypto_library_error("AC2C", "specific_verifier_ac2c", e)))?;
         // TODO-VERIFIABLE-ENCRYPTION: get decrypt responses when supported by AC2C
         if !decr_reqs.is_empty() {
-            unimplemented!("specific_verifier_ac2c: decryption")
+            return Err(Error::General("specific_verifier_ac2c: has decryption requests : UNIMPLEMENTED".to_string()));
         }
         Ok(WarningsAndDecryptResponses {
             warnings: warns,
@@ -66,6 +66,6 @@ where <S as ShortGroupSignatureScheme>::PublicKey: RefUnwindSafe,
 
 pub fn specific_verify_decryption_ac2c() -> SpecificVerifyDecryption {
     Arc::new(|_prf_instrs, _eqs, _proof_api, _decr_reqs, _auth_dks| {
-        unimplemented!("specific_verify_decryption_ac2c");
+        Err(Error::General("specific_verify_decryption_ac2c : UNIMPLEMENTED".to_string()))
     })
 }

@@ -1,0 +1,49 @@
+This demonstrates
+- running the vcp-server and getting its OpenAPI specification
+- generating Java client code from that specification
+- writing code to use the generated code
+- interacting with vcp-server
+
+* hand written part
+
+Code generated from the OpenAPI specification handles marshalling from/to JSON/Java objects, networking, etc.
+That generated code is then called from "hand written" application code.  In this example, the hand written
+code resides in:
+
+=./src/main/java/com/example/vcp/demos/=
+
+* how to build and run
+
+#+begin_src shell
+cd <the-directory-containing-this-README>
+
+# start server in background or a separate shell
+pushd ../..
+make run &
+popd
+
+# expects server to be running
+make get-vcp-server-swagger
+
+# install tools
+nix-shell -p openapi-generator-cli
+nix-shell -p maven
+
+# generate and compile code from swagger the description
+make codegen
+# this is to rename the generated sum types
+make tweak-generated-code
+make compile-install-generated
+
+# compile manually written code
+make compile-example
+
+# expects server to be running; see above
+# see various Makefile targets for running selected tests, e.g.:
+make test-revealed
+
+# or run all tests (this takes a long time because of DNC verifiable encryption)
+make test-all
+
+# kill the server when done
+#+end_src

@@ -2,95 +2,95 @@
 
 # Table of Contents
 
-1.  [Introduction](#orgeea4c75)
-2.  [Caveats](#orgd28b296)
-3.  [User abstraction](#orgeaea8d0)
-4.  [Running tests](#org5b53d40)
-5.  [The test framework](#orgc799101)
-    1.  [JSON test file naming and contents](#org6063053)
-    2.  [Overview of test framework](#org6f55f71)
-    3.  [An example](#org7bb6f2b)
-    4.  [TestSteps](#orgf517a54)
-        1.  [CreateIssuer](#orgc4c6489)
-            1.  [Effects](#org5f34e66)
-            2.  [Arguments](#org5f25694)
-            3.  [API method(s) invoked](#org5132155)
-        2.  [CreateAccumulators](#org09a5507)
-            1.  [Effects](#org66591be)
-            2.  [Arguments](#org8561049)
-            3.  [API method(s) invoked](#org5bb99a6)
-        3.  [SignCredential](#org9a197f3)
-            1.  [Effects](#orgaa8886b)
-            2.  [Arguments](#orgcaee422)
-            3.  [API method(s) invoked](#org864a2a2)
-        4.  [AccumulatorAddRemove](#orga5dd9cd)
-            1.  [Effects](#org3a50142)
-            2.  [Arguments](#orgc1ba4ea)
-            3.  [API method(s) invoked](#org74bc6c8)
-        5.  [UpdateAccumulatorWitness](#orgd2bf25a)
-            1.  [Effects](#org37d9b71)
-            2.  [Arguments](#org5b27366)
-            3.  [Comments](#org68f8dcb)
-            4.  [API method(s) invoked](#org9ab46ae)
-        6.  [Reveal](#org815042e)
-            1.  [Effects](#org3f35e93)
-            2.  [Arguments](#org0a5e629)
-            3.  [API method(s) invoked](#orge83f517)
-        7.  [InRange](#org8b42011)
-            1.  [Effects](#orga198575)
-            2.  [Arguments](#orgc5f0c65)
-            3.  [Comments](#orga2963b7)
-            4.  [API method(s) invoked](#orgdd68f21)
-        8.  [InAccum](#orgee39096)
-            1.  [Effects](#org0db85a0)
-            2.  [Arguments](#org6b84d4d)
-            3.  [API method(s) invoked](#org3912250)
-        9.  [Equality](#org40f7727)
-            1.  [Effects](#org06f3228)
-            2.  [Arguments](#orge029f07)
-            3.  [Comments](#orgea5043b)
-            4.  [API method(s) invoked](#org5f31d1b)
-        10. [CreateAndVerifyProof](#orge0a7fc4)
-            1.  [Effects](#org57a48d5)
-            2.  [Arguments](#orgda88719)
-            3.  [API method(s) invoked](#orgc9cdd2c)
-        11. [CreateAuthority](#org56e3141)
-            1.  [Arguments](#orgd84e53c)
-            2.  [API method(s) invoked](#org4d1fc19)
-        12. [EncryptFor](#orgbdb5695)
-            1.  [Effects](#org6111bbd)
-            2.  [Arguments](#org99b2aaa)
-            3.  [API method(s) invoked](#org6295b4b)
-        13. [Decrypt](#org079ce20)
-            1.  [Effects](#orgdcd882c)
-            2.  [Arguments](#org826bbf2)
-            3.  [API method(s) invoked](#org47d3916)
-        14. [VerifyDecryption](#org54a1a03)
-            1.  [Effects](#org84261d2)
-            2.  [Arguments](#org421a3a5)
-            3.  [API method(s) invoked](#org3d4ce53)
-    5.  [Overriding tests](#org216e1fa)
-    6.  [Test framework files](#org477305a)
-6.  [The VCP architecture](#org42ffd66)
-    1.  [General](#orgfc65776)
-    2.  [Specific](#org9a8bf4f)
-7.  [Guide to `src/vcp` code](#orgf8ac575)
-    1.  [Directory structure](#org01c8d6b)
-    2.  [Example of connecting a specific ZKP library to `PlatformApi`](#org43963f5)
-    3.  [Creating an Issuer's public and secret data (e.g., keys)](#org878e10e)
-    4.  [Issuer signing a credential](#orgc47446e)
-    5.  [Creating a proof](#org1b21ee0)
-    6.  [Verifying a proof](#orgc5c7cd4)
-    7.  [Proofs with revealed values](#org030dff1)
-    8.  [Proofs with range proofs](#org35c6441)
-    9.  [Proofs with verifiable encryption](#org14cb6cb)
-    10. [Proofs with equalities between attributes](#org6c3c375)
-    11. [Proofs with accumulators](#orga327e1d)
-    12. [Accumulator functions](#org12a6593)
+1.  [Introduction](#org8baab61)
+2.  [Caveats](#org66823f3)
+3.  [User abstraction](#orgd741a15)
+4.  [Running tests](#org977f979)
+5.  [The test framework](#org9343700)
+    1.  [JSON test file naming and contents](#org05e5963)
+    2.  [Overview of test framework](#org84f2470)
+    3.  [An example](#orgb3a606d)
+    4.  [TestSteps](#org299b089)
+        1.  [CreateIssuer](#orgcb83e6c)
+            1.  [Effects](#org835f003)
+            2.  [Arguments](#org1680fdc)
+            3.  [API method(s) invoked](#org42f1ff3)
+        2.  [CreateAccumulators](#orgefb0eaf)
+            1.  [Effects](#org0626e5d)
+            2.  [Arguments](#orga0f30c8)
+            3.  [API method(s) invoked](#org51d4785)
+        3.  [SignCredential](#orgad6e16b)
+            1.  [Effects](#org704c81c)
+            2.  [Arguments](#org09485a6)
+            3.  [API method(s) invoked](#org3c6edf1)
+        4.  [AccumulatorAddRemove](#orgb5e3579)
+            1.  [Effects](#org84293ac)
+            2.  [Arguments](#org3f8a9bc)
+            3.  [API method(s) invoked](#org80013f7)
+        5.  [UpdateAccumulatorWitness](#org07dc8e9)
+            1.  [Effects](#orgef1230b)
+            2.  [Arguments](#orge08ceae)
+            3.  [Comments](#orgf31a1b1)
+            4.  [API method(s) invoked](#orged8e484)
+        6.  [Reveal](#org18ddeb9)
+            1.  [Effects](#orgf4beeeb)
+            2.  [Arguments](#org2f418af)
+            3.  [API method(s) invoked](#org89a1011)
+        7.  [InRange](#org26e76f5)
+            1.  [Effects](#org763927e)
+            2.  [Arguments](#orgbe627de)
+            3.  [Comments](#org517fc45)
+            4.  [API method(s) invoked](#org81a7bbc)
+        8.  [InAccum](#org0113f8a)
+            1.  [Effects](#org1bbf707)
+            2.  [Arguments](#org02f638c)
+            3.  [API method(s) invoked](#org712e212)
+        9.  [Equality](#org1020ea5)
+            1.  [Effects](#org18079fc)
+            2.  [Arguments](#orgbb4dddc)
+            3.  [Comments](#org141034b)
+            4.  [API method(s) invoked](#org2359f9a)
+        10. [CreateAndVerifyProof](#org036b498)
+            1.  [Effects](#org5a79a0f)
+            2.  [Arguments](#org267f07f)
+            3.  [API method(s) invoked](#org6c2dcdd)
+        11. [CreateAuthority](#org802d95b)
+            1.  [Arguments](#org2e89c71)
+            2.  [API method(s) invoked](#orgce987ce)
+        12. [EncryptFor](#orgc173bd7)
+            1.  [Effects](#orgf47fde2)
+            2.  [Arguments](#orge41524d)
+            3.  [API method(s) invoked](#org23cef87)
+        13. [Decrypt](#orgf3b5ed1)
+            1.  [Effects](#org07d2ec3)
+            2.  [Arguments](#org090376c)
+            3.  [API method(s) invoked](#org7686eac)
+        14. [VerifyDecryption](#orgab5eae8)
+            1.  [Effects](#org400e7e3)
+            2.  [Arguments](#org0684d5e)
+            3.  [API method(s) invoked](#orgd7fa00d)
+    5.  [Overriding tests](#org59490a8)
+    6.  [Test framework files](#org82e34ea)
+6.  [The VCP architecture](#org3a2ac70)
+    1.  [General](#org4a08daf)
+    2.  [Specific](#orgf9ac069)
+7.  [Guide to `src/vcp` code](#orgeaaa7a2)
+    1.  [Directory structure](#org67d11d1)
+    2.  [Example of connecting a specific ZKP library to `PlatformApi`](#orgebca771)
+    3.  [Creating an Issuer's public and secret data (e.g., keys)](#orgeede47c)
+    4.  [Issuer signing a credential](#org8e5d63a)
+    5.  [Creating a proof](#org91f8034)
+    6.  [Verifying a proof](#org47b9094)
+    7.  [Proofs with revealed values](#orgd379f23)
+    8.  [Proofs with range proofs](#org0c5f4ac)
+    9.  [Proofs with verifiable encryption](#org6fb487c)
+    10. [Proofs with equalities between attributes](#orga7e495f)
+    11. [Proofs with accumulators](#org1f53a37)
+    12. [Accumulator functions](#org8c7cbc6)
 
 
 
-<a id="orgeea4c75"></a>
+<a id="org8baab61"></a>
 
 # Introduction
 
@@ -114,7 +114,7 @@ This work is by [Harold Carr](https://github.com/haroldcarr) and [Mark Moir](htt
 of the University of Maryland at College Park, during his Summer 2024 internship at Oracle Labs.
 
 
-<a id="orgd28b296"></a>
+<a id="org66823f3"></a>
 
 # Caveats
 
@@ -137,7 +137,7 @@ exploration.  In particular,
     feedback and engagement towards something that we can offer as a contribution.
 
 
-<a id="orgeaea8d0"></a>
+<a id="orgd741a15"></a>
 
 # User abstraction
 
@@ -146,10 +146,9 @@ From an application/user perspective, our abstraction is defined by the
 
 -   By using the `implement_platform_api_using` function in [./api_utils.rs](./api_utils.rs) and providing an instance of
     `CryptoInterface`, such as `CRYPTO_INTERFACE_AC2C` (defined in [./zkp_backends/ac2c/crypto_interface.rs](./zkp_backends/ac2c/crypto_interface.rs)) and calling
-    its methods directly.  See [7.3](#orgfd04c8b) for more details.
--   By accessing the functionality via a Swagger/OpenAPI interface. We have built an HTTP
-    server serving such an interface built automatically from our Haskell prototype. However,
-    this is internal work, and is not up-to-date.  Future work includes implementing an HTTP server in Rust.
+    its methods directly.  See [7.3](#orgb6020b6) for more details.
+-   By accessing the functionality via a Swagger/OpenAPI interface. We have built an HTTP/REST
+    server serving such an interface.  See [../../server/README.org](../../server/README.org).
 -   Via our test framework, described below.  We recommend this approach as the easiest way to get
     started gaining some familiarity with our interface because, as detailed below, the test framework
     handles a lot of common setup tasks and manages data for all roles, which a user would otherwise
@@ -162,7 +161,7 @@ are less general, more historic, less well organised, etc.  We recommend focusin
 that are run by the test framework.
 
 
-<a id="org5b53d40"></a>
+<a id="org977f979"></a>
 
 # Running tests
 
@@ -172,11 +171,11 @@ described in the next section.
 
 The [../../Makefile](../../Makefile) supports a number of `make` targets for running/skipping tests according to various
 criteria.  The two most important are `make test` and `make test-all`.  The former skips tests that are
-overridden to fail (see Section [5.4.14.3](#org580d133)), so that unexpected failures are not masked by
+overridden to fail (see Section [5.4.14.3](#org27b3cb4)), so that unexpected failures are not masked by
 those tests.  The latter runs these tests as well, so that the failures can be seen.
 
 
-<a id="orgc799101"></a>
+<a id="org9343700"></a>
 
 # The test framework
 
@@ -192,7 +191,7 @@ test it is necessary to ensure recompilation, using these steps, for example:
     make test
 
 
-<a id="org6063053"></a>
+<a id="org05e5963"></a>
 
 ## JSON test file naming and contents
 
@@ -219,7 +218,7 @@ to run only the test described in the next section:
     cargo test example_single_issuer_and_credential_in_accum_no_update
 
 
-<a id="org6f55f71"></a>
+<a id="org84f2470"></a>
 
 ## Overview of test framework
 
@@ -238,7 +237,7 @@ We make the simplifying assumption that each Holder can possess at most one cred
 each Issuer. This enables referring to credentials by the label of the Issuer that signed them.
 
 
-<a id="org7bb6f2b"></a>
+<a id="orgb3a606d"></a>
 
 ## An example
 
@@ -289,24 +288,24 @@ as the one signed in the relevant credential, and (in examples involving decrypt
 decrypted values match the original signed values.
 
 
-<a id="orgf517a54"></a>
+<a id="org299b089"></a>
 
 ## TestSteps
 
 
-<a id="orgc4c6489"></a>
+<a id="orgcb83e6c"></a>
 
 ### CreateIssuer
 
 
-<a id="org5f34e66"></a>
+<a id="org835f003"></a>
 
 #### Effects
 
 -   Creates new Issuer with associated `SignerData`
 
 
-<a id="org5f25694"></a>
+<a id="org1680fdc"></a>
 
 #### Arguments
 
@@ -314,45 +313,45 @@ decrypted values match the original signed values.
 -   `[ ClaimType ]`: schema for new Issuer
 
 
-<a id="org5132155"></a>
+<a id="org42f1ff3"></a>
 
 #### API method(s) invoked
 
 -   `create_signer_data`
 
 
-<a id="org09a5507"></a>
+<a id="orgefb0eaf"></a>
 
 ### CreateAccumulators
 
 
-<a id="org66591be"></a>
+<a id="org0626e5d"></a>
 
 #### Effects
 
 -   Creates `AccumulatorData` for each `CTAccumulatorMember` attribute in specified Issuer's schema
 
 
-<a id="org8561049"></a>
+<a id="orga0f30c8"></a>
 
 #### Arguments
 
 -   `IssuerLabel`
 
 
-<a id="org5bb99a6"></a>
+<a id="org51d4785"></a>
 
 #### API method(s) invoked
 
 -   `create_accumulator_data` (once for each created accumulator)
 
 
-<a id="org9a197f3"></a>
+<a id="orgad6e16b"></a>
 
 ### SignCredential
 
 
-<a id="orgaa8886b"></a>
+<a id="org704c81c"></a>
 
 #### Effects
 
@@ -364,7 +363,7 @@ decrypted values match the original signed values.
     underlying ZKP library, plus the identified offset.
 
 
-<a id="orgcaee422"></a>
+<a id="org09485a6"></a>
 
 #### Arguments
 
@@ -377,19 +376,19 @@ decrypted values match the original signed values.
     accurate value.
 
 
-<a id="org864a2a2"></a>
+<a id="org3c6edf1"></a>
 
 #### API method(s) invoked
 
 -   `sign`
 
 
-<a id="orga5dd9cd"></a>
+<a id="orgb5e3579"></a>
 
 ### AccumulatorAddRemove
 
 
-<a id="org3a50142"></a>
+<a id="org84293ac"></a>
 
 #### Effects
 
@@ -403,7 +402,7 @@ decrypted values match the original signed values.
     from previous `AccumulatorBatchSeqNo` to new one,for use by subsequent `UpdateAccumulatorWitness` steps
 
 
-<a id="orgc1ba4ea"></a>
+<a id="org3f8a9bc"></a>
 
 #### Arguments
 
@@ -414,19 +413,19 @@ decrypted values match the original signed values.
 -   `[ DataValue ]`: `DataValue` s to be removed from specified accumulator
 
 
-<a id="org74bc6c8"></a>
+<a id="org80013f7"></a>
 
 #### API method(s) invoked
 
 -   `accumulator_add_remove`
 
 
-<a id="orgd2bf25a"></a>
+<a id="org07dc8e9"></a>
 
 ### UpdateAccumulatorWitness
 
 
-<a id="org37d9b71"></a>
+<a id="orgef1230b"></a>
 
 #### Effects
 
@@ -443,7 +442,7 @@ decrypted values match the original signed values.
     specified Holder already has an `AccumulatorMembershipWitness`.
 
 
-<a id="org5b27366"></a>
+<a id="orge08ceae"></a>
 
 #### Arguments
 
@@ -453,7 +452,7 @@ decrypted values match the original signed values.
 -   `AccumulatorBatchSeqNo`: target `AccumulatorBatchSeqNo` to ensure specified Holder
 
 
-<a id="org68f8dcb"></a>
+<a id="orgf31a1b1"></a>
 
 #### Comments
 
@@ -469,19 +468,19 @@ decrypted values match the original signed values.
     framework also does not currently support this.
 
 
-<a id="org9ab46ae"></a>
+<a id="orged8e484"></a>
 
 #### API method(s) invoked
 
 -   `update_accumulator_witness`, potentially multiple times as described above
 
 
-<a id="org815042e"></a>
+<a id="org18ddeb9"></a>
 
 ### Reveal
 
 
-<a id="org3f35e93"></a>
+<a id="orgf4beeeb"></a>
 
 #### Effects
 
@@ -494,7 +493,7 @@ decrypted values match the original signed values.
     -   any of specified attribute indexes is out of range established by Issuer's schema
 
 
-<a id="org0a5e629"></a>
+<a id="org2f418af"></a>
 
 #### Arguments
 
@@ -503,19 +502,19 @@ decrypted values match the original signed values.
 -   `[ CredAttrIndex ]`: list of indexes for attributes to be revealed
 
 
-<a id="orge83f517"></a>
+<a id="org89a1011"></a>
 
 #### API method(s) invoked
 
 -   none
 
 
-<a id="org8b42011"></a>
+<a id="org26e76f5"></a>
 
 ### InRange
 
 
-<a id="orga198575"></a>
+<a id="org763927e"></a>
 
 #### Effects
 
@@ -530,7 +529,7 @@ decrypted values match the original signed values.
     calling its `get_range_proof_max_value` API function.
 
 
-<a id="orgc5f0c65"></a>
+<a id="orgbe627de"></a>
 
 #### Arguments
 
@@ -545,7 +544,7 @@ decrypted values match the original signed values.
     underlying ZKP library's `get_range_proof_max_value` API function returns an accurate value.
 
 
-<a id="orga2963b7"></a>
+<a id="org517fc45"></a>
 
 #### Comments
 
@@ -553,19 +552,19 @@ decrypted values match the original signed values.
     able to test that `CreateAndVerifyProof` does not succeed in this case
 
 
-<a id="orgdd68f21"></a>
+<a id="org81a7bbc"></a>
 
 #### API method(s) invoked
 
 -   none
 
 
-<a id="orgee39096"></a>
+<a id="org0113f8a"></a>
 
 ### InAccum
 
 
-<a id="org0db85a0"></a>
+<a id="org1bbf707"></a>
 
 #### Effects
 
@@ -575,7 +574,7 @@ decrypted values match the original signed values.
     as of specified `AccumulatorBatchSeqNo`
 
 
-<a id="org6b84d4d"></a>
+<a id="org02f638c"></a>
 
 #### Arguments
 
@@ -586,19 +585,19 @@ decrypted values match the original signed values.
     proof of membership in accumulator for older or newer accumulator versions
 
 
-<a id="org3912250"></a>
+<a id="org712e212"></a>
 
 #### API method(s) invoked
 
 -   none
 
 
-<a id="org40f7727"></a>
+<a id="org1020ea5"></a>
 
 ### Equality
 
 
-<a id="org06f3228"></a>
+<a id="org18079fc"></a>
 
 #### Effects
 
@@ -607,7 +606,7 @@ decrypted values match the original signed values.
     equal to each attribute specified in each "other" credentials (identified by specified Issuer)
 
 
-<a id="orge029f07"></a>
+<a id="orgbb4dddc"></a>
 
 #### Arguments
 
@@ -618,7 +617,7 @@ decrypted values match the original signed values.
     to specified attribute
 
 
-<a id="orgea5043b"></a>
+<a id="org141034b"></a>
 
 #### Comments
 
@@ -628,19 +627,19 @@ decrypted values match the original signed values.
     able to test that `CreateAndVerifyProof` does not succeed in this case
 
 
-<a id="org5f31d1b"></a>
+<a id="org2359f9a"></a>
 
 #### API method(s) invoked
 
 -   none
 
 
-<a id="orge0a7fc4"></a>
+<a id="org036b498"></a>
 
 ### CreateAndVerifyProof
 
 
-<a id="org57a48d5"></a>
+<a id="org5a79a0f"></a>
 
 #### Effects
 
@@ -658,7 +657,7 @@ decrypted values match the original signed values.
     particularly realistic, it is useful for testing generality.
 
 
-<a id="orgda88719"></a>
+<a id="org267f07f"></a>
 
 #### Arguments
 
@@ -679,7 +678,7 @@ decrypted values match the original signed values.
         `CreateVerifyExpectation` is useful in such cases.
 
 
-<a id="orgc9cdd2c"></a>
+<a id="org6c2dcdd"></a>
 
 #### API method(s) invoked
 
@@ -687,33 +686,33 @@ decrypted values match the original signed values.
 -   `verify_proof`
 
 
-<a id="org56e3141"></a>
+<a id="org802d95b"></a>
 
 ### CreateAuthority
 
 -   Creates new Authority with associated `AuthorityData`
 
 
-<a id="orgd84e53c"></a>
+<a id="org2e89c71"></a>
 
 #### Arguments
 
 -   `AuthorityLabel`: label to identify new Authority
 
 
-<a id="org4d1fc19"></a>
+<a id="orgce987ce"></a>
 
 #### API method(s) invoked
 
 -   `create_authority_data`
 
 
-<a id="orgbdb5695"></a>
+<a id="orgc173bd7"></a>
 
 ### EncryptFor
 
 
-<a id="org6111bbd"></a>
+<a id="orgf47fde2"></a>
 
 #### Effects
 
@@ -722,7 +721,7 @@ decrypted values match the original signed values.
     signed by specified Issuer
 
 
-<a id="org99b2aaa"></a>
+<a id="orge41524d"></a>
 
 #### Arguments
 
@@ -732,19 +731,19 @@ decrypted values match the original signed values.
 -   `AuthorityLabel`: label identifying `Authority` for whom specified attribute is to be encrypted
 
 
-<a id="org6295b4b"></a>
+<a id="org23cef87"></a>
 
 #### API method(s) invoked
 
 -   none
 
 
-<a id="org079ce20"></a>
+<a id="orgf3b5ed1"></a>
 
 ### Decrypt
 
 
-<a id="orgdcd882c"></a>
+<a id="org07d2ec3"></a>
 
 #### Effects
 
@@ -752,7 +751,7 @@ decrypted values match the original signed values.
     requiring that specified attribute from credential signed by specified Issuer is decrypted
 
 
-<a id="org826bbf2"></a>
+<a id="org090376c"></a>
 
 #### Arguments
 
@@ -762,19 +761,19 @@ decrypted values match the original signed values.
 -   `AuthorityLabel`: label identifying `Authority` to decrypt specified attribute
 
 
-<a id="org47d3916"></a>
+<a id="org7686eac"></a>
 
 #### API method(s) invoked
 
 -   none
 
 
-<a id="org54a1a03"></a>
+<a id="orgab5eae8"></a>
 
 ### VerifyDecryption
 
 
-<a id="org84261d2"></a>
+<a id="org400e7e3"></a>
 
 #### Effects
 
@@ -782,23 +781,23 @@ decrypted values match the original signed values.
     step by specified Holder
 
 
-<a id="org421a3a5"></a>
+<a id="org0684d5e"></a>
 
 #### Arguments
 
 -   `HolderLabel`
 
 
-<a id="org3d4ce53"></a>
+<a id="orgd7fa00d"></a>
 
 #### API method(s) invoked
 
 -   `verify_decryption`
 
-<a id="org580d133"></a>
+<a id="org27b3cb4"></a>
 
 
-<a id="org216e1fa"></a>
+<a id="org59490a8"></a>
 
 ## Overriding tests
 
@@ -848,7 +847,7 @@ We would like to improve the override system.  In the meantime, it is documented
 [../../generate-tests-from-json/src/lib.rs](../../generate-tests-from-json/src/lib.rs).
 
 
-<a id="org477305a"></a>
+<a id="org82e34ea"></a>
 
 ## Test framework files
 
@@ -897,7 +896,7 @@ Located in [../../tests/vcp/](../../tests/vcp/):
 Note: the other tests located in [tests/vcp](../../tests/vcp) (various unit tests) can be ignored.
 
 
-<a id="org42ffd66"></a>
+<a id="org3a2ac70"></a>
 
 # The VCP architecture
 
@@ -947,7 +946,7 @@ VCP is comprised of three main parts
         verify) for a specific underlying ZKP library
 
 
-<a id="orgfc65776"></a>
+<a id="org4a08daf"></a>
 
 ## General
 
@@ -973,7 +972,7 @@ Both the general `create_proof` and `verify_proof` then pass that info to "speci
 create and verify.  The AC2C versions are shown in the above diagram.
 
 
-<a id="org9a8bf4f"></a>
+<a id="orgf9ac069"></a>
 
 ## Specific
 
@@ -992,12 +991,12 @@ along with disclosed values.
 to verify the proof.
 
 
-<a id="orgf8ac575"></a>
+<a id="orgeaaa7a2"></a>
 
 # Guide to `src/vcp` code
 
 
-<a id="org01c8d6b"></a>
+<a id="org67d11d1"></a>
 
 ## Directory structure
 
@@ -1095,10 +1094,10 @@ The directory structure for the DNC implementation of `CryptoInterface` is:
     
             types.rs                      : Type aliases used in the DNC implementation
 
-<a id="orgdfd0ea2"></a>
+<a id="org1fbd53a"></a>
 
 
-<a id="org43963f5"></a>
+<a id="orgebca771"></a>
 
 ## Example of connecting a specific ZKP library to `PlatformApi`
 
@@ -1117,7 +1116,7 @@ An example of making this connection can be seen in the `run_json_test_ac2c` fun
 [../../tests/vcp/zkp_functionality_tests/test_definitions.rs](../../tests/vcp/zkp_functionality_tests/test_definitions.rs).
 
 
-<a id="org878e10e"></a>
+<a id="orgeede47c"></a>
 
 ## Creating an Issuer's public and secret data (e.g., keys)
 
@@ -1132,7 +1131,7 @@ It takes
     -   this is the "schema" for credentials that will be issued and signed by the Issuer
 
 Assuming the AC2C implementation of primitives are connected to `PlatformApi`,
-as described in <a id="orgfd04c8b"></a>,
+as described in <a id="orgb6020b6"></a>,
 then `create_signer_data` (in [./zkp_backends/ac2c/signer.rs](./zkp_backends/ac2c/signer.rs)) is invoked.
 
 The `create_signer_data` implementation
@@ -1152,7 +1151,7 @@ The `create_signer_data` implementation
 An Issuer would securely store the private data and make the public data available.
 
 
-<a id="orgc47446e"></a>
+<a id="org8e5d63a"></a>
 
 ## Issuer signing a credential
 
@@ -1174,7 +1173,7 @@ That `sign` implementation
 -   returns a `Signature` (an opaque representation of an AC2C signature)
 
 
-<a id="org1b21ee0"></a>
+<a id="org91f8034"></a>
 
 ## Creating a proof
 
@@ -1229,7 +1228,7 @@ The AC2C `specific_prover` (named `specific_prover_ac2c` in [./zkp_backends/ac2c
 -   returns `DataForVerifier` that contains the VCP proof and any warnings
 
 
-<a id="orgc5c7cd4"></a>
+<a id="org47b9094"></a>
 
 ## Verifying a proof
 
@@ -1256,7 +1255,7 @@ converts the VCP information and data into formats used by AC2C, and then calls
 the AC2C `Presentation:verify` to verify the proof.
 
 
-<a id="org030dff1"></a>
+<a id="orgd379f23"></a>
 
 ## Proofs with revealed values
 
@@ -1312,7 +1311,7 @@ In the `specific_verifier_ac2c` case, it calls `anoncreds-v2-rs` `Presentation::
 the `PresentationSchema` to verify the proof.
 
 
-<a id="org35c6441"></a>
+<a id="org0c5f4ac"></a>
 
 ## Proofs with range proofs
 
@@ -1349,7 +1348,7 @@ which creates two `anoncreds-v2-rs` statements:
 Those statements are then used to create and verify proofs
 
 
-<a id="org14cb6cb"></a>
+<a id="org6fb487c"></a>
 
 ## Proofs with verifiable encryption
 
@@ -1376,7 +1375,7 @@ which creates a `anoncreds-v2-rs` `VerifiableEncryptionStatement`
 NOTE: AC2C does not yet support decryption.
 
 
-<a id="org6c3c375"></a>
+<a id="orga7e495f"></a>
 
 ## Proofs with equalities between attributes
 
@@ -1401,7 +1400,7 @@ where each `EqualityReq` is a list of pairs that point to values that should be 
 `EqualityStatement` for each equality.
 
 
-<a id="orga327e1d"></a>
+<a id="org1f53a37"></a>
 
 ## Proofs with accumulators
 
@@ -1430,7 +1429,7 @@ The AC2C implementation then transforms that `ResolvedDisclosure` into
 which creates a `anoncreds-v2-rs` `MembershipStatement`
 
 
-<a id="org12a6593"></a>
+<a id="org8c7cbc6"></a>
 
 ## Accumulator functions
 
