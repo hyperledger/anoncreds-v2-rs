@@ -5,6 +5,7 @@ edition = "2021"
 
 # NOTE: Please keep dependencies sorted alphabetically.
 [dependencies]
+aes-gcm = "0.10"
 base64 = "0.22"
 blsful = "3.0.0-pre8"
 bulletproofs = { version = "4.0.0", git = "https://github.com/cryptidtech/bulletproofs" }
@@ -19,6 +20,7 @@ maplit = "1"
 rand = "0.8"
 rand_chacha = "0.3"
 rand_core = "0.6"
+rayon = "1.10"
 regex = "1"
 rmp-serde = "1.3"
 serde = { version = "1", features = ["serde_derive"] }

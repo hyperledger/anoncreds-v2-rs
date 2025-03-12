@@ -5,6 +5,7 @@ mod range;
 mod revocation;
 mod signature;
 mod verifiable_encryption;
+mod verifiable_encryption_decryption;
 
 pub use commitment::*;
 pub use equality::*;
@@ -12,13 +13,14 @@ pub use membership::*;
 pub use range::*;
 pub use revocation::*;
 pub use signature::*;
-use std::fmt::Formatter;
 pub use verifiable_encryption::*;
+pub use verifiable_encryption_decryption::*;
 
 use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use blsful::inner_types::G1Projective;
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::fmt::Formatter;
 
 /// Statement methods
 pub trait Statement {
@@ -53,6 +55,7 @@ pub enum Statements<S: ShortGroupSignatureScheme> {
     Range(Box<RangeStatement>),
     /// Membership statements
     Membership(Box<MembershipStatement>),
+    VerifiableEncryptionDecryption(Box<VerifiableEncryptionDecryptionStatement<G1Projective>>),
 }
 
 impl<S: ShortGroupSignatureScheme> From<SignatureStatement<S>> for Statements<S> {
@@ -99,6 +102,14 @@ impl<S: ShortGroupSignatureScheme> From<MembershipStatement> for Statements<S> {
     }
 }
 
+impl<S: ShortGroupSignatureScheme> From<VerifiableEncryptionDecryptionStatement<G1Projective>>
+    for Statements<S>
+{
+    fn from(m: VerifiableEncryptionDecryptionStatement<G1Projective>) -> Self {
+        Self::VerifiableEncryptionDecryption(Box::new(m))
+    }
+}
+
 impl<S: ShortGroupSignatureScheme> Statements<S> {
     /// Return the statement id
     pub fn id(&self) -> String {
@@ -110,6 +121,7 @@ impl<S: ShortGroupSignatureScheme> Statements<S> {
             Self::VerifiableEncryption(v) => v.id(),
             Self::Range(r) => r.id(),
             Self::Membership(m) => m.id(),
+            Self::VerifiableEncryptionDecryption(v) => v.id(),
         }
     }
 
@@ -123,6 +135,7 @@ impl<S: ShortGroupSignatureScheme> Statements<S> {
             Self::VerifiableEncryption(v) => v.reference_ids(),
             Self::Range(r) => r.reference_ids(),
             Self::Membership(m) => m.reference_ids(),
+            Self::VerifiableEncryptionDecryption(v) => v.reference_ids(),
         }
     }
 
@@ -136,6 +149,7 @@ impl<S: ShortGroupSignatureScheme> Statements<S> {
             Self::VerifiableEncryption(v) => v.add_challenge_contribution(transcript),
             Self::Range(r) => r.add_challenge_contribution(transcript),
             Self::Membership(m) => m.add_challenge_contribution(transcript),
+            Self::VerifiableEncryptionDecryption(v) => v.add_challenge_contribution(transcript),
         }
     }
 
@@ -149,6 +163,7 @@ impl<S: ShortGroupSignatureScheme> Statements<S> {
             Self::VerifiableEncryption(v) => v.get_claim_index(reference_id),
             Self::Range(r) => r.get_claim_index(reference_id),
             Self::Membership(m) => m.get_claim_index(reference_id),
+            Self::VerifiableEncryptionDecryption(v) => v.get_claim_index(reference_id),
         }
     }
 }

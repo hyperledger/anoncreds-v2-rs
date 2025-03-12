@@ -3,18 +3,18 @@ use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::VerifiableEncryptionStatement;
 use crate::CredxResult;
 use blsful::inner_types::{G1Projective, Scalar};
-use elliptic_curve::{ff::Field, group::Curve};
+use elliptic_curve::ff::Field;
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
 
 /// Verifiable encryption builder
 pub(crate) struct VerifiableEncryptionBuilder<'a> {
-    c1: G1Projective,
-    c2: G1Projective,
-    statement: &'a VerifiableEncryptionStatement<G1Projective>,
-    b: Scalar,
-    r: Scalar,
+    pub(crate) c1: G1Projective,
+    pub(crate) c2: G1Projective,
+    pub(crate) statement: &'a VerifiableEncryptionStatement<G1Projective>,
+    pub(crate) b: Scalar,
+    pub(crate) r: Scalar,
 }
 
 impl<S: ShortGroupSignatureScheme> PresentationBuilder<S> for VerifiableEncryptionBuilder<'_> {
@@ -48,10 +48,10 @@ impl<'a> VerifiableEncryptionBuilder<'a> {
         let r2 = statement.message_generator * b + statement.encryption_key.0 * r;
 
         transcript.append_message(b"", statement.id.as_bytes());
-        transcript.append_message(b"c1", c1.to_affine().to_compressed().as_slice());
-        transcript.append_message(b"c2", c2.to_affine().to_compressed().as_slice());
-        transcript.append_message(b"r1", r1.to_affine().to_compressed().as_slice());
-        transcript.append_message(b"r2", r2.to_affine().to_compressed().as_slice());
+        transcript.append_message(b"c1", c1.to_compressed().as_slice());
+        transcript.append_message(b"c2", c2.to_compressed().as_slice());
+        transcript.append_message(b"r1", r1.to_compressed().as_slice());
+        transcript.append_message(b"r2", r2.to_compressed().as_slice());
 
         Ok(Self {
             c1,

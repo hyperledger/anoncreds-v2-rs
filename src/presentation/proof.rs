@@ -1,5 +1,6 @@
 use super::SignatureProof;
 use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
+use crate::presentation::verifiable_encryption_decryption::VerifiableEncryptionDecryptionProof;
 use crate::presentation::{
     CommitmentProof, EqualityProof, MembershipProof, RangeProof, RevocationProof,
     VerifiableEncryptionProof,
@@ -27,6 +28,8 @@ pub enum PresentationProofs<S: ShortGroupSignatureScheme> {
     Range(Box<RangeProof>),
     /// Membership Proofs
     Membership(Box<MembershipProof>),
+    /// Verifiable Encryption Decryption Proofs
+    VerifiableEncryptionDecryption(Box<VerifiableEncryptionDecryptionProof>),
 }
 
 impl<S: ShortGroupSignatureScheme> From<SignatureProof<S>> for PresentationProofs<S> {
@@ -71,6 +74,14 @@ impl<S: ShortGroupSignatureScheme> From<MembershipProof> for PresentationProofs<
     }
 }
 
+impl<S: ShortGroupSignatureScheme> From<VerifiableEncryptionDecryptionProof>
+    for PresentationProofs<S>
+{
+    fn from(value: VerifiableEncryptionDecryptionProof) -> Self {
+        Self::VerifiableEncryptionDecryption(Box::new(value))
+    }
+}
+
 impl<S: ShortGroupSignatureScheme> PresentationProofs<S> {
     /// Get the underlying statement identifier
     pub fn id(&self) -> &String {
@@ -82,6 +93,7 @@ impl<S: ShortGroupSignatureScheme> PresentationProofs<S> {
             Self::VerifiableEncryption(v) => &v.id,
             Self::Range(r) => &r.id,
             Self::Membership(m) => &m.id,
+            Self::VerifiableEncryptionDecryption(v) => &v.id,
         }
     }
 }

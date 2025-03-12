@@ -1,5 +1,6 @@
 use super::*;
 use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
+use crate::presentation::verifiable_encryption_decryption::VerifiableEncryptionDecryptionBuilder;
 use log::debug;
 
 impl<S: ShortGroupSignatureScheme> Presentation<S> {
@@ -47,16 +48,17 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     continue;
                 };
                 for (index, claim) in cred.claims.iter().enumerate() {
-                    if matches!(messages[id][index], ProofMessage::Revealed(_)) {
+                    if matches!(messages[id][index].1, ProofMessage::Revealed(_)) {
                         let label = ss.issuer.schema.claim_indices.get_index(index).unwrap();
                         dm.insert((*label).clone(), claim.clone());
                     }
                 }
                 Self::add_disclosed_messages_challenge_contribution(id, &dm, &mut transcript);
+                let signature_messages = messages[*id].iter().map(|(_, m)| *m).collect::<Vec<_>>();
                 let builder = SignatureBuilder::commit(
                     ss,
                     &cred.signature,
-                    &messages[*id],
+                    &signature_messages,
                     rng,
                     &mut transcript,
                 )?;
@@ -75,7 +77,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     builders.push(builder.into());
                 }
                 Statements::Revocation(a) => {
-                    let proof_message = messages[&a.reference_id][a.claim];
+                    let (_, proof_message) = messages[&a.reference_id][a.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData(
                             "revealed claim cannot be used for set membership proofs",
@@ -99,7 +101,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     builders.push(builder.into());
                 }
                 Statements::Membership(m) => {
-                    let proof_message = messages[&m.reference_id][m.claim];
+                    let (_, proof_message) = messages[&m.reference_id][m.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData(
                             "revealed claim cannot be used for set membership proofs",
@@ -123,7 +125,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     builders.push(builder.into());
                 }
                 Statements::Commitment(c) => {
-                    let proof_message = messages[&c.reference_id][c.claim];
+                    let (_, proof_message) = messages[&c.reference_id][c.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData(
                             "revealed claim cannot be used for commitment",
@@ -137,7 +139,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     builders.push(builder.into());
                 }
                 Statements::VerifiableEncryption(v) => {
-                    let proof_message = messages[&v.reference_id][v.claim];
+                    let (_, proof_message) = messages[&v.reference_id][v.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData(
                             "revealed claim cannot be used for verifiable encryption",
@@ -147,6 +149,26 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     let blinder = proof_message.get_blinder(rng).unwrap();
                     let builder = VerifiableEncryptionBuilder::commit(
                         v,
+                        message,
+                        blinder,
+                        rng,
+                        &mut transcript,
+                    )?;
+                    id_to_builder.insert(*id, builders.len());
+                    builders.push(builder.into());
+                }
+                Statements::VerifiableEncryptionDecryption(v) => {
+                    let (claim_data, proof_message) = &messages[&v.reference_id][v.claim];
+                    if matches!(proof_message, ProofMessage::Revealed(_)) {
+                        return Err(Error::InvalidClaimData(
+                            "revealed claim cannot be used for verifiable encryption",
+                        ));
+                    }
+                    let message = proof_message.get_message();
+                    let blinder = proof_message.get_blinder(rng).unwrap();
+                    let builder = VerifiableEncryptionDecryptionBuilder::commit(
+                        v,
+                        claim_data,
                         message,
                         blinder,
                         rng,

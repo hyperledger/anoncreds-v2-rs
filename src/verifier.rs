@@ -5,6 +5,7 @@ mod range;
 mod revocation;
 mod signature;
 mod verifiable_encryption;
+mod verifiable_encryption_decryption;
 
 pub use commitment::*;
 pub use equality::*;
