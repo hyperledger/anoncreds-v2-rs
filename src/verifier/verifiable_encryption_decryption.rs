@@ -3,10 +3,8 @@ use crate::prelude::VerifiableEncryptionDecryptionStatement;
 use crate::presentation::VerifiableEncryptionDecryptionProof;
 use crate::verifier::ProofVerifier;
 use crate::CredxResult;
-use blsful::inner_types::{Curve, G1Projective, Scalar};
+use blsful::inner_types::{G1Projective, Scalar};
 use bulletproofs::{BulletproofGens, PedersenGens};
-use elliptic_curve::bigint::U384;
-use elliptic_curve::scalar::FromUintUnchecked;
 use merlin::Transcript;
 
 pub struct VerifiableEncryptionDecryptionVerifier<'a, 'b> {
@@ -28,10 +26,10 @@ impl ProofVerifier for VerifiableEncryptionDecryptionVerifier<'_, '_> {
             + self.statement.encryption_key.0 * self.proof.blinder_proof;
 
         transcript.append_message(b"", self.statement.id.as_bytes());
-        transcript.append_message(b"c1", self.proof.c1.to_affine().to_compressed().as_slice());
-        transcript.append_message(b"c2", self.proof.c2.to_affine().to_compressed().as_slice());
-        transcript.append_message(b"r1", r1.to_affine().to_compressed().as_slice());
-        transcript.append_message(b"r2", r2.to_affine().to_compressed().as_slice());
+        transcript.append_message(b"c1", self.proof.c1.to_compressed().as_slice());
+        transcript.append_message(b"c2", self.proof.c2.to_compressed().as_slice());
+        transcript.append_message(b"r1", r1.to_compressed().as_slice());
+        transcript.append_message(b"r2", r2.to_compressed().as_slice());
 
         for i in 0..self.proof.byte_proofs.len() {
             transcript.append_u64(
@@ -52,6 +50,7 @@ impl ProofVerifier for VerifiableEncryptionDecryptionVerifier<'_, '_> {
             let inner_r2 = self.proof.byte_ciphertext.c2[i] * challenge
                 + self.statement.encryption_key.0 * self.proof.byte_proofs[i].blinder
                 + self.statement.message_generator * self.proof.byte_proofs[i].message;
+
             transcript.append_message(b"byte_proof_r1", inner_r1.to_compressed().as_slice());
             transcript.append_message(b"byte_proof_r2", inner_r2.to_compressed().as_slice());
         }
@@ -81,14 +80,12 @@ impl ProofVerifier for VerifiableEncryptionDecryptionVerifier<'_, '_> {
             )
             .map_err(|_| Error::General("Range proof verification failed"))?;
 
-        let eight = U384::from_u8(8);
-        let mut shift = U384::ZERO;
+        let shift = Scalar::from(256u16);
         let mut sum = G1Projective::IDENTITY;
 
         for c2 in &self.proof.byte_ciphertext.c2 {
-            let multiplier = Scalar::from_uint_unchecked(shift);
-            sum += c2 * multiplier;
-            shift = shift.wrapping_add(&eight);
+            sum *= shift;
+            sum += c2;
         }
 
         if sum != self.proof.c2 {

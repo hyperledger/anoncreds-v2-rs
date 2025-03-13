@@ -7,9 +7,8 @@ use crate::CredxResult;
 use aes_gcm::aead::Aead;
 use aes_gcm::{AeadCore, Aes128Gcm, KeyInit, Nonce};
 use blsful::inner_types::{G1Projective, Scalar};
+use blsful::{Bls12381G2Impl, SecretKey};
 use bulletproofs::{BulletproofGens, PedersenGens, RangeProof};
-use elliptic_curve::bigint::U384;
-use elliptic_curve::scalar::FromUintUnchecked;
 use elliptic_curve::Field;
 use elliptic_curve_tools::{group_array, prime_field};
 use merlin::Transcript;
@@ -106,28 +105,26 @@ impl<'a> VerifiableEncryptionDecryptionBuilder<'a> {
         let mut byte_ciphertext = Ciphertext::default();
         let mut byte_blinders = [Scalar::ZERO; 32];
         let mut blinder_blinders = [Scalar::ZERO; 32];
-        let mut sum = b;
+        let mut sum = Scalar::ZERO;
 
-        let eight = U384::from_u8(8);
-        let mut shift = U384::ONE << 248;
+        let shift = Scalar::from(256u16);
         for i in 0..message_bytes.len() - 1 {
             let blinder = Scalar::random(&mut rng);
-            let divisor = Scalar::from_uint_unchecked(shift)
-                .invert()
-                .expect("divisor to not be zero");
-            let shifted_blinder = blinder * divisor;
 
-            sum -= shifted_blinder;
-            shift = shift.wrapping_sub(&eight);
+            sum += blinder * shift.pow([31u64 - i as u64]);
 
             blinder_blinders[i] = Scalar::random(&mut rng);
-            byte_blinders[i] = shifted_blinder;
+            byte_blinders[i] = blinder;
 
-            byte_ciphertext.c1[i] = G1Projective::GENERATOR * shifted_blinder;
+            byte_ciphertext.c1[i] = G1Projective::GENERATOR * blinder;
             byte_ciphertext.c2[i] = statement.message_generator * Scalar::from(message_bytes[i])
-                + statement.encryption_key.0 * shifted_blinder;
+                + statement.encryption_key.0 * blinder;
         }
-        byte_blinders[31] = sum;
+        blinder_blinders[31] = Scalar::random(&mut rng);
+        byte_blinders[31] = b - sum;
+        byte_ciphertext.c1[31] = G1Projective::GENERATOR * byte_blinders[31];
+        byte_ciphertext.c2[31] = statement.message_generator * Scalar::from(message_bytes[31])
+            + statement.encryption_key.0 * byte_blinders[31];
 
         transcript.append_message(b"", statement.id.as_bytes());
         transcript.append_message(b"c1", c1.to_compressed().as_slice());
@@ -151,6 +148,7 @@ impl<'a> VerifiableEncryptionDecryptionBuilder<'a> {
             let inner_r1 = G1Projective::GENERATOR * blinder_blinders[i];
             let inner_r2 = statement.message_generator * byte_blinders[i]
                 + statement.encryption_key.0 * blinder_blinders[i];
+
             transcript.append_message(b"byte_proof_r1", inner_r1.to_compressed().as_slice());
             transcript.append_message(b"byte_proof_r2", inner_r2.to_compressed().as_slice());
         }
@@ -222,15 +220,17 @@ pub struct VerifiableEncryptionDecryptionProof {
 }
 
 impl VerifiableEncryptionDecryptionProof {
-    pub fn decrypt_and_verify(&self, decryption_key: &Scalar) -> CredxResult<ClaimData> {
+    pub fn decrypt_and_verify(
+        &self,
+        decryption_key: &SecretKey<Bls12381G2Impl>,
+    ) -> CredxResult<ClaimData> {
         // 12 for the nonce
         // 16 for the tag
-        // 16 for at least one block
-        if self.ciphertext.len() < 12 + 16 + 16 {
+        if self.ciphertext.len() < 12 + 16 {
             return Err(Error::General("arbitrary data ciphertext is too short"));
         }
 
-        let input = self.c1 * decryption_key;
+        let input = self.c1 * decryption_key.0;
         let expected_commitment = self.c2 - input;
         let nonce = Nonce::from_slice(&self.ciphertext[..12]);
 

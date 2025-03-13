@@ -14,6 +14,7 @@ pub use range::*;
 pub use revocation::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
+pub use verifiable_encryption_decryption::*;
 
 use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::CredxResult;
@@ -40,6 +41,7 @@ pub(crate) enum ProofVerifiers<'a, 'b, 'c, S: ShortGroupSignatureScheme> {
     VerifiableEncryption(Box<VerifiableEncryptionVerifier<'a, 'b>>),
     Range(Box<RangeProofVerifier<'a, 'b, 'c>>),
     Membership(Box<MembershipVerifier<'a, 'b>>),
+    VerifiableEncryptionDecryption(Box<VerifiableEncryptionDecryptionVerifier<'a, 'b>>),
 }
 
 impl<'a, 'b, S: ShortGroupSignatureScheme> From<SignatureVerifier<'a, 'b, S>>
@@ -98,6 +100,14 @@ impl<'a, 'b, S: ShortGroupSignatureScheme> From<MembershipVerifier<'a, 'b>>
     }
 }
 
+impl<'a, 'b, S: ShortGroupSignatureScheme> From<VerifiableEncryptionDecryptionVerifier<'a, 'b>>
+    for ProofVerifiers<'a, 'b, '_, S>
+{
+    fn from(a: VerifiableEncryptionDecryptionVerifier<'a, 'b>) -> Self {
+        Self::VerifiableEncryptionDecryption(Box::new(a))
+    }
+}
+
 impl<S: ShortGroupSignatureScheme> ProofVerifiers<'_, '_, '_, S> {
     /// Verify any additional proof material
     pub fn verify(&self, challenge: Scalar) -> CredxResult<()> {
@@ -109,6 +119,7 @@ impl<S: ShortGroupSignatureScheme> ProofVerifiers<'_, '_, '_, S> {
             Self::VerifiableEncryption(v) => v.verify(challenge),
             Self::Range(r) => r.verify(challenge),
             Self::Membership(m) => m.verify(challenge),
+            Self::VerifiableEncryptionDecryption(v) => v.verify(challenge),
         }
     }
 }
