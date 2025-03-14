@@ -121,6 +121,23 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                         return Err(Error::InvalidPresentationData);
                     }
                 }
+                (
+                    Statements::VerifiableEncryptionDecryption(statement),
+                    Some(PresentationProofs::VerifiableEncryptionDecryption(proof)),
+                ) => {
+                    let hidden_messages =
+                        self.get_sig_hidden_message_proofs(schema, &statement.reference_id)?;
+                    let message_proof = hidden_messages
+                        .get(&statement.claim)
+                        .ok_or(Error::InvalidPresentationData)?;
+                    let verifier = VerifiableEncryptionDecryptionVerifier {
+                        statement,
+                        proof,
+                        message_proof: *message_proof,
+                    };
+                    verifier.add_challenge_contribution(self.challenge, &mut transcript)?;
+                    verifiers.push(verifier.into());
+                }
                 (_, _) => return Err(Error::InvalidPresentationData),
             }
         }

@@ -9,7 +9,8 @@ use credx::issuer::Issuer;
 use credx::knox::bbs::BbsScheme;
 use credx::prelude::{
     MembershipClaim, MembershipCredential, MembershipRegistry, MembershipSigningKey,
-    MembershipStatement, MembershipVerificationKey,
+    MembershipStatement, MembershipVerificationKey, PresentationProofs,
+    VerifiableEncryptionDecryptionStatement,
 };
 use credx::presentation::{Presentation, PresentationSchema};
 use credx::statement::{
@@ -23,6 +24,7 @@ use rand::thread_rng;
 use rand_core::RngCore;
 use regex::Regex;
 use sha2;
+use std::collections::BTreeSet;
 use std::time::Instant;
 
 fn setup() {
@@ -170,6 +172,102 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
     let presentation: Presentation<BbsScheme> = serde_bare::from_slice(&proof_data).unwrap();
     println!("proof size = {}", proof_data.len());
     presentation.verify(&presentation_schema, &nonce)
+}
+
+#[test]
+fn presentation_decrypt_claim_works() {
+    const CRED_ID: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
+    let schema_claims = [
+        ClaimSchema {
+            claim_type: ClaimType::Revocation,
+            label: "identifier".to_string(),
+            print_friendly: false,
+            validators: vec![],
+        },
+        ClaimSchema {
+            claim_type: ClaimType::Hashed,
+            label: "name".to_string(),
+            print_friendly: true,
+            validators: vec![ClaimValidator::Length {
+                min: Some(3),
+                max: Some(u8::MAX as usize),
+            }],
+        },
+        ClaimSchema {
+            claim_type: ClaimType::Hashed,
+            label: "address".to_string(),
+            print_friendly: true,
+            validators: vec![ClaimValidator::Length {
+                min: None,
+                max: Some(u8::MAX as usize),
+            }],
+        },
+        ClaimSchema {
+            claim_type: ClaimType::Number,
+            label: "age".to_string(),
+            print_friendly: true,
+            validators: vec![ClaimValidator::Range {
+                min: Some(0),
+                max: None,
+            }],
+        },
+    ];
+    let cred_schema = CredentialSchema::new(Some("Test"), Some(""), &[], &schema_claims).unwrap();
+    let (issuer_public, mut issuer) = Issuer::<BbsScheme>::new(&cred_schema);
+    let credential = issuer
+        .sign_credential(&[
+            RevocationClaim::from(CRED_ID).into(),
+            HashedClaim::from("John Doe").into(),
+            HashedClaim::from("P Sherman 42 Wallaby Way Sydney").into(),
+            NumberClaim::from(19800101).into(),
+        ])
+        .unwrap();
+
+    let sig_st = SignatureStatement {
+        disclosed: BTreeSet::new(),
+        id: random_string(16, thread_rng()),
+        issuer: issuer_public.clone(),
+    };
+    let acc_st = RevocationStatement {
+        id: random_string(16, thread_rng()),
+        reference_id: sig_st.id.clone(),
+        accumulator: issuer_public.revocation_registry,
+        verification_key: issuer_public.revocation_verifying_key,
+        claim: 0,
+    };
+    let verenc_st = VerifiableEncryptionDecryptionStatement {
+        message_generator: G1Projective::GENERATOR,
+        encryption_key: issuer_public.verifiable_encryption_key,
+        id: random_string(16, thread_rng()),
+        reference_id: sig_st.id.clone(),
+        claim: 1,
+    };
+
+    let verenc_id = verenc_st.id.clone();
+    let mut nonce = [0u8; 16];
+    thread_rng().fill_bytes(&mut nonce);
+
+    let credentials = indexmap! { sig_st.id.clone() => credential.credential.into() };
+
+    let presentation_schema =
+        PresentationSchema::new(&[sig_st.into(), acc_st.into(), verenc_st.into()]);
+
+    let presentation = Presentation::create(&credentials, &presentation_schema, &nonce).unwrap();
+    presentation.verify(&presentation_schema, &nonce).unwrap();
+    let proof_data = serde_bare::to_vec(&presentation).unwrap();
+    let presentation: Presentation<BbsScheme> = serde_bare::from_slice(&proof_data).unwrap();
+    presentation.verify(&presentation_schema, &nonce).unwrap();
+
+    if let PresentationProofs::VerifiableEncryptionDecryption(verenc) =
+        &presentation.proofs[&verenc_id]
+    {
+        let decrypted_name = verenc
+            .decrypt_and_verify(&issuer.verifiable_decryption_key)
+            .unwrap();
+        assert_eq!(decrypted_name.to_bytes(), b"John Doe");
+    } else {
+        assert!(false, "expected VerifiableEncryptionDecryption");
+    }
 }
 
 #[ignore]
