@@ -4,7 +4,7 @@ use crate::statement::VerifiableEncryptionStatement;
 use crate::CredxResult;
 use blsful::inner_types::{G1Projective, Scalar};
 use blsful::{Bls12381G2Impl, SecretKey};
-use elliptic_curve::{ff::Field, group::Curve};
+use elliptic_curve::ff::Field;
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
