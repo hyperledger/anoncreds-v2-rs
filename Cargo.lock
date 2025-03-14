@@ -249,9 +249,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "bulletproofs"
+name = "bulletproofs-bls"
 version = "4.0.0"
-source = "git+https://github.com/cryptidtech/bulletproofs#7c5ffd3835edaeb420b5b3a7d42920babaae4a82"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20f0dfdb1cfb6873186f26c4b83c9f037a010cc423fc7cd8929515796409c60b"
 dependencies = [
  "blstrs_plus",
  "byteorder",
@@ -361,7 +362,7 @@ dependencies = [
  "aes-gcm",
  "base64",
  "blsful",
- "bulletproofs",
+ "bulletproofs-bls",
  "chrono",
  "elliptic-curve",
  "elliptic-curve-tools",
