@@ -1,7 +1,9 @@
 [package]
+authors = ["Hyperledger AnonCreds Developers"]
+edition = "2021"
+exclude = ["samples/**"]
 name = "credx"
 version = "0.2.0"
-edition = "2021"
 
 # NOTE: Please keep dependencies sorted alphabetically.
 [dependencies]
