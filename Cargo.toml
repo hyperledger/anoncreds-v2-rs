@@ -1,8 +1,14 @@
 [package]
 authors = ["Hyperledger AnonCreds Developers"]
+categories = ["cryptography"]
+description = "Anonymous Credentials 2.0 implemention"
+documentation = "https://docs.rs/anoncreds-v2-rs"
 edition = "2021"
 exclude = ["samples/**"]
+homepage = "https://crates.io/crates/anoncreds-v2-rs"
+license = "Apache-2.0"
 name = "credx"
+repository = "https://github.com/hyperledger/anoncreds-v2-rs"
 version = "0.2.0"
 
 # NOTE: Please keep dependencies sorted alphabetically.
