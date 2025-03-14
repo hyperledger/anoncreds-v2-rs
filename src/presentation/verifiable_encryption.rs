@@ -3,6 +3,7 @@ use crate::presentation::{PresentationBuilder, PresentationProofs};
 use crate::statement::VerifiableEncryptionStatement;
 use crate::CredxResult;
 use blsful::inner_types::{G1Projective, Scalar};
+use blsful::{Bls12381G2Impl, SecretKey};
 use elliptic_curve::ff::Field;
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
@@ -74,4 +75,12 @@ pub struct VerifiableEncryptionProof {
     pub c2: G1Projective,
     /// The schnorr blinder proof
     pub blinder_proof: Scalar,
+}
+
+impl VerifiableEncryptionProof {
+    /// Unmask the committed message. The value will be in the exponent
+    /// of the group element.
+    pub fn decrypt(&self, key: &SecretKey<Bls12381G2Impl>) -> G1Projective {
+        self.c2 - self.c1 * key.0
+    }
 }

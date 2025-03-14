@@ -17,7 +17,9 @@ use credx::statement::{
     CommitmentStatement, RangeStatement, RevocationStatement, SignatureStatement,
     VerifiableEncryptionStatement,
 };
-use credx::{random_string, CredxResult};
+use credx::{
+    create_domain_proof_generator, generate_verifiable_encryption_keys, random_string, CredxResult,
+};
 use indexmap::indexmap;
 use maplit::{btreemap, btreeset};
 use rand::thread_rng;
@@ -114,16 +116,10 @@ fn test_presentation_1_credential_works() -> CredxResult<()> {
         claim: 0,
     };
     let comm_st = CommitmentStatement {
-        id: random_string(16, rand::thread_rng()),
+        id: random_string(16, thread_rng()),
         reference_id: sig_st.id.clone(),
-        message_generator: G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(
-            b"message generator",
-            b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
-        ),
-        blinder_generator: G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(
-            b"blinder generator",
-            b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
-        ),
+        message_generator: create_domain_proof_generator(b"message generator"),
+        blinder_generator: create_domain_proof_generator(b"blinder generator"),
         claim: 3,
     };
     let verenc_st = VerifiableEncryptionStatement {
@@ -268,6 +264,159 @@ fn presentation_decrypt_claim_works() {
     } else {
         assert!(false, "expected VerifiableEncryptionDecryption");
     }
+}
+
+#[test]
+fn presentation_with_domain_proof() {
+    const LABEL: &str = "Test Schema";
+    const DESCRIPTION: &str = "This is a test presentation schema";
+    const CRED_ID: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
+    let schema_claims = [
+        ClaimSchema {
+            claim_type: ClaimType::Revocation,
+            label: "identifier".to_string(),
+            print_friendly: false,
+            validators: vec![],
+        },
+        ClaimSchema {
+            claim_type: ClaimType::Hashed,
+            label: "name".to_string(),
+            print_friendly: true,
+            validators: vec![ClaimValidator::Length {
+                min: Some(3),
+                max: Some(u8::MAX as usize),
+            }],
+        },
+        ClaimSchema {
+            claim_type: ClaimType::Hashed,
+            label: "address".to_string(),
+            print_friendly: true,
+            validators: vec![ClaimValidator::Length {
+                min: None,
+                max: Some(u8::MAX as usize),
+            }],
+        },
+        ClaimSchema {
+            claim_type: ClaimType::Number,
+            label: "age".to_string(),
+            print_friendly: true,
+            validators: vec![ClaimValidator::Range {
+                min: Some(0),
+                max: Some(u16::MAX as isize),
+            }],
+        },
+    ];
+    let cred_schema =
+        CredentialSchema::new(Some(LABEL), Some(DESCRIPTION), &[], &schema_claims).unwrap();
+
+    let before = Instant::now();
+    let (issuer_public, mut issuer) = Issuer::<BbsScheme>::new(&cred_schema);
+    println!("key generation time = {:?}", before.elapsed());
+
+    let before = std::time::Instant::now();
+    let credential = issuer
+        .sign_credential(&[
+            RevocationClaim::from(CRED_ID).into(),
+            HashedClaim::from("John Doe").into(),
+            HashedClaim::from("P Sherman 42 Wallaby Way Sydney").into(),
+            NumberClaim::from(30303).into(),
+        ])
+        .unwrap();
+    println!("sign credential {:?}", before.elapsed());
+
+    let dummy_sk = MembershipSigningKey::new(None);
+    let dummy_vk = MembershipVerificationKey::from(&dummy_sk);
+    let dummy_registry = MembershipRegistry::random(thread_rng());
+    let dummy_membership_credential = MembershipCredential::new(
+        MembershipClaim::from(&credential.credential.claims[2]).0,
+        dummy_registry,
+        &dummy_sk,
+    );
+
+    let (verifier_domain_specific_encryption_key, verifier_domain_specific_decryption_key) =
+        generate_verifiable_encryption_keys(thread_rng());
+
+    let sig_st = SignatureStatement {
+        disclosed: btreeset! {"name".to_string()},
+        id: random_string(16, rand::thread_rng()),
+        issuer: issuer_public.clone(),
+    };
+    let acc_st = RevocationStatement {
+        id: random_string(16, rand::thread_rng()),
+        reference_id: sig_st.id.clone(),
+        accumulator: issuer_public.revocation_registry,
+        verification_key: issuer_public.revocation_verifying_key,
+        claim: 0,
+    };
+    let comm_st = CommitmentStatement {
+        id: random_string(16, thread_rng()),
+        reference_id: sig_st.id.clone(),
+        message_generator: create_domain_proof_generator(b"message generator"),
+        blinder_generator: create_domain_proof_generator(b"blinder generator"),
+        claim: 3,
+    };
+    let verenc_st = VerifiableEncryptionStatement {
+        message_generator: create_domain_proof_generator(b"verifier specific message generator"),
+        encryption_key: verifier_domain_specific_encryption_key,
+        id: random_string(16, rand::thread_rng()),
+        reference_id: sig_st.id.clone(),
+        claim: 0,
+    };
+    let verenc_st_id = verenc_st.id.clone();
+    let range_st = RangeStatement {
+        id: random_string(16, thread_rng()),
+        reference_id: comm_st.id.clone(),
+        signature_id: sig_st.id.clone(),
+        claim: 3,
+        lower: Some(0),
+        upper: Some(44829),
+    };
+    let mem_st = MembershipStatement {
+        id: random_string(16, thread_rng()),
+        reference_id: sig_st.id.clone(),
+        accumulator: dummy_registry,
+        verification_key: dummy_vk,
+        claim: 2,
+    };
+
+    let mut nonce = [0u8; 16];
+    thread_rng().fill_bytes(&mut nonce);
+
+    let credentials = indexmap! { sig_st.id.clone() => credential.credential.into(), mem_st.id.clone() => dummy_membership_credential.into() };
+    let presentation_schema = PresentationSchema::new(&[
+        sig_st.into(),
+        acc_st.into(),
+        comm_st.into(),
+        verenc_st.into(),
+        range_st.into(),
+        mem_st.into(),
+    ]);
+    let presentation = Presentation::create(&credentials, &presentation_schema, &nonce).unwrap();
+    presentation.verify(&presentation_schema, &nonce).unwrap();
+    let proof1 =
+        if let PresentationProofs::VerifiableEncryption(v) = &presentation.proofs[&verenc_st_id] {
+            v.clone()
+        } else {
+            panic!("Expected VerifiableEncryption proof");
+        };
+
+    thread_rng().fill_bytes(&mut nonce);
+    let presentation = Presentation::create(&credentials, &presentation_schema, &nonce).unwrap();
+    presentation.verify(&presentation_schema, &nonce).unwrap();
+
+    let proof2 =
+        if let PresentationProofs::VerifiableEncryption(v) = &presentation.proofs[&verenc_st_id] {
+            v.clone()
+        } else {
+            panic!("Expected VerifiableEncryption proof");
+        };
+
+    assert_ne!(proof1.blinder_proof, proof2.blinder_proof);
+    assert_ne!(proof1.c1, proof2.c1);
+    assert_ne!(proof1.c2, proof2.c2);
+    let value1 = proof1.decrypt(&verifier_domain_specific_decryption_key);
+    let value2 = proof2.decrypt(&verifier_domain_specific_decryption_key);
+    assert_eq!(value1, value2);
 }
 
 #[ignore]
