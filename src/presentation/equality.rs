@@ -26,7 +26,12 @@ impl<'a> EqualityBuilder<'a> {
         let mut scalars = Vec::new();
         for (id, claim_index) in &reference_statement.ref_id_claim_index {
             match reference_id_credential.get(id) {
-                None => return Err(Error::InvalidPresentationData),
+                None => {
+                    return Err(Error::InvalidPresentationData(format!(
+                        "equality statement with id '{}' references a non-existent credential '{}'",
+                        reference_statement.id, id
+                    )))
+                }
                 Some(cred) => {
                     if let PresentationCredential::Signature(c) = cred {
                         let sc = c.claims[*claim_index].to_scalar();

@@ -19,14 +19,13 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
         let (signature_statements, predicate_statements) = Self::split_statements(schema);
 
         if signature_statements.len() > credentials.len() {
-            return Err(Error::InvalidPresentationData);
+            return Err(Error::InvalidPresentationData(format!("the number of signature statements '{}' exceeds the number of supplied credentials '{}'", signature_statements.len(), credentials.len())));
         }
 
-        if signature_statements
-            .iter()
-            .any(|(k, _)| !credentials.contains_key(*k))
-        {
-            return Err(Error::InvalidPresentationData);
+        for (k, _) in signature_statements.iter() {
+            if !credentials.contains_key(*k) {
+                return Err(Error::InvalidPresentationData(format!("not all signature statements have a corresponding credential. signature statement '{}' is missing a corresponding credential", k)));
+            }
         }
 
         let messages = Self::get_message_types(
@@ -186,13 +185,17 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
         }
         let mut range_builders = Vec::<PresentationBuilders<S>>::with_capacity(range_id.len());
         for id in range_id {
-            if let Statements::Range(r) = predicate_statements
-                .get(id)
-                .ok_or(Error::InvalidPresentationData)?
+            if let Statements::Range(r) =
+                predicate_statements
+                    .get(id)
+                    .ok_or(Error::InvalidPresentationData(format!(
+                        "expected a predicate range proof statement with id '{}' but was not found",
+                        id
+                    )))?
             {
                 let sig = if let PresentationCredential::Signature(sig) = credentials
                     .get(&r.signature_id)
-                    .ok_or(Error::InvalidPresentationData)?
+                    .ok_or(Error::InvalidPresentationData(format!("range proof statement with id '{}' references a signature statement with id '{}' but no signature statement has that id.", id, r.signature_id)))?
                 {
                     sig
                 } else {
@@ -203,16 +206,16 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     if let ClaimData::Number(n) = sig
                         .claims
                         .get(r.claim)
-                        .ok_or(Error::InvalidPresentationData)?
+                        .ok_or(Error::InvalidPresentationData(format!("range proof statement with id '{}' references claim '{}' which doesn't exist", id, r.claim)))?
                     {
                         let builder =
                             RangeBuilder::commit(r, commitment, n.value, &mut transcript)?;
                         range_builders.push(builder.into());
                     } else {
-                        return Err(Error::InvalidPresentationData);
+                        return Err(Error::InvalidPresentationData(format!("range proof statement with id '{}' references claim '{}' which is not a number claim", id, r.claim)));
                     }
                 } else {
-                    return Err(Error::InvalidPresentationData);
+                    return Err(Error::InvalidPresentationData(format!("range proof statement with id '{}' references a commitment '{}' that doesn't exist", id, r.reference_id)));
                 }
             }
         }

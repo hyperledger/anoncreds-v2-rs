@@ -50,7 +50,11 @@ impl ProofVerifier for RevocationVerifier<'_, '_> {
 
     fn verify(&self, _challenge: Scalar) -> CredxResult<()> {
         if self.accumulator_proof.proof.s_y != self.message_proof {
-            return Err(Error::InvalidPresentationData);
+            return Err(Error::InvalidPresentationData(format!(
+                "revocation claim proof '{}' does not match the signature's same claim proof '{}'",
+                hex::encode(self.accumulator_proof.proof.s_y.to_be_bytes()),
+                hex::encode(self.message_proof.to_be_bytes())
+            )));
         }
         Ok(())
     }

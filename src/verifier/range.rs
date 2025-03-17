@@ -8,6 +8,7 @@ use blsful::inner_types::{G1Projective, Scalar};
 use elliptic_curve::group::Curve;
 use merlin::Transcript;
 
+#[derive(Debug)]
 pub struct RangeProofVerifier<'a, 'b, 'c> {
     pub statement: &'a RangeStatement,
     pub commitment_statement: &'b CommitmentStatement<G1Projective>,
@@ -69,7 +70,7 @@ impl ProofVerifier for RangeProofVerifier<'_, '_, '_> {
                 );
                 Ok(())
             }
-            (None, None) => Err(Error::InvalidPresentationData),
+            (None, None) => Err(Error::InvalidPresentationData(format!("range proof has no lower or upper bounds when adding to the transcript: range_proof_verifier: {:?}", self))),
         }
     }
 
@@ -134,7 +135,7 @@ impl ProofVerifier for RangeProofVerifier<'_, '_, '_> {
                     )
                     .map_err(|_| Error::InvalidBulletproofRange)
             }
-            (None, None) => Err(Error::InvalidPresentationData),
+            (None, None) => Err(Error::InvalidPresentationData(format!("range proof has no lower or upper bounds when verifying the range proof: range_proof_verifier: {:?}", self))),
         }
     }
 }
