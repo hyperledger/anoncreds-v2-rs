@@ -9,6 +9,7 @@ use rand_core::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
 
 /// A commitment builder
+#[derive(Debug)]
 pub(crate) struct CommitmentBuilder<'a> {
     pub(crate) commitment: G1Projective,
     pub(crate) statement: &'a CommitmentStatement<G1Projective>,

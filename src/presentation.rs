@@ -252,14 +252,19 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                         // Does this statement reference another statement instead of a signature
                         if !predicate_statements.contains_key(ref_id) {
                             // If not, then error
-                            return Err(Error::InvalidPresentationData);
+                            return Err(Error::InvalidPresentationData("a referenced predicate statement '{}' does not exist in the presentation schema".to_string()));
                         }
                         continue;
                     }
                     Some(indexer) => {
                         let claim_index = statement.get_claim_index(ref_id);
                         match indexer.get_mut(claim_index) {
-                            None => return Err(Error::InvalidPresentationData),
+                            None => {
+                                return Err(Error::InvalidPresentationData(format!(
+                                    "can't find claim_index '{}' in statement '{}'",
+                                    claim_index, ref_id
+                                )))
+                            }
                             Some(v) => *v = true,
                         }
                     }
