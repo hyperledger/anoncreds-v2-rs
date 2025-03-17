@@ -19,12 +19,15 @@ SKIP_TESTS_THAT_OVERWRITE_SRC = \
 SKIP_TESTS_THAT_ARE_OVERRIDDEN_TO_FAIL = \
         --skip overridden_to_fail
 
+COMMON_ARGS = \
+        $(TEST_THREADS) \
+        $(SKIP_TESTS_THAT_OVERWRITE_SRC) \
+        $(SKIP_TESTS_THAT_ARE_OVERRIDDEN_TO_FAIL)
+
 .PHONY: test
 test:
 	cargo test -- \
-                   $(TEST_THREADS) \
-                   $(SKIP_TESTS_THAT_OVERWRITE_SRC) \
-                   $(SKIP_TESTS_THAT_ARE_OVERRIDDEN_TO_FAIL)
+                   $(COMMON_ARGS)
 
 .PHONY: test-all   # shows failures for tests overridden to fail
 test-all:
@@ -36,17 +39,26 @@ test-all:
 test-skip-slow:
 	cargo test --features=ignore_slow \
                    -- \
-                   $(TEST_THREADS) \
-                   $(SKIP_TESTS_THAT_OVERWRITE_SRC) \
-                   $(SKIP_TESTS_THAT_ARE_OVERRIDDEN_TO_FAIL)
+                   $(COMMON_ARGS)
 
 .PHONY: test-skip-slow-slow
 test-skip-slow-slow:
 	cargo test --features=ignore_slow_slow \
                    -- \
-                   $(TEST_THREADS) \
-                   $(SKIP_TESTS_THAT_OVERWRITE_SRC) \
-                   $(SKIP_TESTS_THAT_ARE_OVERRIDDEN_TO_FAIL)
+                   $(COMMON_ARGS)
+
+.PHONY: test-json-tests
+test-json-tests:
+	cargo test       run_json_zkp_functionality_tests \
+                   -- \
+                   $(COMMON_ARGS)
+
+.PHONY: test-json-tests-skip-slow
+test-json-tests-skip-slow:
+	cargo test --features=ignore_slow \
+                   run_json_zkp_functionality_tests \
+                   -- \
+                   $(COMMON_ARGS)
 
 .PHONY: clean
 clean:
@@ -63,5 +75,3 @@ fix-readme-markdown:
 	sed -i -e 's/<\/sub>//g' $(README_MD)
 	sed -i -e 's/server\/README.md/server\/README.org/g' $(README_MD)
 	sed -i '1i<!--- DO NOT EDIT.  GENERATED FROM README.org --->' $(README_MD)
-
-
