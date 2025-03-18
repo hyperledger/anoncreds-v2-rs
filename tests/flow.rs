@@ -1,10 +1,11 @@
 use blsful::inner_types::*;
 use credx::blind::BlindCredentialRequest;
 use credx::claim::{
-    ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim,
+    ClaimData, ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim,
 };
 use credx::credential::{ClaimSchema, CredentialSchema};
-use credx::issuer::Issuer;
+use credx::error::Error;
+use credx::issuer::{Issuer, IssuerPublic};
 use credx::knox::bbs::BbsScheme;
 use credx::prelude::{
     MembershipClaim, MembershipCredential, MembershipRegistry, MembershipSigningKey,
@@ -13,8 +14,8 @@ use credx::prelude::{
 };
 use credx::presentation::{Presentation, PresentationSchema};
 use credx::statement::{
-    CommitmentStatement, RangeStatement, RevocationStatement, SignatureStatement,
-    VerifiableEncryptionStatement,
+    CommitmentStatement, EqualityStatement, RangeStatement, RevocationStatement,
+    SignatureStatement, VerifiableEncryptionStatement,
 };
 use credx::{
     create_domain_proof_generator, generate_verifiable_encryption_keys, random_string, CredxResult,
@@ -24,7 +25,7 @@ use maplit::{btreemap, btreeset};
 use rand::thread_rng;
 use rand_core::RngCore;
 use regex::Regex;
-use sha2;
+use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::time::Instant;
 
@@ -613,22 +614,136 @@ fn test_blind_sign_request() -> CredxResult<()> {
         &schema_claims,
     )?;
 
-    let (issuer_public, mut issuer) = Issuer::<BbsScheme>::new(&cred_schema);
+    let (issuer_public_1, mut issuer_1) = Issuer::<BbsScheme>::new(&cred_schema);
+    let (issuer_public_2, mut issuer_2) = Issuer::<BbsScheme>::new(&cred_schema);
 
-    let blind_claims = btreemap! { "link_secret".to_string() => ScalarClaim::from(Scalar::random(rand_core::OsRng)).into() };
-    let (request, blinder) = BlindCredentialRequest::new(&issuer_public, &blind_claims)?;
+    let blind_claims_1 = btreemap! { "link_secret".to_string() => ScalarClaim::from(Scalar::random(rand_core::OsRng)).into() };
 
-    let blind_bundle = issuer.blind_sign_credential(
-        &request,
+    let mut nonce = [0u8; 16];
+    rand::thread_rng().fill_bytes(&mut nonce);
+
+    // equal link_secret equality claims
+
+    let res = check_link_secret_equality(
+        CRED_ID,
+        &issuer_public_1,
+        &mut issuer_1,
+        &issuer_public_2,
+        &mut issuer_2,
+        &blind_claims_1,
+        &blind_claims_1, // <-- same blind claim for both credentials
+        nonce,
+    );
+    if let Ok((presentation, pres_schema)) = res {
+        presentation.verify(&pres_schema, &nonce)?;
+    } else {
+        return Err(Error::General(
+            "presentation.verify should succeed on equal link secrets",
+        ));
+    }
+
+    // link secrets with different values should not "pass"
+
+    let blind_claims_2 = btreemap! { "link_secret".to_string() => ScalarClaim::from(Scalar::random(rand_core::OsRng)).into() };
+    let res = check_link_secret_equality(
+        CRED_ID,
+        &issuer_public_1,
+        &mut issuer_1,
+        &issuer_public_2,
+        &mut issuer_2,
+        &blind_claims_1,
+        &blind_claims_2, // <-- different blind claims
+        nonce,
+    );
+    if let Err(Error::InvalidClaimData("equality statement - claims are not all the same")) = res {
+        // presentation.create will not succeed with unequal equality claims
+        Ok(())
+    } else {
+        Err(Error::General(
+            "Presentation::create should have failed on non equal link secrets",
+        ))
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn check_link_secret_equality(
+    cred_id: &str,
+    issuer_public_1: &IssuerPublic<BbsScheme>,
+    issuer_1: &mut Issuer<BbsScheme>,
+    issuer_public_2: &IssuerPublic<BbsScheme>,
+    issuer_2: &mut Issuer<BbsScheme>,
+    blind_claims_1: &BTreeMap<String, ClaimData>,
+    blind_claims_2: &BTreeMap<String, ClaimData>,
+    nonce: [u8; 16],
+) -> CredxResult<(Presentation<BbsScheme>, PresentationSchema<BbsScheme>)> {
+    // use the same link_secret to value mapping here
+    let (request_1, blinder_1) = BlindCredentialRequest::new(issuer_public_1, blind_claims_1)?;
+    let (request_2, blinder_2) = BlindCredentialRequest::new(issuer_public_2, blind_claims_2)?;
+
+    let blind_bundle_1 = issuer_1.blind_sign_credential(
+        &request_1,
         &btreemap! {
-            "identifier".to_string() => RevocationClaim::from(CRED_ID).into(),
+            "identifier".to_string() => RevocationClaim::from(cred_id).into(),
             "name".to_string() => HashedClaim::from("John Doe").into(),
             "address".to_string() => HashedClaim::from("P Sherman 42 Wallaby Way Sydney").into(),
             "age".to_string() => NumberClaim::from(30303).into(),
         },
     )?;
+    let blind_bundle_2 = issuer_2.blind_sign_credential(
+        &request_2,
+        &btreemap! {
+            "identifier".to_string() => RevocationClaim::from(cred_id).into(),
+            "name".to_string() => HashedClaim::from("Jane Doe").into(),
+            "address".to_string() => HashedClaim::from("Sydney").into(),
+            "age".to_string() => NumberClaim::from(30304).into(),
+        },
+    )?;
 
-    let _ = blind_bundle.to_unblinded(&blind_claims, blinder)?;
+    let credential_1 = blind_bundle_1.to_unblinded(blind_claims_1, blinder_1)?;
+    let credential_2 = blind_bundle_2.to_unblinded(blind_claims_2, blinder_2)?;
 
-    Ok(())
+    let sig_st_1 = SignatureStatement {
+        disclosed: btreeset! {},
+        id: "1".to_string(),
+        issuer: issuer_public_1.clone(),
+    };
+    let sig_st_2 = SignatureStatement {
+        disclosed: btreeset! {},
+        id: "2".to_string(),
+        issuer: issuer_public_2.clone(),
+    };
+
+    let credentials = indexmap! {
+        sig_st_1.id.clone() => credential_1.credential.into(),
+        sig_st_2.id.clone() => credential_2.credential.into()
+    };
+
+    let pres_sch_id = random_string(16, rand::thread_rng());
+
+    let eq_st = EqualityStatement {
+        id: random_string(16, rand::thread_rng()),
+        ref_id_claim_index: indexmap! {
+            sig_st_1.id.clone() => 1,
+            sig_st_2.id.clone() => 1,
+        },
+    };
+    let pres_sch_1 = PresentationSchema::new_with_id(
+        &[
+            sig_st_1.clone().into(),
+            sig_st_2.clone().into(),
+            eq_st.clone().into(),
+        ],
+        &pres_sch_id,
+    );
+
+    let presentation = Presentation::create(&credentials, &pres_sch_1, &nonce)?;
+
+    // Prover and verifier each use PresentationSchema generated independently.
+    // 'pres_sch_2' to be used by verifier.
+    let pres_sch_2 = PresentationSchema::new_with_id(
+        &[sig_st_1.into(), sig_st_2.into(), eq_st.into()],
+        &pres_sch_id,
+    );
+
+    Ok((presentation, pres_sch_2))
 }
