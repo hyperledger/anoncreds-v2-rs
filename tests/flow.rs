@@ -565,7 +565,6 @@ fn blind_sign_request() {
 fn test_blind_sign_request() -> CredxResult<()> {
     const LABEL: &str = "Test Schema";
     const DESCRIPTION: &str = "This is a test presentation schema";
-    const CRED_ID: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
     let schema_claims = [
         ClaimSchema {
             claim_type: ClaimType::Revocation,
@@ -625,7 +624,6 @@ fn test_blind_sign_request() -> CredxResult<()> {
     // equal link_secret equality claims
 
     let res = check_link_secret_equality(
-        CRED_ID,
         &issuer_public_1,
         &mut issuer_1,
         &issuer_public_2,
@@ -646,7 +644,6 @@ fn test_blind_sign_request() -> CredxResult<()> {
 
     let blind_claims_2 = btreemap! { "link_secret".to_string() => ScalarClaim::from(Scalar::random(rand_core::OsRng)).into() };
     let res = check_link_secret_equality(
-        CRED_ID,
         &issuer_public_1,
         &mut issuer_1,
         &issuer_public_2,
@@ -667,7 +664,6 @@ fn test_blind_sign_request() -> CredxResult<()> {
 
 #[allow(clippy::too_many_arguments)]
 fn check_link_secret_equality(
-    cred_id: &str,
     issuer_public_1: &IssuerPublic<BbsScheme>,
     issuer_1: &mut Issuer<BbsScheme>,
     issuer_public_2: &IssuerPublic<BbsScheme>,
@@ -680,10 +676,13 @@ fn check_link_secret_equality(
     let (request_1, blinder_1) = BlindCredentialRequest::new(issuer_public_1, blind_claims_1)?;
     let (request_2, blinder_2) = BlindCredentialRequest::new(issuer_public_2, blind_claims_2)?;
 
+    const CRED_ID_1: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
+    const CRED_ID_2: &str = "91742856-6eee-45fb-a709-d22eee5ec8a5";
+
     let blind_bundle_1 = issuer_1.blind_sign_credential(
         &request_1,
         &btreemap! {
-            "identifier".to_string() => RevocationClaim::from(cred_id).into(),
+            "identifier".to_string() => RevocationClaim::from(CRED_ID_1).into(),
             "name".to_string() => HashedClaim::from("John Doe").into(),
             "address".to_string() => HashedClaim::from("P Sherman 42 Wallaby Way Sydney").into(),
             "age".to_string() => NumberClaim::from(30303).into(),
@@ -692,7 +691,7 @@ fn check_link_secret_equality(
     let blind_bundle_2 = issuer_2.blind_sign_credential(
         &request_2,
         &btreemap! {
-            "identifier".to_string() => RevocationClaim::from(cred_id).into(),
+            "identifier".to_string() => RevocationClaim::from(CRED_ID_2).into(),
             "name".to_string() => HashedClaim::from("Jane Doe").into(),
             "address".to_string() => HashedClaim::from("Sydney").into(),
             "age".to_string() => NumberClaim::from(30304).into(),
