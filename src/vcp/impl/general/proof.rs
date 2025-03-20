@@ -30,6 +30,7 @@ pub fn create_proof(spec_prover: SpecificProver) -> CreateProof {
             )?;
             if (proof_mode != ProofMode::TestBackend) {
                 validate_proof_instructions_against_values(&all_vals, &res_prf_insts)?;
+                eq_reqs.iter().try_for_each(|x| {validate_one_equality(&all_vals, x)})?;
             }
             let WarningsAndProof {
                 warnings: warns_dfv,
@@ -46,6 +47,42 @@ pub fn create_proof(spec_prover: SpecificProver) -> CreateProof {
             })
         },
     )
+}
+
+pub fn validate_one_equality (
+    all_vals: &HashMap<CredentialLabel,HashMap<CredAttrIndex,(DataValue,bool)>>,
+    eq_req: &[(CredentialLabel, CredAttrIndex)]
+) -> VCPResult<()> {
+    match eq_req {
+        []  =>  Err(Error::General(ic_semi(&str_vec_from!("validate_one_equality",
+                                                          "UNEXPECTED",
+                                                          "empty equality list")))),
+        [_] =>  Err(Error::General(ic_semi(&str_vec_from!("validate_one_equality",
+                                                          "UNEXPECTED",
+                                                          "empty equality list")))),
+        [(c_lbl_first, a_idx_first),l @ ..] => {
+            let (v_first, _) = lookup_throw_if_absent_2_lvl(c_lbl_first, a_idx_first, all_vals, Error::General,
+                                                            &str_vec_from!("createProof", "validate_one_equality_1",
+                                                                           format!("{all_vals:?}")))?;
+            for (ref c_lbl_other, ref a_idx_other) in l.iter() {
+                let (v_other, _) = lookup_throw_if_absent_2_lvl(c_lbl_other, a_idx_other, all_vals, Error::General,
+                                                                &str_vec_from!("createProof", "validate_one_equality_1",
+                                                                           format!("{all_vals:?}")))?;
+                if v_first != v_other {
+                    return Err(Error::General(ic_semi(&str_vec_from!(
+                        "validate_one_equality",
+                        "values not equal",
+                        c_lbl_first,
+                        a_idx_first.to_string(),
+                        c_lbl_other,
+                        a_idx_other.to_string(),
+                        v_first.to_string(),
+                        v_other.to_string()))))
+                };
+            };
+            Ok(())
+        }
+    }
 }
 
 pub fn verify_proof(spec_verifier: SpecificVerifier) -> VerifyProof {

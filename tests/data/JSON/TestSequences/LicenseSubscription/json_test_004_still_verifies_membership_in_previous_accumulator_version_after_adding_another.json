@@ -1,6 +1,6 @@
 {"comment": "This test confirms that a Holder can still prove membership in a previous accumulator after another is added",
  "descr": "still_verifies_membership_in_previous_accumulator_version_after_adding_another",
- "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-03-07",
+ "provenance": "DO NOT MODIFY MANUALLY: this test was generated programatically; if you want to modify it, you can make a copy, and modify that.  For questions or suggestions about this test, file an issue at https://github.com/mark-moir/anoncreds-v2-rs -- and mention tag 2025-03-17",
  "testseq": [{"contents": ["DMV",
                            ["CTText", "CTInt", "CTText", "CTInt", "CTAccumulatorMember"]],
               "tag": "CreateIssuer"},
