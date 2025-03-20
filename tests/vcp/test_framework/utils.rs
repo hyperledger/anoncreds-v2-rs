@@ -1,4 +1,5 @@
 // -----------------------------------------------------------------------------
+use credx::str_vec_from;
 use credx::vcp::{Error, VCPResult};
 use credx::vcp::api;
 use credx::vcp::r#impl::util::*;
@@ -9,6 +10,7 @@ use crate::vcp::test_framework::types::*;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::fs::File;
+use std::path::*;
 // -----------------------------------------------------------------------------
 
 lazy_static! {
@@ -34,7 +36,7 @@ lazy_static! {
 }
 
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub struct TestSequenceWithMetadata {
     pub descr: String,
     pub comment: Option<String>,
@@ -124,10 +126,41 @@ pub fn run_test_from_json_file(
     platform_api: &api::PlatformApi,
     filename: String
 ) -> VCPResult<TestState> {
-    let f_in = File::open(filename).map_err(|e| Error::FileError(e.to_string()))?;
+    let tswmd: TestSequenceWithMetadata = get_test_sequence_and_validate_name(filename)?;
+    start_test_with_metadata(platform_api,tswmd)
+}
+
+fn get_test_sequence_and_validate_name(filename: String) -> VCPResult<TestSequenceWithMetadata> {
+    let json_test_prefix = "json_test_";
+    let json_test_suffix = ".json";
+    let r#fn = Path::new(&filename)
+        .file_name()
+        .ok_or(Error::General(format!("No filename found in {filename}")))?
+        .to_str()
+        .ok_or(Error::General(format!("Can't convert {filename} to String")))?;
+    if !r#fn.starts_with(json_test_prefix) {
+        return Err(Error::General(ic_semi(&str_vec_from!("getNameAndTestSequence", "expected prefix",
+                                                         json_test_prefix, "not found in", r#fn))))
+    };
+    if !r#fn.ends_with(json_test_suffix) {
+        return Err(Error::General(ic_semi(&str_vec_from!("getNameAndTestSequence", "expected suffix",
+                                                         json_test_suffix, "not found in", r#fn))))
+    };
+    let f_in = File::open(filename.clone()).map_err(|e| Error::FileError(e.to_string()))?;
     let tswmd: TestSequenceWithMetadata =
         serde_json::from_reader(f_in).map_err(|e| Error::FileError(e.to_string()))?;
-    start_test_with_metadata(platform_api,tswmd)
+    let fn_base = Path::new(&filename)
+        .file_stem()
+        .ok_or(Error::General(format!("No file stem found in {filename}")))?
+        .to_str()
+        .ok_or(Error::General(format!("Can't convert {filename} to String")))?
+    .to_string();
+    let descr = tswmd.clone().descr;
+    if !upper_case_slow(fn_base).ends_with(&upper_case_slow(descr.clone())) {
+        return Err(Error::General(format!(
+            "ERROR: test description ({descr}) does not match filename ({filename})")));
+    };
+    Ok(tswmd)
 }
 
 #[macro_export]
@@ -144,3 +177,6 @@ pub fn run_test(platform_api: &api::PlatformApi, t_seq: TestSequence) {
     start_test(platform_api, t_seq).unwrap(); // Errors thrown from PresentationSetupRequestSetup end up here
 }
 
+pub fn upper_case_slow (s: String) -> String {
+        s.replace("slow","SLOW")
+}

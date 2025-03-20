@@ -638,6 +638,13 @@ pub fn step_create_and_verify_proof(
                 Ok(())
             },
             Ok(ref wadfv@WarningsAndDataForVerifier { warnings: ref create_warns, data_for_verifier: ref dfv }) => {
+                if let CreateProofFails(l) = &test_exp {
+                    return Err(Error::General(ic_semi(&str_vec_from!(
+                        "step_create_and_verify_proof",
+                        "create_proof expected to fail, but succeeded",
+                        "error expected to contain",
+                        format!("{l:?}")))))
+                };
                 let d_reqs = ts.decrypt_requests.get(&h_lbl).cloned().unwrap_or_default();
                 let res_v = verify_proof(
                     proof_reqs,
@@ -659,26 +666,25 @@ pub fn step_create_and_verify_proof(
                     },
                     Ok(WarningsAndDecryptResponses { warnings, decrypt_responses }) => {
                         match &test_exp {
-                            CreateVerifyExpectation::CreateProofFails(l) => {
+                            CreateProofFails(_) => {
                                 Err(Error::General(ic_semi(&str_vec_from!(
                                     "step_create_and_verify_proof",
-                                    "create_proof expected to fail, but succeeded",
-                                    "error expected to contain",
-                                    format!("{l:?}")))))
+                                    "IMPOSSIBLE",
+                                    "condition already checked"))))
                             }
-                            CreateVerifyExpectation::VerifyProofFails => {
+                            VerifyProofFails => {
                                 Err(Error::General(
                                     "step_create_and_verify_proof; verify_proof expected to fail, but succeeded"
                                         .to_string(),
                                 ))
                             }
-                            CreateVerifyExpectation::CreateOrVerifyFails => {
+                            CreateOrVerifyFails => {
                                 Err(Error::General(
                                     "step_create_and_verify_proof; create_proof or verify_proof expected to fail, but succeeded"
                                         .to_string(),
                                 ))
                             },
-                            CreateVerifyExpectation::BothSucceedNoWarnings => {
+                            BothSucceedNoWarnings => {
                                 if !create_warns.is_empty() || !warnings.is_empty() {
                                     return Err(Error::General(
                                         format!("step_create_and_verify_proof; expected no warnings, got; {create_warns:?}; {warnings:?}")))
