@@ -36,5 +36,13 @@
 
  "027_encrypt_and_decrypt_two_attributes_different_authorities_and_verify_decryption_correct_values":
  {"contents": "AC2C does not yet fully support verifiable encryption",
+  "tag": "Fail"},
+
+ "038_SLOWSLOW_encrypt_and_decrypt_two_attributes_same_authority_and_verify_decryption_correct_values_multiple_equalities_strict_t_t":
+ {"contents": "AC2C does not yet fully support verifiable encryption",
+  "tag": "Fail"},
+
+ "039_SLOWSLOW_encrypt_and_decrypt_two_attributes_same_authority_and_verify_decryption_correct_values_multiple_equalities_testbackend_t_t":
+ {"contents": "AC2C does not yet fully support verifiable encryption",
   "tag": "Fail"}
 }

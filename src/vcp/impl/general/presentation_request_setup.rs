@@ -44,11 +44,9 @@ mod check_equalities_have_same_claim_types {
         pres_reqs: &HashMap<CredentialLabel, CredentialReqs>,
         shared_params: &HashMap<SharedParamKey, SharedParamValue>,
         eq_req: EqualityReq) -> VCPResult<()> {
-        let claim_types : Vec<ClaimType> = eq_req
+        let claim_types: Vec<ClaimType> = eq_req
             .iter()
             .map(|x| go(pres_reqs, shared_params, x.clone()))
-            .collect::<Vec<_>>()
-            .into_iter()
             .collect::<VCPResult<_>>()?;
         match claim_types.first() {
             None => Ok(()),
