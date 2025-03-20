@@ -338,7 +338,7 @@ fn presentation_with_domain_proof() {
         generate_verifiable_encryption_keys(thread_rng());
 
     let sig_st = SignatureStatement {
-        disclosed: btreeset! {"name".to_string()},
+        disclosed: btreeset! {},
         id: random_string(16, rand::thread_rng()),
         issuer: issuer_public.clone(),
     };
