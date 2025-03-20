@@ -271,6 +271,7 @@ fn presentation_with_domain_proof() {
     const DESCRIPTION: &str = "This is a test presentation schema";
     const CRED_ID: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
     const DOMAIN: &[u8] = b"example.com";
+    const SUBJECT_NAME: &str = "John Doe";
     let schema_claims = [
         ClaimSchema {
             claim_type: ClaimType::Revocation,
@@ -317,7 +318,7 @@ fn presentation_with_domain_proof() {
     let credential = issuer
         .sign_credential(&[
             RevocationClaim::from(CRED_ID).into(),
-            HashedClaim::from("John Doe").into(),
+            HashedClaim::from(SUBJECT_NAME).into(),
             HashedClaim::from("P Sherman 42 Wallaby Way Sydney").into(),
             NumberClaim::from(30303).into(),
         ])
@@ -360,7 +361,7 @@ fn presentation_with_domain_proof() {
         encryption_key: verifier_domain_specific_encryption_key,
         id: random_string(16, rand::thread_rng()),
         reference_id: sig_st.id.clone(),
-        claim: 0,
+        claim: 1,
     };
     let verenc_st_id = verenc_st.id.clone();
     let range_st = RangeStatement {
@@ -417,7 +418,7 @@ fn presentation_with_domain_proof() {
     let value1 = proof1.decrypt(&verifier_domain_specific_decryption_key);
     let value2 = proof2.decrypt(&verifier_domain_specific_decryption_key);
 
-    let value_hash: HashedClaim = HashedClaim::from(CRED_ID);
+    let value_hash: HashedClaim = HashedClaim::from(SUBJECT_NAME);
     let value_scalar: Scalar = value_hash.to_scalar();
     let value_commitment: G1Projective = create_domain_proof_generator(DOMAIN) * value_scalar;
 
