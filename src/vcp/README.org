@@ -93,6 +93,23 @@ touch tests/data/JSON/TestSequences/LicenseSubscription/*.json  # It is *not* su
 make test
 #+end_example
 
+There are Makefile targets =test-json-tests= and =test-json-tests-skip-slow= to enable running just the
+JSON tests in =tests/data/JSON/TestSequences/LicenseSubscription=.  You can be more selective than the
+handful of Makefile targets enable by using =cargo test= directly.  Here are some examples:
+#+begin_example
+cd <root of this repo>
+# Run JSON tests using AC2C and selecting the signature scheme
+cargo test ac2c::run_json_zkp_functionality_tests::ps
+cargo test ac2c::run_json_zkp_functionality_tests::bbs
+
+# Run JSON tests using DNC
+cargo test dnc::run_json_zkp_functionality_tests
+
+# Same but skipping SLOW or SLOWSLOW tests
+cargo test --features=ignore_slow      dnc::run_json_zkp_functionality_tests
+cargo test --features=ignore_slow_slow dnc::run_json_zkp_functionality_tests
+#+end_example
+
 ** JSON test file naming and contents
 
 JSON test files contain the following fields:
