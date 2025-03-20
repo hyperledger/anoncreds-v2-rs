@@ -1,7 +1,7 @@
-use blsful::inner_types::*;
+use blsful::inner_types::{Field, Scalar, G1Projective, ExpandMsgXmd};
 use credx::blind::BlindCredentialRequest;
 use credx::claim::{
-    ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim,
+    Claim, ClaimType, ClaimValidator, HashedClaim, NumberClaim, RevocationClaim, ScalarClaim,
 };
 use credx::credential::{ClaimSchema, CredentialSchema};
 use credx::issuer::Issuer;
@@ -270,6 +270,7 @@ fn presentation_with_domain_proof() {
     const LABEL: &str = "Test Schema";
     const DESCRIPTION: &str = "This is a test presentation schema";
     const CRED_ID: &str = "91742856-6eda-45fb-a709-d22ebb5ec8a5";
+    const DOMAIN: &[u8] = b"example.com";
     let schema_claims = [
         ClaimSchema {
             claim_type: ClaimType::Revocation,
@@ -355,7 +356,7 @@ fn presentation_with_domain_proof() {
         claim: 3,
     };
     let verenc_st = VerifiableEncryptionStatement {
-        message_generator: create_domain_proof_generator(b"verifier specific message generator"),
+        message_generator: create_domain_proof_generator(DOMAIN),
         encryption_key: verifier_domain_specific_encryption_key,
         id: random_string(16, rand::thread_rng()),
         reference_id: sig_st.id.clone(),
@@ -415,7 +416,14 @@ fn presentation_with_domain_proof() {
     assert_ne!(proof1.c2, proof2.c2);
     let value1 = proof1.decrypt(&verifier_domain_specific_decryption_key);
     let value2 = proof2.decrypt(&verifier_domain_specific_decryption_key);
+
+    let value_hash: HashedClaim = HashedClaim::from(CRED_ID);
+    let value_scalar: Scalar = value_hash.to_scalar();
+    let value_commitment: G1Projective = create_domain_proof_generator(DOMAIN) * value_scalar;
+
     assert_eq!(value1, value2);
+    assert_eq!(value1, value_commitment);
+
 }
 
 #[ignore]
