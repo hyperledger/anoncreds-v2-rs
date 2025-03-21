@@ -242,6 +242,7 @@ fn create_bank_statement_statements_for_realid<S: ShortGroupSignatureScheme>(
         message_generator: G1Projective::GENERATOR,
         encryption_key: bank_public.verifiable_encryption_key,
         claim: schema.claim_indices.get_index_of("account_number").unwrap(),
+        allow_message_decryption: false,
     };
 
     let bank_statement_statements: [Statements<S>; 5] = [
@@ -367,6 +368,7 @@ fn create_dos_passport_statements_for_realid<S: ShortGroupSignatureScheme>(
             .claim_indices
             .get_index_of("passport_number")
             .unwrap(),
+        allow_message_decryption: false,
     };
 
     let dos_passport_statements: [Statements<S>; 7] = [
@@ -408,6 +410,7 @@ fn create_soc_sec_statements_for_realid<S: ShortGroupSignatureScheme>(
         message_generator: G1Projective::GENERATOR,
         encryption_key: ssa_public.verifiable_encryption_key,
         claim: schema.claim_indices.get_index_of("soc_sec_number").unwrap(),
+        allow_message_decryption: false,
     };
 
     let soc_sec_statements: [Statements<S>; 3] = [
