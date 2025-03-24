@@ -41,14 +41,14 @@ impl From<Scalar> for ScalarClaim {
 
 impl ScalarClaim {
     pub fn encode_str(value: &str) -> CredxResult<Self> {
-        if value.len() > 30 {
+        if value.len() > 31 {
             return Err(Error::InvalidClaimData(
-                "scalar claim can only store 30 bytes or less and cannot be empty",
+                "scalar claim can only store 31 bytes or less",
             ));
         }
         let mut bytes = [0u8; 32];
         if !value.is_empty() {
-            bytes[1] = value.len() as u8;
+            bytes[0] = value.len() as u8;
             bytes[32 - value.len()..].copy_from_slice(value.as_bytes());
         }
         let s = Option::<Scalar>::from(Scalar::from_be_bytes(&bytes))
@@ -58,20 +58,20 @@ impl ScalarClaim {
 
     pub fn decode_to_str(&self) -> CredxResult<String> {
         let data = self.value.to_be_bytes();
-        let len = data[1] as usize;
+        let len = data[0] as usize;
         String::from_utf8(data[32 - len..].to_vec())
             .map_err(|_| Error::InvalidClaimData("scalar claim is not valid UTF-8"))
     }
 
     pub fn encode_bytes(value: &[u8]) -> CredxResult<Self> {
-        if value.len() > 30 {
+        if value.len() > 31 {
             return Err(Error::InvalidClaimData(
-                "scalar claim can only store 30 bytes or less",
+                "scalar claim can only store 31 bytes or less",
             ));
         }
         let mut bytes = [0u8; 32];
         if !value.is_empty() {
-            bytes[1] = value.len() as u8;
+            bytes[0] = value.len() as u8;
             bytes[32 - value.len()..].copy_from_slice(value);
         }
         let s = Option::<Scalar>::from(Scalar::from_be_bytes(&bytes))

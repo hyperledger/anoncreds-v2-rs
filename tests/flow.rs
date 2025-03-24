@@ -362,7 +362,7 @@ fn presentation_decrypt_scalar_claim() {
     presentation.verify(&presentation_schema, &nonce).unwrap();
 
     if let PresentationProofs::VerifiableEncryption(verenc) = &presentation.proofs[&verenc1_id] {
-        // This works because the phone number is a less than 32 bytes
+        // This works because the name is less than 32 bytes
         let decrypted_name_scalar = verenc
             .decrypt_scalar(&issuer.verifiable_decryption_key)
             .unwrap();

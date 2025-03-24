@@ -49,7 +49,7 @@ macro_rules! impl_from {
 impl From<Scalar> for NumberClaim {
     fn from(value: Scalar) -> Self {
         let limb = <[u8; 8]>::try_from(&value.to_le_bytes()[..8])
-            .expect("Scalar is 32 bytes, so 4 bytes should exist");
+            .expect("Scalar is 32 bytes, so 8 bytes should exist");
         Self::from(zero_center(u64::from_le_bytes(limb) as isize))
     }
 }
