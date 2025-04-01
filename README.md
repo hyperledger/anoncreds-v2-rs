@@ -1,69 +1,51 @@
 # AnonCreds v2
 
-This repository contains the basis for the AnonCreds v2 implementation, an
-evolution of the AnonCreds v1 open [specification] and open source
-[implementation] that has been widely used around the world since 2017.  The
-goal of AnonCreds v2 is to retain and extend the privacy-preserving features of
-AnonCreds v1, while improving capabilities, performance, extensibility, and
-security.
+This repository contains a toolkit that is ready for use in verifiable credential use cases, providing robust support for privacy-preserving credentials through zero-knowledge proofs, a pluggable interface for cryptographic signature suites, and flexible schema handling. It currently includes support for BBS signatures and builds on the foundations laid by the AnonCreds v1, which have been widely adopted since 2017, providing a tested model for privacy-preserving verifiable credential systems.
+
+Our next goal is to define on top of this toolkit a comprehensive, opinionated specification and reference implementation—comparable to AnonCreds v1 ([spec], [code])—that offers a high-level, easy-to-use API that enables interoperability. The “opinionated” part means making decisions about how the toolkit will be used for interoperability and to make it trivial for developers to implement their use cases. The work  includes formally defined data models for credentials and presentations based on the [W3C Verifiable Credentials Data Model] (VCDM), the specification of all other objects, and formalizing the interactions among ecosystem participants—the same interactions as are defined in AnonCreds v1.
 
 > Want to help with AnonCreds v2? Check out the [To Do Items] to extend this
-implementation from a starting point to where it can be used in production
-solutions.
+implementation from a toolkit to a standards-based Verifiable Credentials specification and implementation.
 
-[specification]: https://hyperledger.github.io/anoncreds-spec/
-[implementation]: https://github.com/hyperledger/anoncreds-rs
-
-Concretely, AnonCreds v2:
-
-- Is intended to retain the objects from AnonCreds v1 -- the credential schema,
-  credential definition, presentation request, and presentation.
-  - Although none of the objects are identical to those in AnonCreds v1, the interactions with the objects are the same. This will enable a path for migrating implementations from AnonCreds v1 to v2.
-- Substantially increases the information included in the [credential
-  schema](#credential-schema) about the claim types such that the encoding and
-  cryptographic handling of the claims can be enhanced to provide more:
-  - capabilities - additional ZKP presentation options and different, swappable signature schemes
-  - performance - via support for different signature schemes
-  - extensibility - additional ZKP presentation options and different, swappable signature schemes
-  - security - support for more secure signature schemes
-- Supports [PS Signatures] in the current implementation and can be updated to support [BBS+ Signatures]
-  - The [BBS+ Signatures] support has been tested in this implementation in the past, but is not part of the current codebase.
-  - [CL Signatures] could be used.
-  - PS Signatures have a [post-quantum option] that will be experimented with in the context of AnonCreds v2.
-- Supports additional kinds of ZKP presentation capabilities, including:
-  - Signed integer expressions
-  - Range proof
-  - Domain proof (also known as a per verifier credential identifier)
-  - Set membership
-  - Verified encryption
-  - Blinded secret
-  - Equality proof of claims from different credentials
-  - Revocation
-- Supports revocation in a substantially simpler and more scalable way using the [ALLOSAUR] revocation scheme
-  - Other techniques for revocation are being considered for AnonCreds v2.
-
-[PS Signatures]: https://eprint.iacr.org/2015/525.pdf
-[BBS+ Signatures]: https://datatracker.ietf.org/doc/draft-irtf-cfrg-bbs-signatures
-[CL Signatures]: https://eprint.iacr.org/2001/019.pdf
-[ALLOSAUR]: https://eprint.iacr.org/2022/1362
-[post-quantum option]: https://eprint.iacr.org/2022/509
-
-## To Do for AnonCreds v2
-
-AnonCreds v2 is currently in production and ready for use. This repository is but an initial
-(thorough but incomplete) implementation. The issues contain a list of the
-labelled [To Do Items] (open and closed) that we envision are needed for a
-complete implementation. We are now seeking collaborators to help with the
-implementation to knock off the [To Do Items].
-
+[spec]: https://hyperledger.github.io/anoncreds-spec/
+[code]: https://github.com/hyperledger/anoncreds-rs
+[W3C Verifiable Credentials Data Model]: https://www.w3.org/TR/vc-data-model-2.0/
 [To Do Items]: https://github.com/hyperledger/anoncreds-v2-rs/issues?q=label%3A%22AnonCreds+v2+To+Do%22+
 
-Some of the [To Do Items] are focused around making AnonCreds v2 sufficiently
-opinionated to enable interoperability. The success to date of AnonCreds to now
-has been because of its ZKP-capabilities combined with its opinionated
-specification that makes it obvious to all parties in an AnonCreds verifiable
-credential ecosystem to know what is required of each other. Comparable
-opinionated specifications are needed in AnonCreds v2 to simplify deployments.
+## Key Features
+
+AnonCreds v2:
+
+- Implements a pluggable interface for zero-knowledge proof (ZKP)-enabled signature suites, currently supporting [BBS Signatures](https://datatracker.ietf.org/doc/draft-irtf-cfrg-bbs-signatures/) and [PS Signatures](https://eprint.iacr.org/2015/525.pdf).
+  - Theoretically, it could support the AnonCreds v1’s [CL Signatures](https://cs.brown.edu/~alysyans/papers/camlys02b.pdf), but given the shift towards more modern signature suites, this work has not been pursued.
+  - There is a [post-quantum version of PS Signatures](https://eprint.iacr.org/2024/131.pdf) suite, which we’d love to see someone experiment with in the context of AnonCreds v2. While the objects (such as public and private keys) will be much (much) bigger, the signature scheme should “just work” (at least that’s the theory…).
+- Retains the core objects from AnonCreds v1—credential schema, credential definition, credential, presentation request, and presentation.
+  - While none of these objects are identical to their AnonCreds v1 counterparts, their interactions remain the same, facilitating migration from v1 to v2.
+- Expands the information included in the [credential schema](#credential-schema) to enable enhanced encoding and cryptographic processing, improving:
+  - Capabilities—additional ZKP presentation options and support for pluggable signature schemes.
+  - Performance—enhancements in speed and size through different signature schemes.
+  - Extensibility—flexible support for new ZKP presentation options and signature schemes.
+  - Security—ensuring signature schemes undergo rigorous security audits.
+- Supports the ZKP presentation capabilities found in AnonCreds v1:
+  - Unlinkable signatures
+  - Selective disclosure
+  - Blinded secrets — the basis for AnonCreds v1’s “link secret” capability.
+  - Predicate proofs on positive integer claims
+- Introduces additional ZKP presentation capabilities, including:
+  - Signed integer expressions
+  - Range proofs
+  - Domain proofs (per-verifier credential identifiers and pseudonymous identifiers)
+  - Set membership proofs
+  - Verified encryption
+  - Equality proofs for claims across different credentials
+- Implements [ALLOSAUR](https://eprint.iacr.org/2022/1362) a more scalable and efficient revocation system than AnonCreds v1.
+  - Additional revocation techniques are under consideration for AnonCreds v2.
+
+## Development and Contributions
+
+AnonCreds v2 is production-ready ZKP toolkit, and is actively being refined.  The repository issues list contains labelled [To Do Items] needed for building upon the toolkit to create the specifications and an implementation of a standards-based, ZKP verifiable credentials system.  We welcome contributors to help complete these tasks.
+
+A number of the tasks focus on making AnonCreds v2 sufficiently opinionated to enable interoperability. The success of AnonCreds v1 stems from its combination of ZKP capabilities and an opinionated specification, making deployments easy for all ecosystem participants. AnonCreds v2 requires similarly structured specifications to streamline interoperable deployments that use the even more powerful ZKP capabilities.
 
 ## Implementation Overview
 

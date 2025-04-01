@@ -1,4 +1,6 @@
 use super::{Claim, ClaimType};
+use crate::error::Error;
+use crate::CredxResult;
 use blsful::inner_types::Scalar;
 use core::{
     fmt::{self, Display, Formatter},
@@ -34,6 +36,53 @@ impl Display for ScalarClaim {
 impl From<Scalar> for ScalarClaim {
     fn from(value: Scalar) -> Self {
         Self { value }
+    }
+}
+
+impl ScalarClaim {
+    pub fn encode_str(value: &str) -> CredxResult<Self> {
+        if value.len() > 31 {
+            return Err(Error::InvalidClaimData(
+                "scalar claim can only store 31 bytes or less",
+            ));
+        }
+        let mut bytes = [0u8; 32];
+        if !value.is_empty() {
+            bytes[0] = value.len() as u8;
+            bytes[32 - value.len()..].copy_from_slice(value.as_bytes());
+        }
+        let s = Option::<Scalar>::from(Scalar::from_be_bytes(&bytes))
+            .ok_or(Error::InvalidClaimData("scalar claim is not valid UTF-8"))?;
+        Ok(Self::from(s))
+    }
+
+    pub fn decode_to_str(&self) -> CredxResult<String> {
+        let data = self.value.to_be_bytes();
+        let len = data[0] as usize;
+        String::from_utf8(data[32 - len..].to_vec())
+            .map_err(|_| Error::InvalidClaimData("scalar claim is not valid UTF-8"))
+    }
+
+    pub fn encode_bytes(value: &[u8]) -> CredxResult<Self> {
+        if value.len() > 31 {
+            return Err(Error::InvalidClaimData(
+                "scalar claim can only store 31 bytes or less",
+            ));
+        }
+        let mut bytes = [0u8; 32];
+        if !value.is_empty() {
+            bytes[0] = value.len() as u8;
+            bytes[32 - value.len()..].copy_from_slice(value);
+        }
+        let s = Option::<Scalar>::from(Scalar::from_be_bytes(&bytes))
+            .ok_or(Error::InvalidClaimData("scalar claim is not byte data"))?;
+        Ok(Self::from(s))
+    }
+
+    pub fn decode_to_bytes(&self) -> CredxResult<Vec<u8>> {
+        let data = self.value.to_be_bytes();
+        let len = data[1] as usize;
+        Ok(data[32 - len..].to_vec())
     }
 }
 
