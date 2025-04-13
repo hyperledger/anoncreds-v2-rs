@@ -1,5 +1,6 @@
 use super::*;
 use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
+use crate::presentation::verifiable_encryption_decryption::VerifiableEncryptionDecryptionBuilder;
 use log::debug;
 
 impl<S: ShortGroupSignatureScheme> Presentation<S> {
@@ -18,14 +19,13 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
         let (signature_statements, predicate_statements) = Self::split_statements(schema);
 
         if signature_statements.len() > credentials.len() {
-            return Err(Error::InvalidPresentationData);
+            return Err(Error::InvalidPresentationData(format!("the number of signature statements '{}' exceeds the number of supplied credentials '{}'", signature_statements.len(), credentials.len())));
         }
 
-        if signature_statements
-            .iter()
-            .any(|(k, _)| !credentials.contains_key(*k))
-        {
-            return Err(Error::InvalidPresentationData);
+        for (k, _) in signature_statements.iter() {
+            if !credentials.contains_key(*k) {
+                return Err(Error::InvalidPresentationData(format!("not all signature statements have a corresponding credential. signature statement '{}' is missing a corresponding credential", k)));
+            }
         }
 
         let messages = Self::get_message_types(
@@ -47,16 +47,17 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     continue;
                 };
                 for (index, claim) in cred.claims.iter().enumerate() {
-                    if matches!(messages[id][index], ProofMessage::Revealed(_)) {
+                    if matches!(messages[id][index].1, ProofMessage::Revealed(_)) {
                         let label = ss.issuer.schema.claim_indices.get_index(index).unwrap();
                         dm.insert((*label).clone(), claim.clone());
                     }
                 }
                 Self::add_disclosed_messages_challenge_contribution(id, &dm, &mut transcript);
+                let signature_messages = messages[*id].iter().map(|(_, m)| *m).collect::<Vec<_>>();
                 let builder = SignatureBuilder::commit(
                     ss,
                     &cred.signature,
-                    &messages[*id],
+                    &signature_messages,
                     rng,
                     &mut transcript,
                 )?;
@@ -75,7 +76,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     builders.push(builder.into());
                 }
                 Statements::Revocation(a) => {
-                    let proof_message = messages[&a.reference_id][a.claim];
+                    let (_, proof_message) = messages[&a.reference_id][a.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData(
                             "revealed claim cannot be used for set membership proofs",
@@ -99,7 +100,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     builders.push(builder.into());
                 }
                 Statements::Membership(m) => {
-                    let proof_message = messages[&m.reference_id][m.claim];
+                    let (_, proof_message) = messages[&m.reference_id][m.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData(
                             "revealed claim cannot be used for set membership proofs",
@@ -123,7 +124,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     builders.push(builder.into());
                 }
                 Statements::Commitment(c) => {
-                    let proof_message = messages[&c.reference_id][c.claim];
+                    let (_, proof_message) = messages[&c.reference_id][c.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData(
                             "revealed claim cannot be used for commitment",
@@ -137,7 +138,7 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     builders.push(builder.into());
                 }
                 Statements::VerifiableEncryption(v) => {
-                    let proof_message = messages[&v.reference_id][v.claim];
+                    let (_, proof_message) = messages[&v.reference_id][v.claim];
                     if matches!(proof_message, ProofMessage::Revealed(_)) {
                         return Err(Error::InvalidClaimData(
                             "revealed claim cannot be used for verifiable encryption",
@@ -155,6 +156,26 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     id_to_builder.insert(*id, builders.len());
                     builders.push(builder.into());
                 }
+                Statements::VerifiableEncryptionDecryption(v) => {
+                    let (claim_data, proof_message) = &messages[&v.reference_id][v.claim];
+                    if matches!(proof_message, ProofMessage::Revealed(_)) {
+                        return Err(Error::InvalidClaimData(
+                            "revealed claim cannot be used for verifiable encryption",
+                        ));
+                    }
+                    let message = proof_message.get_message();
+                    let blinder = proof_message.get_blinder(rng).unwrap();
+                    let builder = VerifiableEncryptionDecryptionBuilder::commit(
+                        v,
+                        claim_data,
+                        message,
+                        blinder,
+                        rng,
+                        &mut transcript,
+                    )?;
+                    id_to_builder.insert(*id, builders.len());
+                    builders.push(builder.into());
+                }
                 Statements::Range(_) => {
                     // handle after these since they depend on commitment builders
                     range_id.insert(*id);
@@ -164,13 +185,17 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
         }
         let mut range_builders = Vec::<PresentationBuilders<S>>::with_capacity(range_id.len());
         for id in range_id {
-            if let Statements::Range(r) = predicate_statements
-                .get(id)
-                .ok_or(Error::InvalidPresentationData)?
+            if let Statements::Range(r) =
+                predicate_statements
+                    .get(id)
+                    .ok_or(Error::InvalidPresentationData(format!(
+                        "expected a predicate range proof statement with id '{}' but was not found",
+                        id
+                    )))?
             {
                 let sig = if let PresentationCredential::Signature(sig) = credentials
                     .get(&r.signature_id)
-                    .ok_or(Error::InvalidPresentationData)?
+                    .ok_or(Error::InvalidPresentationData(format!("range proof statement with id '{}' references a signature statement with id '{}' but no signature statement has that id.", id, r.signature_id)))?
                 {
                     sig
                 } else {
@@ -181,16 +206,16 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                     if let ClaimData::Number(n) = sig
                         .claims
                         .get(r.claim)
-                        .ok_or(Error::InvalidPresentationData)?
+                        .ok_or(Error::InvalidPresentationData(format!("range proof statement with id '{}' references claim '{}' which doesn't exist", id, r.claim)))?
                     {
                         let builder =
                             RangeBuilder::commit(r, commitment, n.value, &mut transcript)?;
                         range_builders.push(builder.into());
                     } else {
-                        return Err(Error::InvalidPresentationData);
+                        return Err(Error::InvalidPresentationData(format!("range proof statement with id '{}' references claim '{}' which is not a number claim", id, r.claim)));
                     }
                 } else {
-                    return Err(Error::InvalidPresentationData);
+                    return Err(Error::InvalidPresentationData(format!("range proof statement with id '{}' references a commitment '{}' that doesn't exist", id, r.reference_id)));
                 }
             }
         }

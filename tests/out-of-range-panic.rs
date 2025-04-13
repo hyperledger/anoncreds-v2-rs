@@ -1,7 +1,6 @@
 use blsful::inner_types::*;
 use credx::claim::{ClaimType, NumberClaim, RevocationClaim};
 use credx::credential::{ClaimSchema, CredentialSchema};
-use credx::error;
 use credx::knox::bbs::BbsScheme;
 use credx::prelude::Issuer;
 use credx::presentation::{Presentation, PresentationSchema};
@@ -22,7 +21,7 @@ fn setup() {
 fn out_of_range_panic() {
     setup();
     let res = test_out_of_range_panic();
-    assert_eq!(res, Err(error::Error::InvalidPresentationData));
+    assert!(res.is_err());
 }
 
 #[allow(unused_variables)]

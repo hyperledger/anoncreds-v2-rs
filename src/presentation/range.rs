@@ -10,6 +10,7 @@ use elliptic_curve::group::Curve;
 use merlin::Transcript;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug)]
 pub(crate) struct RangeBuilder<'a> {
     statement: &'a RangeStatement,
     commitment_builder: &'a CommitmentBuilder<'a>,
@@ -128,7 +129,7 @@ impl<'a> RangeBuilder<'a> {
             && statement.signature_id != commitment_builder.statement.reference_id
         {
             // Not testing the same message from the same signature
-            return Err(Error::InvalidPresentationData);
+            return Err(Error::InvalidPresentationData(format!("range proof statement with id '{}' is not proving the same claim found in the specified commitment statement with id '{}': range proof statement reference signature statement id '{}', commitment statement reference signature statement id '{}'", statement.id, commitment_builder.statement.id, statement.signature_id, commitment_builder.statement.reference_id)));
         }
         {
             let lower = match statement.lower {
@@ -140,7 +141,7 @@ impl<'a> RangeBuilder<'a> {
                 None => isize::MAX,
             };
             if message < lower || message > upper {
-                return Err(Error::InvalidPresentationData);
+                return Err(Error::InvalidPresentationData(format!("the claim value '{}' is outside the range proof statement '{}' bounds: min '{}' and max '{}'", message, statement.id, lower, upper)));
             }
         }
         transcript.append_message(b"", statement.id.as_bytes());
@@ -203,7 +204,7 @@ impl<'a> RangeBuilder<'a> {
                 );
             }
             (None, None) => {
-                return Err(Error::InvalidPresentationData);
+                return Err(Error::InvalidPresentationData(format!("range proof has no lower or upper bounds when committing: range_proof_builder: {:?}", statement)));
             }
         }
         Ok(Self {

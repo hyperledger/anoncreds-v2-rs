@@ -1,5 +1,5 @@
 /// Errors created by this library
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Error {
     /// Bad Credential Schema
     InvalidCredentialSchema,
@@ -18,7 +18,7 @@ pub enum Error {
     /// Invalid data for creating a signature proof
     InvalidSignatureProofData,
     /// Invalid data for creating a presentation
-    InvalidPresentationData,
+    InvalidPresentationData(String),
     /// Invalid bulletproof range
     InvalidBulletproofRange,
     /// Invalid binary or text data

@@ -1,4 +1,5 @@
 use super::{Claim, ClaimType};
+use crate::utils::zero_center;
 use crate::{error::Error, utils::get_num_scalar};
 use blsful::inner_types::Scalar;
 use chrono::Datelike;
@@ -43,6 +44,14 @@ macro_rules! impl_from {
             }
         )*
     };
+}
+
+impl From<Scalar> for NumberClaim {
+    fn from(value: Scalar) -> Self {
+        let limb = <[u8; 8]>::try_from(&value.to_le_bytes()[..8])
+            .expect("Scalar is 32 bytes, so 8 bytes should exist");
+        Self::from(zero_center(u64::from_le_bytes(limb) as isize))
+    }
 }
 
 impl From<isize> for NumberClaim {

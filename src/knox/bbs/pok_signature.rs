@@ -32,7 +32,7 @@ impl ProofOfSignatureKnowledgeContribution for PokSignature {
         let msgs = messages.iter().map(|m| m.get_message()).collect::<Vec<_>>();
 
         let r = Scalar::random(&mut rng);
-        let r_inv = Option::from((-r).invert()).ok_or(Error::InvalidPresentationData)?;
+        let r_inv = Option::from((-r).invert()).ok_or(Error::InvalidPresentationData("an error occurred when creating a signature proof of knowledge, the random value `r` was zero".to_string()))?;
         let r_inv_e = r_inv * signature.e;
 
         let b = G1Projective::GENERATOR + G1Projective::sum_of_products(&public_key.y, &msgs);

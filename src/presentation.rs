@@ -9,6 +9,7 @@ mod revocation;
 mod schema;
 mod signature;
 mod verifiable_encryption;
+mod verifiable_encryption_decryption;
 mod verify;
 
 pub use commitment::*;
@@ -21,6 +22,7 @@ pub use revocation::*;
 pub use schema::*;
 pub use signature::*;
 pub use verifiable_encryption::*;
+pub use verifiable_encryption_decryption::*;
 
 use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::knox::short_group_sig_core::{HiddenMessage, ProofMessage};
@@ -49,6 +51,7 @@ pub(crate) enum PresentationBuilders<'a, S: ShortGroupSignatureScheme> {
     VerifiableEncryption(Box<VerifiableEncryptionBuilder<'a>>),
     Range(Box<RangeBuilder<'a>>),
     Membership(Box<MembershipProofBuilder<'a>>),
+    VerifiableEncryptionDecryption(Box<VerifiableEncryptionDecryptionBuilder<'a>>),
 }
 
 impl<S: ShortGroupSignatureScheme> PresentationBuilders<'_, S> {
@@ -62,6 +65,7 @@ impl<S: ShortGroupSignatureScheme> PresentationBuilders<'_, S> {
             Self::VerifiableEncryption(v) => v.gen_proof(challenge),
             Self::Range(r) => r.gen_proof(challenge),
             Self::Membership(m) => m.gen_proof(challenge),
+            Self::VerifiableEncryptionDecryption(v) => v.gen_proof(challenge),
         }
     }
 }
@@ -113,6 +117,14 @@ impl<'a, S: ShortGroupSignatureScheme> From<MembershipProofBuilder<'a>>
 {
     fn from(value: MembershipProofBuilder<'a>) -> Self {
         Self::Membership(Box::new(value))
+    }
+}
+
+impl<'a, S: ShortGroupSignatureScheme> From<VerifiableEncryptionDecryptionBuilder<'a>>
+    for PresentationBuilders<'a, S>
+{
+    fn from(value: VerifiableEncryptionDecryptionBuilder<'a>) -> Self {
+        Self::VerifiableEncryptionDecryption(Box::new(value))
     }
 }
 
@@ -205,13 +217,14 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
         }
     }
 
+    #[allow(clippy::type_complexity)]
     /// Map the claims to the respective types
     fn get_message_types<'a>(
         credentials: &IndexMap<String, PresentationCredential<S>>,
         signature_statements: &'a IndexMap<&String, &Statements<S>>,
         predicate_statements: &'a IndexMap<&String, &Statements<S>>,
         mut rng: impl RngCore + CryptoRng,
-    ) -> CredxResult<IndexMap<&'a String, Vec<ProofMessage<Scalar>>>> {
+    ) -> CredxResult<IndexMap<&'a String, Vec<(ClaimData, ProofMessage<Scalar>)>>> {
         let mut shared_proof_msg_indices: IndexMap<&String, Vec<bool>> = IndexMap::new();
 
         for (id, cred) in credentials {
@@ -222,7 +235,8 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
 
         let mut same_proof_messages = Vec::new();
 
-        let mut proof_messages: IndexMap<&String, Vec<ProofMessage<Scalar>>> = IndexMap::new();
+        let mut proof_messages: IndexMap<&String, Vec<(ClaimData, ProofMessage<Scalar>)>> =
+            IndexMap::new();
 
         // If a claim is used in a statement, it is a shared message between the signature
         // and the statement. Equality statements are shared across signatures
@@ -238,14 +252,19 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                         // Does this statement reference another statement instead of a signature
                         if !predicate_statements.contains_key(ref_id) {
                             // If not, then error
-                            return Err(Error::InvalidPresentationData);
+                            return Err(Error::InvalidPresentationData("a referenced predicate statement '{}' does not exist in the presentation schema".to_string()));
                         }
                         continue;
                     }
                     Some(indexer) => {
                         let claim_index = statement.get_claim_index(ref_id);
                         match indexer.get_mut(claim_index) {
-                            None => return Err(Error::InvalidPresentationData),
+                            None => {
+                                return Err(Error::InvalidPresentationData(format!(
+                                    "can't find claim_index '{}' in statement '{}'",
+                                    claim_index, ref_id
+                                )))
+                            }
                             Some(v) => *v = true,
                         }
                     }
@@ -270,16 +289,20 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                 if let Statements::Signature(ss) = sig {
                     let claim_label = ss.issuer.schema.claim_indices.get_index(index).unwrap();
                     if ss.disclosed.contains(claim_label) {
-                        proof_claims.push(ProofMessage::Revealed(claim_value));
+                        proof_claims.push((claim.clone(), ProofMessage::Revealed(claim_value)));
                     } else if shared_proof_msg_indices[id][index] {
                         let blinder = Scalar::random(&mut rng);
-                        proof_claims.push(ProofMessage::Hidden(HiddenMessage::ExternalBlinding(
-                            claim_value,
-                            blinder,
-                        )));
+                        proof_claims.push((
+                            claim.clone(),
+                            ProofMessage::Hidden(HiddenMessage::ExternalBlinding(
+                                claim_value,
+                                blinder,
+                            )),
+                        ));
                     } else {
-                        proof_claims.push(ProofMessage::Hidden(
-                            HiddenMessage::ProofSpecificBlinding(claim_value),
+                        proof_claims.push((
+                            claim.clone(),
+                            ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(claim_value)),
                         ));
                     }
                 }
@@ -297,14 +320,15 @@ impl<S: ShortGroupSignatureScheme> Presentation<S> {
                 let map2 = proof_messages.get_mut(id2).unwrap();
                 // NOTE: other unexpected combinations could be checked too,
                 // e.g., one ProofSpecificBlinding, one ExternalBlinding
-                if matches!(map1[ix1], ProofMessage::Revealed(_))
-                    || matches!(map2[ix2], ProofMessage::Revealed(_))
+                if matches!(map1[ix1].1, ProofMessage::Revealed(_))
+                    || matches!(map2[ix2].1, ProofMessage::Revealed(_))
                 {
                     return Err(Error::InvalidClaimData(
                         "revealed claim cannot be used with equality proof",
                     ));
                 }
-                map2[ix2] = map1[ix1];
+                map2[ix2].0 = map1[ix1].0.clone();
+                map2[ix2].1 = map1[ix1].1;
             }
         }
 

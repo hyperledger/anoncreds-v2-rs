@@ -7,6 +7,11 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uint_zigzag::Uint;
 
 /// Verifiable encryption
+///
+/// Use this statement when you know all the possible encrypted values
+/// and you want to prove that a specific value is one of them.
+/// To decrypt, you need to know the secret key and try all possible
+/// values until you find the one that matches the ciphertext.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct VerifiableEncryptionStatement<P: Group + GroupEncoding + Serialize + DeserializeOwned> {
     /// The generator for the message element
@@ -20,6 +25,8 @@ pub struct VerifiableEncryptionStatement<P: Group + GroupEncoding + Serialize + 
     pub reference_id: String,
     /// The claim index in the other statement
     pub claim: usize,
+    /// Whether to allow message decryption
+    pub allow_message_decryption: bool,
 }
 
 impl<P: Group + GroupEncoding + DeserializeOwned + Serialize> Statement
@@ -36,6 +43,10 @@ impl<P: Group + GroupEncoding + DeserializeOwned + Serialize> Statement
     fn add_challenge_contribution(&self, transcript: &mut Transcript) {
         transcript.append_message(b"statement type", b"el-gamal verifiable encryption");
         transcript.append_message(b"statement id", self.id.as_bytes());
+        transcript.append_u64(
+            b"allow message decryption",
+            self.allow_message_decryption as u64,
+        );
         transcript.append_message(b"reference statement id", self.reference_id.as_bytes());
         transcript.append_message(b"claim index", &Uint::from(self.claim).to_vec());
         transcript.append_message(

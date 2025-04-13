@@ -1,5 +1,8 @@
 //! A map implementation
 
+use blsful::inner_types::G1Projective;
+use blsful::{Bls12381G2Impl, PublicKey, SecretKey};
+use elliptic_curve::hash2curve::ExpandMsgXmd;
 use rand_core::{CryptoRng, RngCore};
 
 /// The result type for this crate
@@ -12,6 +15,22 @@ pub fn random_string(length: usize, mut rng: impl RngCore + CryptoRng) -> String
     hex::encode(&buffer)
 }
 
+/// Anyone can generate a pair of verifiable encryption keys.
+pub fn generate_verifiable_encryption_keys(
+    rng: impl RngCore + CryptoRng,
+) -> (PublicKey<Bls12381G2Impl>, SecretKey<Bls12381G2Impl>) {
+    Knox::new_bls381g2_keys(rng)
+}
+
+/// Create a domain proof generator
+pub fn create_domain_proof_generator(domain_string: &[u8]) -> G1Projective {
+    G1Projective::hash::<ExpandMsgXmd<sha2::Sha256>>(
+        domain_string,
+        b"BLS12381G1_XMD:SHA-256_SSWU_RO_",
+    )
+}
+
+use crate::knox::Knox;
 pub use indexmap;
 pub use regex;
 

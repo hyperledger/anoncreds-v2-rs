@@ -152,6 +152,7 @@ fn create_presentation<S: ShortGroupSignatureScheme>(
         id: random_string(16, thread_rng()),
         reference_id: sig_st.id.clone(),
         claim: 0,
+        allow_message_decryption: false,
     };
     let range_st = RangeStatement {
         id: random_string(16, thread_rng()),

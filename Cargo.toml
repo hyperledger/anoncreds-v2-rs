@@ -1,16 +1,25 @@
 [package]
-name = "credx"
-version = "0.2.0"
+authors = ["Hyperledger AnonCreds Developers"]
+categories = ["cryptography"]
+description = "Anonymous Credentials 2.0 implemention"
+documentation = "https://docs.rs/anoncreds-v2-rs"
 edition = "2021"
+exclude = ["samples/**"]
+homepage = "https://crates.io/crates/anoncreds-v2-rs"
+license = "Apache-2.0"
+name = "credx"
+repository = "https://github.com/hyperledger/anoncreds-v2-rs"
+version = "0.2.1"
 
 [build-dependencies]
 walkdir = "2"
 
 # NOTE: Please keep dependencies sorted alphabetically.
 [dependencies]
+aes-gcm = "0.10"
 base64 = "0.22"
 blsful = "3.0.0-pre8"
-bulletproofs = { version = "4.0.0", git = "https://github.com/cryptidtech/bulletproofs" }
+bulletproofs = { version = "4.0.0", package = "bulletproofs-bls" }
 chrono = "0.4"
 elliptic-curve = { version = "0.13", features = ["hash2curve"] }
 elliptic-curve-tools = "0.1"
@@ -23,6 +32,7 @@ maplit = "1"
 rand = "0.8"
 rand_chacha = "0.3"
 rand_core = "0.6"
+rayon = "1.10"
 regex = "1"
 rmp-serde = "1.3"
 serde = { version = "1", features = ["serde_derive"] }
