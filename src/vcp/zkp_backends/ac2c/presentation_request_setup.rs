@@ -314,11 +314,12 @@ fn generate_statements<S: ShortGroupSignatureScheme>(
                             // NOTE: It seems that G1Projective::GENERATOR is always used, so we
                             // hard code it here, but in principle there could be different
                             // generators that would have to be stored alongside the public key
-                            message_generator: G1Projective::GENERATOR,
-                            encryption_key   : *public_key,
-                            id               : mem_stmt_id,
-                            reference_id     : sig_stmt_id,
-                            claim            : *a_idx as usize,
+                            message_generator        : G1Projective::GENERATOR,
+                            encryption_key           : *public_key,
+                            id                       : mem_stmt_id,
+                            reference_id             : sig_stmt_id,
+                            claim                    : *a_idx as usize,
+                            allow_message_decryption : true,
                         });
                         Vec::from([encryption_statement])
                     }
