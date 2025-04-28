@@ -732,7 +732,7 @@ fn test_blind_sign_request() -> CredxResult<()> {
     let cred_schema = CredentialSchema::new(
         Some(LABEL),
         Some(DESCRIPTION),
-        &["link_secret".to_string()],
+        &["link_secret"],
         &schema_claims,
     )?;
 
