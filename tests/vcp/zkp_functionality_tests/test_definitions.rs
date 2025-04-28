@@ -58,20 +58,20 @@ macro_rules! per_crypto_library_test {
 }
 
 pub fn sign_d_cred(h_lbl: tf::HolderLabel) -> tf::TestStep {
-    tf::TestStep::SignCredential(td::D_ISSUER_LABEL.to_owned(), h_lbl, td::D_VALS.to_owned(), None)
+    tf::TestStep::SignCredential(td::D_ISSUER_LABEL.to_owned(), h_lbl, td::D_VALS.to_owned(), None, Strict)
 }
 
 pub fn sign_s_cred(h_lbl: tf::HolderLabel) -> tf::TestStep {
-    tf::TestStep::SignCredential(td::S_ISSUER_LABEL.to_owned(), h_lbl, td::S_VALS.to_owned(), None)
+    tf::TestStep::SignCredential(td::S_ISSUER_LABEL.to_owned(), h_lbl, td::S_VALS.to_owned(), None, Strict)
 }
 
 lazy_static! {
     pub static ref CREATE_D_ISSUER: tf::TestStep =
-        tf::TestStep::CreateIssuer(td::D_ISSUER_LABEL.to_owned(), td::D_CTS.to_vec());
+        tf::TestStep::CreateIssuer(td::D_ISSUER_LABEL.to_owned(), td::D_CTS.to_vec(), Vec::new(), TestBackend);
     pub static ref CREATE_D_ISSUER_WITH_VE: tf::TestStep =
-        tf::TestStep::CreateIssuer(td::D_ISSUER_LABEL.to_owned(), td::D_CTS_WITH_VE.to_vec());
+        tf::TestStep::CreateIssuer(td::D_ISSUER_LABEL.to_owned(), td::D_CTS_WITH_VE.to_vec(), Vec::new(), TestBackend);
     pub static ref CREATE_S_ISSUER: tf::TestStep =
-        tf::TestStep::CreateIssuer(td::S_ISSUER_LABEL.to_owned(), td::S_CTS.to_vec());
+        tf::TestStep::CreateIssuer(td::S_ISSUER_LABEL.to_owned(), td::S_CTS.to_vec(), Vec::new(), TestBackend);
     pub static ref CREATE_POLICE_AUTHORITY: tf::TestStep =
         tf::TestStep::CreateAuthority(td::POLICE_AUTHORITY_LABEL.to_owned());
     pub static ref ENCRYPT_FOR_POLICE_AUTHORITY: tf::TestStep =
@@ -184,7 +184,8 @@ lazy_static! {
         td::D_ISSUER_LABEL.to_owned(),
         "Holder2".to_owned(),
         td::D_VALS2.to_owned(),
-        None
+        None,
+        Strict
     )];
     pub static ref ADD_TO_ACCUM2: Vec<tf::TestStep> = vec![tf::TestStep::AccumulatorAddRemove(
         td::D_ISSUER_LABEL.to_owned(),
@@ -969,14 +970,14 @@ pub fn do_test_setup_with_additional_setup(
         .map(|(i, (s_lbl, schema))| {
             (
                 s_lbl.clone(),
-                (platform_api.create_signer_data)(i as u64, schema).unwrap(),
+                (platform_api.create_signer_data)(i as u64, schema, &[], Strict).unwrap(),
             )
         })
         .collect();
 
     let go = |signer_data: &HashMap<tf::IssuerLabel, api::SignerData>,
               (i_lbl, vals): &(tf::IssuerLabel, Vec<api::DataValue>)|
-     -> api::Signature { (platform_api.sign)(0, vals, &signer_data[i_lbl]).unwrap() };
+     -> api::Signature { (platform_api.sign)(0, vals, &signer_data[i_lbl], Strict).unwrap() };
 
     let sigs: HashMap<tf::IssuerLabel, api::Signature> = creds
         .iter()

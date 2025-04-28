@@ -37,11 +37,11 @@ macro_rules! testing_framework_test {
             // -----------------------------------------------------------------
 
             fn sign_d_cred(h_lbl: tf::HolderLabel) -> tf::TestStep {
-                tf::TestStep::SignCredential(td::D_ISSUER_LABEL.to_owned(), h_lbl, td::D_VALS.to_vec(), None)
+                tf::TestStep::SignCredential(td::D_ISSUER_LABEL.to_owned(), h_lbl, td::D_VALS.to_vec(), None, Strict)
             }
 
             fn sign_s_cred(h_lbl: tf::HolderLabel) -> tf::TestStep {
-                tf::TestStep::SignCredential(td::S_ISSUER_LABEL.to_owned(), h_lbl, td::S_VALS.to_vec(), None)
+                tf::TestStep::SignCredential(td::S_ISSUER_LABEL.to_owned(), h_lbl, td::S_VALS.to_vec(), None, Strict)
             }
 
             $crate::test_framework_test!{ &implement_platform_api_using(&$crypto_interface), hashmap!() }

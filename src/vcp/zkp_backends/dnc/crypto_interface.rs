@@ -11,8 +11,11 @@ use lazy_static::lazy_static;
 
 lazy_static! {
     pub static ref CRYPTO_INTERFACE_DNC: CryptoInterface = CryptoInterface {
-        create_signer_data             : create_signer_data(),
+        create_signer_data             : specific_create_signer_data(),
         sign                           : sign(),
+        create_blind_signing_info      : specific_create_blind_signing_info(),
+        sign_with_blinded_attributes   : specific_sign_with_blinded_attributes(),
+        unblind_blinded_signature      : specific_unblind_blinded_signature(),
         create_range_proof_proving_key : create_range_proof_proving_key(),
         get_range_proof_max_value      : get_range_proof_max_value(),
         create_authority_data          : create_authority_data(),

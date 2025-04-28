@@ -25,6 +25,19 @@ use misc::*;
 mod query_param_guards;
 use query_param_guards::*;
 
+// ------------------------------------------------------------------------------
+
+/// Supplies the schema and the (possibly empty) indices of attributes to be blinded.
+#[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
+struct CreateSignerDataRequest {
+
+    /// The schema.
+    claimTypes              : Vec<ClaimType>,
+
+    /// The attributes to be blinded.
+    blindedAttributeIndices : Vec<CredAttrIndex>,
+}
+
 /// # Create the secret and public data used to sign and verify credentials.
 ///
 /// Returns SignerData.
@@ -33,30 +46,53 @@ use query_param_guards::*;
 #[post("/vcp/createSignerData?<rng_and_zkp..>", data = "<dat>")]
 fn createSignerData(
     rng_and_zkp : RngSeedAndZkpLibQueryParams,
-    dat         : Json<Vec<ClaimType>>,
+    dat         : crate::DataResult<'_, CreateSignerDataRequest>,
 ) -> Result<Json<SignerData>, (Status, Json<Error>)> {
     let (seed, api) = getSeedAndApi(rng_and_zkp, "createSignerData")?;
+    let dat         = dat.map_or_else(
+        |e| err(format!("{:?}", e), "createSignerData"),
+        |v| Ok(v.into_inner()))?;
     let op          = api.create_signer_data;
-    op(seed, &dat).map_or_else(
+    op(seed, &dat.claimTypes, &dat.blindedAttributeIndices, ProofMode::Strict).map_or_else(
         |e| vcpErr(e, "createSignerData"),
         |v| Ok(Json(v)))
 }
 
-/// # Create an accumulator and its associated secret/public data.
+// ------------------------------------------------------------------------------
+
+/// Supplies the attribute indices and values to be blinded.
+/// The indices must match the indices given to createSignerData.
+#[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
+struct CreateBlindSigningInfoRequest {
+
+    /// See SignerPublicData.
+    signerPublicData        : SignerPublicData,
+
+    /// The values to be blind signed.
+    blindedIndicesAndValues : Vec<CredAttrIndexAndDataValue>,
+}
+
+/// # Create BlindSigningInfo
 ///
-/// Returns CreateAccumulatorResponse.
-// #[openapi(tag = "Accumulator Manager")]
+/// Returns BlindSigningInfo
+// #[openapi(tag = "Signer")]
 #[openapi()]
-#[post("/vcp/createAccumulatorData?<rng_and_zkp..>")]
-fn createAccumulatorData(
+#[post("/vcp/createBlindSigningInfo?<rng_and_zkp..>", data = "<dat>")]
+fn createBlindSigningInfo(
     rng_and_zkp : RngSeedAndZkpLibQueryParams,
-) -> Result<Json<CreateAccumulatorResponse>, (Status, Json<Error>)> {
-    let (seed, api) = getSeedAndApi(rng_and_zkp, "createAccumulatorData")?;
-    let op          = api.create_accumulator_data;
-    op(seed).map_or_else(
-        |e| vcpErr(e, "createAccumulatorData"),
+    dat         : crate::DataResult<'_, CreateBlindSigningInfoRequest>,
+) -> Result<Json<BlindSigningInfo>, (Status, Json<Error>)> {
+    let (seed, api) = getSeedAndApi(rng_and_zkp, "createBlindSigningInfo")?;
+    let dat         = dat.map_or_else(
+        |e| err(format!("{:?}", e), "createBlindSigningInfo"),
+        |v| Ok(v.into_inner()))?;
+    let op          = api.create_blind_signing_info;
+    op(seed, &dat.signerPublicData, &dat.blindedIndicesAndValues, ProofMode::Strict).map_or_else(
+        |e| vcpErr(e, "createBlindSigningInfo"),
         |v| Ok(Json(v)))
 }
+
+// ------------------------------------------------------------------------------
 
 /// Sign the given values using the secret data, setup data and claim types (i.e., schema) in the given SignerData.
 #[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
@@ -84,10 +120,104 @@ fn sign(
         |e| err(format!("{:?}", e), "sign"),
         |v| Ok(v.into_inner()))?;
     let op = api.sign;
-    op(seed, &dat.values, &dat.signerData).map_or_else(
+    op(seed, &dat.values, &dat.signerData, ProofMode::Strict).map_or_else(
         |e| vcpErr(e, "sign"),
         |v| Ok(Json(v)))
 }
+
+// ------------------------------------------------------------------------------
+
+/// Supplies non-blinded attributes and a commitment (BlindInfoForSigner) to the blinded attributes.
+#[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
+struct SignWithBlindedAttributesRequest {
+
+    /// The values to be signed.
+    nonBlindedAttributes : Vec<CredAttrIndexAndDataValue>,
+
+    blindInfoForSigner   : BlindInfoForSigner,
+
+    /// See SignerData.
+    signerData : SignerData,
+}
+
+/// # Create a BlindSignature from the given non-blinded values, blinding info and SignerData.
+///
+/// Returns a BlindSignature.
+// #[openapi(tag = "Signer")]
+#[openapi()]
+#[post("/vcp/signWithBlindedAttributes?<rng_and_zkp..>", data = "<dat>")]
+fn signWithBlindedAttributes(
+    rng_and_zkp : RngSeedAndZkpLibQueryParams,
+    dat         : crate::DataResult<'_, SignWithBlindedAttributesRequest>,
+) -> Result<Json<BlindSignature>, (Status, Json<misc::Error>)> {
+    let (seed, api) = getSeedAndApi(rng_and_zkp, "signWithBlindedAttributes")?;
+    let dat         = dat.map_or_else(
+        |e| err(format!("{:?}", e), "signWithBlindedAttributes"),
+        |v| Ok(v.into_inner()))?;
+    let op = api.sign_with_blinded_attributes;
+    op(seed, &dat.nonBlindedAttributes, &dat.blindInfoForSigner, &dat.signerData, ProofMode::Strict).map_or_else(
+        |e| vcpErr(e, "signWithBlindedAttributes"),
+        |v| Ok(Json(v)))
+}
+
+// ------------------------------------------------------------------------------
+
+/// Supplies blinded attributes, InfoForUnblinding and the BlindSignature to be unblinded.
+#[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
+struct UnblindBlindedSignatureRequest {
+
+    /// The schema.
+    claimTypes : Vec<ClaimType>,
+
+    /// Blinded attributes. Same as used for CreateBlindSigningInfoRequest.
+    blindedIndicesAndValues : Vec<CredAttrIndexAndDataValue>,
+
+    /// The signature to be unblinded.
+    blindSignature : BlindSignature,
+
+    /// See InfoForUnblinding.
+    infoForUnblinding : InfoForUnblinding
+}
+
+/// # Unblinded a blinded signature.
+///
+/// Returns Signature.
+// #[openapi(tag = "Signer")]
+#[openapi()]
+#[post("/vcp/unblindBlindedSignature?<rng_and_zkp..>", data = "<dat>")]
+fn unblindBlindedSignature(
+    rng_and_zkp : RngSeedAndZkpLibQueryParams,
+    dat         : crate::DataResult<'_, UnblindBlindedSignatureRequest>,
+) -> Result<Json<Signature>, (Status, Json<misc::Error>)> {
+    let (_seed,api) = getSeedAndApi(rng_and_zkp, "unblindBlindedSignature")?;
+    let dat         = dat.map_or_else(
+        |e| err(format!("{:?}", e), "unblindBlindedSignature"),
+        |v| Ok(v.into_inner()))?;
+    let op = api.unblind_blinded_signature;
+    op(&dat.claimTypes, &dat.blindedIndicesAndValues, &dat.blindSignature, &dat.infoForUnblinding,  ProofMode::Strict).map_or_else(
+        |e| vcpErr(e, "unblindBlindedSignature"),
+        |v| Ok(Json(v)))
+}
+
+// ------------------------------------------------------------------------------
+
+/// # Create an accumulator and its associated secret/public data.
+///
+/// Returns CreateAccumulatorResponse.
+// #[openapi(tag = "Accumulator Manager")]
+#[openapi()]
+#[post("/vcp/createAccumulatorData?<rng_and_zkp..>")]
+fn createAccumulatorData(
+    rng_and_zkp : RngSeedAndZkpLibQueryParams,
+) -> Result<Json<CreateAccumulatorResponse>, (Status, Json<Error>)> {
+    let (seed, api) = getSeedAndApi(rng_and_zkp, "createAccumulatorData")?;
+    let op          = api.create_accumulator_data;
+    op(seed).map_or_else(
+        |e| vcpErr(e, "createAccumulatorData"),
+        |v| Ok(Json(v)))
+}
+
+// ------------------------------------------------------------------------------
 
 /// # Create an accumulator element from the given text.
 ///
@@ -108,6 +238,8 @@ fn createAccumulatorElement(
         |e| vcpErr(e, "createAccumulatorElement"),
         |v| Ok(Json(v)))
 }
+
+// ------------------------------------------------------------------------------
 
 /// Elements (if any) to be added to, and elements (if any) to be removed from an accumulator.
 #[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
@@ -146,6 +278,8 @@ fn accumulatorAddRemove(
         |v| Ok(Json(v)))
 }
 
+// ------------------------------------------------------------------------------
+
 /// Used to update an existing witness after additions and/or removals from an accumulator.
 #[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
 struct UpdateAccumulatorWitnessRequest {
@@ -180,6 +314,8 @@ fn updateAccumulatorWitness(
         |v| Ok(Json(v)))
 }
 
+// ------------------------------------------------------------------------------
+
 /// # Create accumulator membership proving key.
 ///
 /// Returns MembershipProvingKey.
@@ -195,6 +331,8 @@ fn createMembershipProvingKey(
         |e| vcpErr(e, "createMembershipProvingKey"),
         |v| Ok(Json(v)))
 }
+
+// ------------------------------------------------------------------------------
 
 /// # Create range proof proving key.
 ///
@@ -212,6 +350,8 @@ fn createRangeProofProvingKey(
         |v| Ok(Json(v)))
 }
 
+// ------------------------------------------------------------------------------
+
 /// # Get the maximum value supported in range proofs for the specific zkpLib.
 ///
 /// Returns the maximum value.
@@ -225,6 +365,8 @@ fn getRangeProofMaxValue(
     let op  = api.get_range_proof_max_value;
     Ok(Json(op()))
 }
+
+// ------------------------------------------------------------------------------
 
 /// # Create authority data.  Used in verifiable encryption.
 ///
@@ -241,6 +383,8 @@ fn createAuthorityData(
         |e| vcpErr(e, "createAuthorityData"),
         |v| Ok(Json(v)))
 }
+
+// ------------------------------------------------------------------------------
 
 /// Information used for creating a proof.
 #[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
@@ -281,6 +425,8 @@ fn createProof(
         |e| vcpErr(e, "createProof"),
         |v| Ok(Json(v)))
 }
+
+// ------------------------------------------------------------------------------
 
 /// Information (including the proof) to verify a proof.
 #[derive(Serialize, Eq, PartialEq, Deserialize, Clone, Debug, JsonSchema)]
@@ -325,6 +471,8 @@ fn verifyProof(
         |e| vcpErr(e, "verifyProof"),
         |v| Ok(Json(v)))
 }
+
+// ------------------------------------------------------------------------------
 
 /// Verify that each decrypted value is correct.
 #[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
@@ -390,8 +538,11 @@ async fn main() {
             "/",
             openapi_get_routes![
                 createSignerData,
+                createBlindSigningInfo,
                 createAccumulatorData,
                 sign,
+                signWithBlindedAttributes,
+                unblindBlindedSignature,
                 createAccumulatorElement,
                 accumulatorAddRemove,
                 updateAccumulatorWitness,

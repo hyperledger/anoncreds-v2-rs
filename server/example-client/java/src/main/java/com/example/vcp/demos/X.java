@@ -14,6 +14,7 @@ import java.util.*;
 public class X {
     static final String                        port = "8080";
     public final String                        zkpLib;
+    public final SigType                       sigType;
     public final DefaultApi                    api;
     public final SignatureAndRelatedData       dSard;
     public final SignatureAndRelatedData       sSard;
@@ -22,14 +23,17 @@ public class X {
     public final CredentialReqs                credD;
     public final CredentialReqs                credS;
 
-    public X(final String z)
+    public enum SigType { Blinded, NonBlinded }
+
+    public X(final String z, final SigType st)
         throws ApiException, IOException
     {
         zkpLib        = z;
+        sigType       = st;
         api           = apiSetup();
 
         // Issuer and Verifier
-        final var sss = doCreateSharedAndSigs(zkpLib, api);
+        final var sss = doCreateSharedAndSigs(zkpLib, sigType, api);
 
         // Verifier
         shared        = (Map<String, SharedParamValue>) sss[2];
@@ -53,32 +57,26 @@ public class X {
         return new DefaultApi(client);
     }
 
-    public static Object [] doCreateSharedAndSigs(final String zkpLib, final DefaultApi api)
+    public static Object [] doCreateSharedAndSigs(final String zkpLib, final SigType sigType, final DefaultApi api)
         throws ApiException, IOException
     {
         Util.sop("ClaimTypes D", TestData.dCTs(zkpLib));
         Util.sop("ClaimTypes S", TestData.sCTs(zkpLib));
 
         // Issuer
-        final var dSignerData = api.createSignerData(TestData.dCTs(zkpLib), zkpLib, 0);
-        final var sSignerData = api.createSignerData(TestData.sCTs(zkpLib), zkpLib, 1);
+        final var sDataAndSigs= createSignerDataAndSignatures(zkpLib, sigType, api);
+        final var dSignerData = (SignerData) sDataAndSigs[0];
+        final var sSignerData = (SignerData) sDataAndSigs[1];
+
         Util.sop("dSignerData D", dSignerData);
         Util.sop("sSignerData S", sSignerData);
 
         Util.sop("dVals", TestData.dVals());
         Util.sop("sVals", TestData.sVals());
 
-        final var dSig        = api.sign(new SignRequest()
-                                         .values(TestData.dVals())
-                                         .signerData(dSignerData),
-                                         zkpLib, 0
-                                         );
+        final var dSig        = (String) sDataAndSigs[2];
+        final var sSig        = (String) sDataAndSigs[3];
 
-        final var sSig        = api.sign(new SignRequest()
-                                         .values(TestData.sVals())
-                                         .signerData(sSignerData),
-                                         zkpLib, 0
-                                         );
         Util.sop("dSig", dSig);
         Util.sop("sSig", sSig);
 
@@ -96,6 +94,79 @@ public class X {
         Util.sop("shared", shared);
 
         final Object [] r     = { dSard, sSard, shared };
+        return r;
+    }
+
+    public static Object [] createSignerDataAndSignatures(
+      final String zkpLib, final SigType sigType, final DefaultApi api)
+        throws ApiException, IOException
+    {
+        final SignerData dSignerData;
+        final SignerData sSignerData;
+        final String dSig;
+        final String sSig;
+        if (sigType == X.SigType.NonBlinded) {
+            dSignerData = api.createSignerData(new CreateSignerDataRequest()
+                                               .claimTypes(TestData.dCTs(zkpLib))
+                                               .blindedAttributeIndices(new ArrayList<Integer>()),
+                                               zkpLib, 0);
+            sSignerData = api.createSignerData(new CreateSignerDataRequest()
+                                               .claimTypes(TestData.sCTs(zkpLib))
+                                               .blindedAttributeIndices(new ArrayList<Integer>()),
+                                               zkpLib, 1);
+            dSig = api.sign(new SignRequest()
+                            .values(TestData.dVals())
+                            .signerData(dSignerData),
+                            zkpLib, 0);
+            sSig = api.sign(new SignRequest()
+                            .values(TestData.sVals())
+                            .signerData(sSignerData),
+                            zkpLib, 0);
+        } else {
+            dSignerData = api.createSignerData(new CreateSignerDataRequest()
+                                               .claimTypes(TestData.dCTs(zkpLib))
+                                               .blindedAttributeIndices(TestData.DL_BLINDED_INDICES),
+                                               zkpLib, 0);
+            sSignerData = api.createSignerData(new CreateSignerDataRequest()
+                                               .claimTypes(TestData.sCTs(zkpLib))
+                                               .blindedAttributeIndices(TestData.SUB_BLINDED_INDICES),
+                                               zkpLib, 1);
+            final BlindSigningInfo dBlindSigningInfo =
+                api.createBlindSigningInfo(new CreateBlindSigningInfoRequest()
+                                           .signerPublicData(dSignerData.getSignerPublicData())
+                                           .blindedIndicesAndValues(TestData.dBlindedIndicesAndVals()),
+                                           zkpLib, 0);
+            final BlindSigningInfo sBlindSigningInfo =
+                api.createBlindSigningInfo(new CreateBlindSigningInfoRequest()
+                                           .signerPublicData(sSignerData.getSignerPublicData())
+                                           .blindedIndicesAndValues(TestData.sBlindedIndicesAndVals()),
+                                           zkpLib, 0);
+            final String dBlindSignature =
+                api.signWithBlindedAttributes(new SignWithBlindedAttributesRequest()
+                                              .nonBlindedAttributes(TestData.dNonBlindedIndicesAndVals())
+                                              .blindInfoForSigner(dBlindSigningInfo.getBlindInfoForSigner())
+                                              .signerData(dSignerData),
+                                              zkpLib, 0);
+            final String sBlindSignature =
+                api.signWithBlindedAttributes(new SignWithBlindedAttributesRequest()
+                                              .nonBlindedAttributes(TestData.sNonBlindedIndicesAndVals())
+                                              .blindInfoForSigner(sBlindSigningInfo.getBlindInfoForSigner())
+                                              .signerData(sSignerData),
+                                              zkpLib, 0);
+            dSig = api.unblindBlindedSignature(new UnblindBlindedSignatureRequest()
+                                               .claimTypes(TestData.dCTs(zkpLib))
+                                               .blindedIndicesAndValues(TestData.dBlindedIndicesAndVals())
+                                               .blindSignature(dBlindSignature)
+                                               .infoForUnblinding(dBlindSigningInfo.getInfoForUnblinding()),
+                                               zkpLib, 0); // TODOO-HC: this does not need a RNG seed
+            sSig = api.unblindBlindedSignature(new UnblindBlindedSignatureRequest()
+                                               .claimTypes(TestData.sCTs(zkpLib))
+                                               .blindedIndicesAndValues(TestData.sBlindedIndicesAndVals())
+                                               .blindSignature(sBlindSignature)
+                                               .infoForUnblinding(sBlindSigningInfo.getInfoForUnblinding()),
+                                               zkpLib, 0); // TODOO-HC: this does not need a RNG seed
+        }
+        final Object [] r = { dSignerData, sSignerData, dSig, sSig };
         return r;
     }
 

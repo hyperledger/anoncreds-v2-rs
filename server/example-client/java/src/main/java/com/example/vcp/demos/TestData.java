@@ -4,6 +4,7 @@ package com.example.vcp.demos;
 import com.example.vcp.client.model.*;
 // ---------------------------------------------------------------------------
 import java.util.*;
+import java.util.stream.*;
 // ---------------------------------------------------------------------------
 
 public class TestData
@@ -74,6 +75,15 @@ public class TestData
         return Arrays.asList(dvs);
     }
 
+    public static final List<Integer> DL_BLINDED_INDICES = Arrays.asList(1,2,3,4);
+
+    public static List<CredAttrIndexAndDataValue> dBlindedIndicesAndVals() {
+        return    getBlinded(dVals(), DL_BLINDED_INDICES);
+    }
+    public static List<CredAttrIndexAndDataValue> dNonBlindedIndicesAndVals() {
+        return getNonBlinded(dVals(), DL_BLINDED_INDICES);
+    }
+
     public static List<ClaimType> dCTs(final String zkpLib) {
         final ClaimType [] fds =
             {     ClaimType.fromValue("CTText")
@@ -97,7 +107,14 @@ public class TestData
         return Arrays.asList(svs);
     }
 
-    // ---------------------------------------------------------------------------
+    public static final List<Integer> SUB_BLINDED_INDICES = Arrays.asList(1,2,3);
+
+    public static List<CredAttrIndexAndDataValue> sBlindedIndicesAndVals() {
+        return    getBlinded(sVals(), SUB_BLINDED_INDICES);
+    }
+    public static List<CredAttrIndexAndDataValue> sNonBlindedIndicesAndVals() {
+        return getNonBlinded(sVals(), SUB_BLINDED_INDICES);
+    }
 
     public static List<ClaimType> sCTs(final String zkpLib) {
         final ClaimType [] fds =
@@ -122,6 +139,8 @@ public class TestData
         return reqs;
     }
 
+    // ---------------------------------------------------------------------------
+
     static CredentialReqs initCred(CredentialReqs x) {
         x
             .disclosed   (new ArrayList<>())
@@ -144,4 +163,18 @@ public class TestData
         return shared;
     }
 
-} // end of class
+    // ------------------------------------------------------------------------------
+    static List<CredAttrIndexAndDataValue> getBlinded
+        (final List<DataValue> vals, final List<Integer> blinded)
+    {
+        return Util.enumerate(vals).stream()
+            .filter(x ->   blinded.contains(x.getIndex())).collect(Collectors.toList());
+    }
+
+    static List<CredAttrIndexAndDataValue> getNonBlinded
+        (final List<DataValue> vals, final List<Integer> blinded)
+    {
+        return Util.enumerate(vals).stream()
+            .filter(x -> ! blinded.contains(x.getIndex())).collect(Collectors.toList());
+    }
+}

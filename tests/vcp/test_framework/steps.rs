@@ -26,6 +26,8 @@ pub fn step_create_issuer(
     platform_api: &api::PlatformApi,
     i_lbl: IssuerLabel,
     schema: Vec<api::ClaimType>,
+    blind_attr_idxs: Vec<api::CredAttrIndex>,
+    proof_mode: ProofMode
 ) -> AddTestStep {
     let create_signer_data = platform_api.create_signer_data.clone();
     Arc::new(move |ts| {
@@ -38,7 +40,7 @@ pub fn step_create_issuer(
                 "step_create_issuer", "Duplicate issuer label", format!("{i_lbl}")))));
         }
         // asd0.len creates SignerData with a different RNG seed so it differs from previous ones
-        let sd = (*create_signer_data)(asd0.len() as u64, &schema)?;
+        let sd = (*create_signer_data)(asd0.len() as u64, &schema, &blind_attr_idxs, proof_mode.clone())?;
         let spd = &sd.signer_public_data;
 
         // update test state
@@ -90,6 +92,7 @@ pub fn step_sign_credential(
     h_lbl: HolderLabel,
     vals: Vec<api::DataValue>,
     attr_max_off_mb: Option<ReplaceValueWithMaximumPlus>,
+    prf_mode: ProofMode,
 ) -> AddTestStep {
     let sign = platform_api.sign.clone();
     let get_range_proof_max_value = platform_api.get_range_proof_max_value.clone();
@@ -141,12 +144,18 @@ pub fn step_sign_credential(
                         vals[a_idx as usize] = DVInt(v);
                         Ok(vals)
                     },
-                    DVText(_) => Err(Error::General("XXXX".to_string())),
+                    v => Err(Error::General(ic_semi(&str_vec_from!(
+                        "step_sign_credential",
+                        "expected DVInt for",
+                        "attribute index",
+                        format!("a_idx"),
+                        "got",
+                        format!("{v:?}")))))
                 }
             }
         }?;
         // sign credential
-        let sig = sign(0, &vals, sd)?;
+        let sig = sign(0, &vals, sd, prf_mode.clone())?;
         // This models the Issuer sending the signature to the Holder, which stores it along with
         // empty CredentialAuxiliaryData (e.g., it has not yet received its accumulator witness(es),
         // associating this with the IssuerLabvel, which is the same as the CredentialLabel.
@@ -159,6 +168,89 @@ pub fn step_sign_credential(
                 accumulator_witnesses: hashmap!(),
             },
         );
+        Ok(())
+    })
+}
+
+pub fn step_create_blind_signing_info(
+    platform_api: &api::PlatformApi,
+    h_lbl: HolderLabel,
+    i_lbl: IssuerLabel,
+    blinded_vals: Vec<CredAttrIndexAndDataValue>,
+    proof_mode: ProofMode
+) -> AddTestStep {
+    let create_blind_signing_info = platform_api.create_blind_signing_info.clone();
+    Arc::new(move |ts| {
+        let sd = lookup_throw_if_absent(&i_lbl, &ts.all_signer_data, Error::General,
+                                        &str_vec_from!("stepCreateBlindSigningInfo",
+                                                       "Issuer has not been created"))?;
+        let bsi = create_blind_signing_info(0, &sd.signer_public_data, &blinded_vals, proof_mode.clone())?;
+        insert_throw_if_present_2_lvl(&h_lbl, &i_lbl, bsi, & mut ts.all_blind_signing_info, Error::General,
+                                      &str_vec_from!("stepCreateBlindSigningInfo", "BlindSigningInfo already created"))
+    })
+}
+
+pub fn step_sign_credential_with_blinding(
+    platform_api: &api::PlatformApi,
+    i_lbl: IssuerLabel,
+    h_lbl: HolderLabel,
+    non_blinded_values: Vec<CredAttrIndexAndDataValue>,
+    proof_mode: ProofMode
+) -> AddTestStep {
+    let sign_with_blinded_attributes = platform_api.sign_with_blinded_attributes.clone();
+    let unblind_blinded_signature = platform_api.unblind_blinded_signature.clone();
+    Arc::new(move |ts| {
+        let sards_0 = &ts.sigs_and_rel_data;
+        let h_sards_mb = sards_0.get(&h_lbl);
+        if h_sards_mb.is_some_and(|x| x.get(&i_lbl).is_some()) {
+            return Err(Error::General(ic_semi(&str_vec_from!(
+                "A credential signed by", i_lbl, "already exists",
+                "for", h_lbl,
+                "the test framework disallows multiple for simplicity"))))
+        }
+        let asd0 = &ts.all_signer_data;
+        // Get issuer SignerData
+        let sd = lookup_throw_if_absent(&i_lbl, asd0, Error::General,
+                                        &str_vec_from!("step_sign_credential",
+                                                       "Issuer has not been created"))?;
+        // Get Holder's BlindSigningInfo
+        let BlindSigningInfo{blind_info_for_signer: bsi,
+                             blinded_attributes: blinded_values,
+                             info_for_unblinding: blinding} =
+            lookup_throw_if_absent_2_lvl(&h_lbl, &i_lbl, &ts.all_blind_signing_info, Error::General, &str_vec_from!(
+                "step_sign_credential_with_blindings", "no blinding info found", "use create_blind_signing_info"))?;
+        // Sign credential
+        let blinded_sig = sign_with_blinded_attributes(0, &non_blinded_values, bsi, sd, proof_mode.clone())?;
+        // Unblind signature
+        // NOTE: in real life, this would be done by the Holder after receiving the blinded signature.
+        // Similar to step_sign, we do this in the same step as the signing in order to keep usage of the
+        // framework simpler.
+        let schema = &sd.signer_public_data.signer_public_schema;
+        let sig = unblind_blinded_signature(schema, blinded_values, &blinded_sig, blinding, proof_mode.clone())?;
+        let preqs_0 = &mut ts.preqs;
+        // This models the Issuer sending the signature to the Holder, which stores it along with
+        // empty CredentialAuxiliaryData (e.g., it has not yet received its accumulator witness(es),
+        // associating this with the IssuerLabel, which is the same as the CredentialLabel
+        insert_throw_if_present_2_lvl(&h_lbl, &i_lbl, new_credential_reqs(i_lbl.clone()), preqs_0, Error::General,
+                                      &str_vec_from!("step_sign_credential_with_blinding",
+                                                     "credential requirements already exist",
+                                                     "UNEXPECTED due to earlier check"))?;
+
+        let mut all_vals_0 = [&non_blinded_values[..], &blinded_values[..]].concat();
+        all_vals_0.sort();
+        let all_vals = all_vals_0
+            .iter()
+            .map(|CredAttrIndexAndDataValue { index : _, value }| (*value).clone())
+            .collect::<Vec<_>>();
+        let sard = SignatureAndRelatedData {
+            signature             : sig,
+            values                : all_vals,
+            accumulator_witnesses : HashMap::<CredAttrIndex, AccumulatorMembershipWitness>::new()
+        };
+        insert_throw_if_present_2_lvl(&h_lbl, &i_lbl, sard, &mut ts.sigs_and_rel_data, Error::General,
+                                      &str_vec_from!("step_sign_credential_with_blinding",
+                                                     "signature already exist",
+                                                     "UNEXPECTED due to earlier check"))?;
         Ok(())
     })
 }

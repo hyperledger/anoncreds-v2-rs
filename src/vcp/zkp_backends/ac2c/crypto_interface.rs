@@ -19,8 +19,11 @@ macro_rules! define_crypto_interface_with {
         paste::item! {
             lazy_static! {
                 pub static ref [< CRYPTO_INTERFACE_AC2C_ $schmid >]: CryptoInterface = CryptoInterface {
-                    create_signer_data             : create_signer_data::<$scheme>(),
+                    create_signer_data             : specific_create_signer_data::<$scheme>(),
                     sign                           : sign::<$scheme>(),
+                    create_blind_signing_info      : specific_create_blind_signing_info::<$scheme>(),
+                    sign_with_blinded_attributes   : specific_sign_with_blinded_attributes::<$scheme>(),
+                    unblind_blinded_signature      : specific_unblind_blinded_signature::<$scheme>(),
                     create_range_proof_proving_key : create_range_proof_proving_key(),
                     get_range_proof_max_value      : get_range_proof_max_value(),
                     create_authority_data          : create_authority_data::<$scheme>(),

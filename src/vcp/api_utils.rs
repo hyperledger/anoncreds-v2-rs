@@ -3,6 +3,7 @@ use crate::vcp::{Error, VCPResult};
 use crate::vcp::api::PlatformApi;
 use crate::vcp::crypto_interface::CryptoInterface;
 use crate::vcp::r#impl::general::proof::*;
+use crate::vcp::r#impl::general::signer::*;
 use crate::vcp::non_primitives::*;
 use crate::vcp::primitives::*;
 // ---------------------------------------------------------------------------
@@ -13,7 +14,10 @@ use std::rc::Rc;
 pub fn implement_platform_api_using(
     CryptoInterface {
         create_signer_data: csd,
-        sign,
+        sign: ss,
+        create_blind_signing_info: cbsi,
+        sign_with_blinded_attributes: swba,
+        unblind_blinded_signature: ubs,
         create_range_proof_proving_key: crpk,
         get_range_proof_max_value: grpmv,
         create_authority_data: cauthd,
@@ -28,8 +32,11 @@ pub fn implement_platform_api_using(
     }: &CryptoInterface,
 ) -> PlatformApi {
     PlatformApi {
-        create_signer_data: csd.clone(),
-        sign: sign.clone(),
+        create_signer_data: create_signer_data(csd.clone()),
+        sign: sign(ss.clone()),
+        create_blind_signing_info: create_blind_signing_info(cbsi.clone()),
+        sign_with_blinded_attributes: sign_with_blinded_attributes(swba.clone()),
+        unblind_blinded_signature: unblind_blinded_signature(ubs.clone()),
         create_range_proof_proving_key: crpk.clone(),
         get_range_proof_max_value: grpmv.clone(),
         create_authority_data: cauthd.clone(),

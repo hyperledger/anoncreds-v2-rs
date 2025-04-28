@@ -29,7 +29,8 @@ mod spec {
             static ref SPD_VAL: SharedParamValue = SharedParamValue::SPVOne(DataValue::DVText(
                 encode_to_text(&SignerPublicData {
                     signer_public_setup_data: SignerPublicSetupData("bogus".to_string()),
-                    signer_public_schema: td::D_CTS.to_owned()
+                    signer_public_schema: td::D_CTS.to_owned(),
+                    signer_blinded_attr_idxs: Vec::new()
                 })
                 .unwrap()
             ));
@@ -171,14 +172,16 @@ mod spec {
             static ref D_SPD_VAL: SharedParamValue = SharedParamValue::SPVOne(DataValue::DVText(
                 encode_to_text(&SignerPublicData {
                     signer_public_setup_data: SignerPublicSetupData("bogus".to_string()),
-                    signer_public_schema: td::D_CTS_WITH_VE.to_owned()
+                    signer_public_schema: td::D_CTS_WITH_VE.to_owned(),
+                    signer_blinded_attr_idxs: Vec::new()
                 })
                 .unwrap()
             ));
             static ref S_SPD_VAL: SharedParamValue = SharedParamValue::SPVOne(DataValue::DVText(
                 encode_to_text(&SignerPublicData {
                     signer_public_setup_data: SignerPublicSetupData("bogus".to_string()),
-                    signer_public_schema: td::D_CTS.to_owned()
+                    signer_public_schema: td::D_CTS.to_owned(),
+                    signer_blinded_attr_idxs: Vec::new()
                 })
                 .unwrap()
             ));

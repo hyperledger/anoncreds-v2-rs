@@ -51,11 +51,12 @@ pub mod types;
 // ---------------------------------------------------------------------------
 // types of "primitive" functions that implementer must provide
 
-pub type CreateSignerData = Arc<
+pub type SpecificCreateSignerData = Arc<
     dyn Fn(
             Natural, // RNG seed
             &[ClaimType],
-        ) -> VCPResult<SignerData>
+            &[CredAttrIndex],
+        ) -> VCPResult<(SignerPublicSetupData,SignerSecretData)>
         + Send
         + Sync,
 >;
@@ -68,7 +69,18 @@ pub type CreateAccumulatorData = Arc<
         + Sync,
 >;
 
-pub type Sign = Arc<
+pub type SpecificCreateBlindSigningInfo = Arc<
+    dyn Fn(
+            Natural, // RNG seed
+            &SignerPublicSetupData,
+            &[ClaimType],
+            &[CredAttrIndexAndDataValue]  // Attributes to be blinded
+        ) -> VCPResult<BlindSigningInfo>
+        + Send
+        + Sync,
+>;
+
+pub type SpecificSign = Arc<
     dyn Fn(
             Natural, // RNG seed
             &[DataValue],
@@ -76,6 +88,30 @@ pub type Sign = Arc<
         ) -> VCPResult<Signature>
         + Send
         + Sync,
+>;
+
+pub type SpecificSignWithBlindedAttributes = Arc<
+    dyn Fn(
+        Natural, // RNG seed
+        &[ClaimType],
+        &[CredAttrIndexAndDataValue],  // Non-blinded attributes
+        &BlindInfoForSigner,
+        &SignerPublicSetupData,
+        &SignerSecretData,
+    ) -> VCPResult<BlindSignature>
+    + Send
+    + Sync,
+>;
+
+pub type SpecificUnblindBlindedSignature = Arc<
+    dyn Fn(
+        &[ClaimType],
+        &[CredAttrIndexAndDataValue],  // Blinded attributes, same as used for CreateBlindSigningInfo
+        &BlindSignature,
+        &InfoForUnblinding
+    ) -> VCPResult<Signature>
+    + Send
+    + Sync,
 >;
 
 pub type CreateAccumulatorElement = Arc<

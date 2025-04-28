@@ -1,1 +1,4 @@
-{}
+{ "051_one_cred_blind_attribute_undeclared_blind_idx_testbackend_expected_to_fail":
+  {"contents": "does not fail because DNC does not require blindable attributes to be fixed at time of creating an Issuer ; overridden to fail so expected_to_fail test does not pass",
+   "tag": "Fail"}
+}

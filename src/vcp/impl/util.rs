@@ -15,7 +15,9 @@ use std::hash::Hash;
 // ----------------------------------------------------------------------------
 // Extract text from DataValue expected to be DVText
 
-pub fn get_text_from_value(dv: &DataValue) -> VCPResult<String> {
+pub fn get_text_from_value(
+    dv : &DataValue
+) -> VCPResult<String> {
     match dv {
         DataValue::DVInt(_) => Err(Error::General(format!(
             "get_text_from_value; unexpected type; {dv:?}"
@@ -26,8 +28,10 @@ pub fn get_text_from_value(dv: &DataValue) -> VCPResult<String> {
 
 // ----------------------------------------------------------------------------
 
-pub fn disjoint_vec_of_vecs<T: Eq + Clone>(xss: Vec<Vec<T>>) -> Vec<Vec<T>> {
-    let mut yss: Vec<Vec<T>> = vec![];
+pub fn disjoint_vec_of_vecs<T: Eq + Clone>(
+    xss : Vec<Vec<T>>
+) -> Vec<Vec<T>> {
+    let mut yss : Vec<Vec<T>> = vec![];
     xss.into_iter().for_each(|xs| {
         let mut overlapping_idxs = vec![];
         for (idx, ys) in yss.iter().enumerate() {
@@ -64,9 +68,9 @@ pub fn disjoint_vec_of_vecs<T: Eq + Clone>(xss: Vec<Vec<T>>) -> Vec<Vec<T>> {
 }
 
 /// Merge maps, requiring same keys
-pub fn merge_maps<K: Clone + Eq + Hash + Debug, V1: Clone, V2: Clone>(
-    m1: HashMap<K, V1>,
-    m2: HashMap<K, V2>,
+pub fn merge_maps<K: Clone + Eq + Hash + Debug, V1 : Clone, V2 : Clone>(
+    m1 : HashMap<K, V1>,
+    m2 : HashMap<K, V2>,
 ) -> VCPResult<HashMap<K, (V1, V2)>> {
     let make_error = || {
         let ks1: Vec<_> = m1.keys().collect();
@@ -75,8 +79,8 @@ pub fn merge_maps<K: Clone + Eq + Hash + Debug, V1: Clone, V2: Clone>(
             "Unequal keys for maps to be merged; {ks1:?} != {ks2:?}"
         ))
     };
-    let mut m: HashMap<K, (V1, V2)> = HashMap::new();
-    let mut ks2: HashSet<&K> = m2.keys().collect();
+    let mut m : HashMap<K, (V1, V2)> = HashMap::new();
+    let mut ks2 : HashSet<&K> = m2.keys().collect();
     m1.iter().try_for_each(|(k, v1)| {
         let v2 = m2.get(k).ok_or_else(make_error)?;
         m.insert(k.clone(), (v1.clone(), v2.clone()));
@@ -88,7 +92,7 @@ pub fn merge_maps<K: Clone + Eq + Hash + Debug, V1: Clone, V2: Clone>(
 }
 
 #[cfg(not(feature = "verbose"))]
-pub fn pp<A>(_m: &str, _v: A) {}
+pub fn pp<A>(_m : &str, _v: A) {}
 
 #[cfg(feature = "verbose")]
 pub fn pp<A: std::fmt::Debug>(m: &str, v: A) {
@@ -109,7 +113,7 @@ pub fn pprintln(m: &str, s: &str) {
 //
 // These are Rust-specific, so they don't correspond to Haskell functions.
 
-pub fn extend_nub<T: Eq>(ys: &mut Vec<T>, xs: Vec<T>) {
+pub fn extend_nub<T : Eq>(ys : &mut Vec<T>, xs : Vec<T>) {
     xs.into_iter().for_each(|x| {
         if !ys.iter().any(|y| x == *y) {
             ys.push(x);
@@ -117,11 +121,11 @@ pub fn extend_nub<T: Eq>(ys: &mut Vec<T>, xs: Vec<T>) {
     })
 }
 
-pub fn ord_nub<T>(xs: &[T]) -> BTreeSet<&T>
+pub fn ord_nub<T>(xs : &[T]) -> BTreeSet<&T>
 where
     T: Ord,
 {
-    let mut ys: BTreeSet<&T> = BTreeSet::new();
+    let mut ys : BTreeSet<&T> = BTreeSet::new();
     xs.iter().for_each(|x| {
         ys.insert(x);
     });
@@ -133,7 +137,7 @@ where
 /// of this is `bool`, which has the canonical accept form
 /// `true`.
 pub trait Assert {
-    fn assert_or_else<R, F: FnOnce() -> R>(&self, f: F) -> Result<(), R>;
+    fn assert_or_else<R, F : FnOnce() -> R>(&self, f : F) -> Result<(), R>;
 
     fn assert_or<R>(&self, r: R) -> Result<(), R> {
         self.assert_or_else(move || r)
@@ -155,25 +159,26 @@ impl Assert for bool {
 }
 
 /// Collect an [`Iterator<Result<Ts1, E>>`] into a [`Result<Ts2, E>`], where a
-/// collection of `Ts1`s be concatenated into `Ts2`. For example, can collect
-/// an [`Iterator<Result<Vec<T>, E>>`] into a [`Result<Vec<T>, E>`]. This is
-/// a convenient and efficient way to rewrite something like
-/// ```rust,ignore
-/// Ok(
-///     xs
-///         .iter()
-///         .map(f_may_err)
-///         .collect::<Result<Vec<_>, _>>()?
-///         .concat()
-/// )
-/// ```
-/// as
-/// ```rust,ignore
-/// xs
-///     .iter()
-///     .map(f_may_err)
-///     .try_collect_concat()
-/// ```
+/// collection of `Ts1`s is to be concatenated into `Ts2`.
+// For example, can collect
+// an [`Iterator<Result<Vec<T>, E>>`] into a [`Result<Vec<T>, E>`]. This is
+// a convenient and efficient way to rewrite something like
+// ```rust,ignore
+// Ok(
+//     xs
+//         .iter()
+//         .map(f_may_err)
+//         .collect::<Result<Vec<_>, _>>()?
+//         .concat()
+// )
+// ```
+// as
+// ```rust,ignore
+// xs
+//     .iter()
+//     .map(f_may_err)
+//     .try_collect_concat()
+// ```
 pub fn try_collect_concat<T, E, Ts1, Ts2, I>(i: &mut I) -> Result<Ts2, E>
 where
     I: Iterator<Item = Result<Ts1, E>>,
@@ -481,6 +486,16 @@ pub fn make_present_error<K: Debug, V: Debug, E: Debug>(
     make_adjective_error(format!("key {:?} already present with value {:?}", k, v),mk_e,s)
 }
 
+pub fn make_present_error_2<K1: Debug, K2: Debug, V: Debug, E: Debug>(
+    k1: &K1,
+    k2: &K2,
+    v: &V,
+    mk_e: fn(String) -> E,
+    s: &[String])
+    -> E {
+    make_adjective_error(format!("keys {:?}/{:?} already present with value {:?}", k1, k2, v),mk_e,s)
+}
+
 pub fn make_out_of_bounds_error<E>(
     i: usize,
     l: usize,
@@ -496,9 +511,10 @@ pub trait KeyValueContainer<'a, K, V> {
     fn insert(&'a mut self, key: K, val: V) -> Option<V>;
     fn len (& self) -> usize;
     fn is_empty (& self) -> bool;
+    fn one (key: K, val: V) -> Self;
 }
 
-impl<'a, K, V> KeyValueContainer<'a, K, V> for HashMap<K, V>
+impl<K, V> KeyValueContainer<'_, K, V> for HashMap<K, V>
 where
     K: std::hash::Hash + Eq,
 {
@@ -517,9 +533,14 @@ where
     fn is_empty(&self)-> bool {
         self.is_empty()
     }
+    fn one(k: K, v: V) -> HashMap<K, V> {
+        let mut m = HashMap::<K, V>::new();
+        m.insert(k,v);
+        m
+    }
 }
 
-impl<'a, K, V> KeyValueContainer<'a, K, V> for BTreeMap<K, V>
+impl<K, V> KeyValueContainer<'_, K, V> for BTreeMap<K, V>
 where
     K: std::hash::Hash + Eq + std::cmp::Ord,
 {
@@ -537,6 +558,11 @@ where
     }
     fn is_empty(&self)-> bool {
         self.is_empty()
+    }
+    fn one(key: K, val: V) -> BTreeMap<K,V> {
+        let mut m = BTreeMap::<K,V>::new();
+        m.insert(key, val);
+        m
     }
 }
 
@@ -617,13 +643,43 @@ pub fn insert_throw_if_present<'a, K: Eq+Debug+Hash+Clone, V: Clone+Debug+'a, M:
     }
 }
 
+// TODO: ideally make this work for any KeyValueContainer, but only used for HashMap so far
+pub fn insert_throw_if_present_2_lvl<'a,
+                                     K1: Eq+Debug+Hash+Clone,
+                                     K2: Eq+Debug+Hash+Clone,
+                                     V: Clone+Debug+'a,
+                                     E: Debug>(
+    k1: &K1,
+    k2: &K2,
+    v: V,
+    m: &'a mut HashMap<K1, HashMap<K2, V>>,
+    mk_e: fn(String) -> E,
+    s: &[String]
+) -> Result<(),E> {
+    match m.get_mut(k1) {
+        Some(m1) => {
+            match m1.get_mut(k2) {
+                Some(_) => Err(make_present_error_2(&k1,&k2,&v,mk_e,s)),
+                None => {
+                    m1.insert(k2.clone(), v.clone());
+                    Ok(())
+                }
+            }
+        },
+        None => {
+            m.insert(k1.clone(),HashMap::<K2, V>::one(k2.clone(),v.clone()));
+            Ok(())
+        }
+    }
+}
+
 pub fn update_throw_if_absent<'a, K: Eq+Debug+Hash, V: Clone+'a, F: Fn(&mut V), M: KeyValueContainer<'a, K,V>, E: Debug>(
     k: &'a K,
     f: F,
     m: &'a mut M,
     mk_e: fn(String) -> E,
-    s: &[String])
-    -> Result<(),E> {
+    s: &[String]
+) -> Result<(),E> {
     let l = m.len();
     let v = m.get_mut(k).ok_or_else(|| make_absent_error(k,l,mk_e,s))?;
     f(v);
@@ -637,14 +693,14 @@ pub fn update_throw_if_absent_2_lvl<'a,
                                     F:  Fn(&mut V),
                                     M2: KeyValueContainer<'a, K2, V> + 'a + Clone,
                                     M1: KeyValueContainer<'a, K1, M2> + 'a + Clone,
-                                    E: Debug> (
+                                    E:  Debug> (
     k1: &'a K1,
     k2: &'a K2,
     f: F,
     m: &'a mut M1,
     mk_e: fn(String) -> E,
-    s: &[String])
-    -> Result<(),E> {
+    s: &[String]
+) -> Result<(),E> {
     let l = m.len();
     let m2 = m.get_mut(k1).ok_or_else(|| make_absent_error(k1,l,mk_e,s))?;
     update_throw_if_absent(k2,f,m2,mk_e,s)
@@ -780,11 +836,12 @@ mod verb_throw_if_adjective_tests {
     }
 }
 
-pub fn two_lvl_map_to_vec_of_tuples<T0,T1,T2>(m0:&HashMap<T0,HashMap<T1,T2>>) ->
-    Vec<(&T0,&T1,&T2)>
+pub fn two_lvl_map_to_vec_of_tuples<T0,T1,T2>(
+    m0 : &HashMap<T0,HashMap<T1,T2>>
+) -> Vec<(&T0,&T1,&T2)>
 where
-    T0: std::hash::Hash + Eq,
-    T1: std::hash::Hash + Eq,
+    T0 : std::hash::Hash + Eq,
+    T1 : std::hash::Hash + Eq,
 {
     m0.iter()
         .map(|(k0,m1)| m1.iter()
@@ -793,12 +850,13 @@ where
         .collect_concat::<Vec<_>>()
 }
 
-pub fn three_lvl_map_to_vec_of_tuples<T0,T1,T2,T3>(m0:&HashMap<T0,HashMap<T1,HashMap<T2,T3>>>) ->
-    Vec<(&T0,&T1,&T2,&T3)>
+pub fn three_lvl_map_to_vec_of_tuples<T0,T1,T2,T3>(
+    m0 : &HashMap<T0,HashMap<T1,HashMap<T2,T3>>>
+) -> Vec<(&T0,&T1,&T2,&T3)>
 where
-    T0: std::hash::Hash + Eq,
-    T1: std::hash::Hash + Eq,
-    T2: std::hash::Hash + Eq,
+    T0 : std::hash::Hash + Eq,
+    T1 : std::hash::Hash + Eq,
+    T2 : std::hash::Hash + Eq,
 {
     m0.iter()
         .map(|(k0,m1)| m1.iter()
@@ -810,22 +868,23 @@ where
 }
 
 pub fn count_leaves_in_3_lvl_map<T0,T1,T2,T3>(
-    m0:&HashMap<T0,HashMap<T1,HashMap<T2,T3>>>) -> usize
+    m0 : &HashMap<T0,HashMap<T1,HashMap<T2,T3>>>
+) -> usize
 where
-    T0: std::hash::Hash + Eq,
-    T1: std::hash::Hash + Eq,
-    T2: std::hash::Hash + Eq,
+    T0 : std::hash::Hash + Eq,
+    T1 : std::hash::Hash + Eq,
+    T2 : std::hash::Hash + Eq,
 {
     three_lvl_map_to_vec_of_tuples(m0).len()
 }
 
 pub fn map_1_lvl<K0,V0,V1>(
-    f:fn(V0) -> V1,
-    m: &HashMap<K0,V0>
+    f : fn(V0) -> V1,
+    m : &HashMap<K0,V0>
 ) -> HashMap<K0,V1>
 where
-    K0: Clone+Eq+Hash,
-    V0: Clone
+    K0 : Clone+Eq+Hash,
+    V0 : Clone
 {
     m.iter()
         .map(|(k,v)| (k.clone(),f(v.clone())))
@@ -833,13 +892,13 @@ where
 }
 
 pub fn filter_map_1_lvl<K0,V0,V1>(
-    f1:fn(V0) -> bool,
-    f2:fn(V0) -> V1,
-    m: &HashMap<K0,V0>
+    f1 : fn(V0) -> bool,
+    f2 : fn(V0) -> V1,
+    m  : &HashMap<K0,V0>
 ) -> HashMap<K0,V1>
 where
-    K0: Clone+Eq+Hash,
-    V0: Clone
+    K0 : Clone+Eq+Hash,
+    V0 : Clone
 {
     m.iter()
         .filter(|(k,v)| f1((*v).clone()))
@@ -848,12 +907,12 @@ where
 }
 
 pub fn map_1_lvl_with_err<K0,V0,V1,E>(
-    f:fn(V0) -> Result<V1,E>,
-    m: &HashMap<K0,V0>
+    f : fn(V0) -> Result<V1,E>,
+    m : &HashMap<K0,V0>
 ) -> Result<HashMap<K0,V1>,E>
 where
-    K0: Clone+Eq+Hash,
-    V0: Clone
+    K0 : Clone+Eq+Hash,
+    V0 : Clone
 {
     m.iter()
         .map(|(k,v)| {
@@ -864,14 +923,14 @@ where
 }
 
 pub fn filter_map_2_lvl<K0,K1,V0,V1>(
-    f1:fn(V0) -> bool,
-    f2:fn(V0) -> V1,
-    m: &HashMap<K0,HashMap<K1,V0>>
+    f1 : fn(V0) -> bool,
+    f2 : fn(V0) -> V1,
+    m  : &HashMap<K0,HashMap<K1,V0>>
 ) -> HashMap<K0,HashMap<K1,V1>>
 where
-    K0: Clone+Eq+Hash,
-    K1: Clone+Eq+Hash,
-    V0: Clone
+    K0 : Clone+Eq+Hash,
+    K1 : Clone+Eq+Hash,
+    V0 : Clone
 {
     m.iter()
         .map(|(k0,m1)| (k0.clone(),filter_map_1_lvl(f1,f2,m1)))
@@ -879,13 +938,13 @@ where
 }
 
 pub fn map_2_lvl<K0,K1,V0,V1>(
-    f:fn(V0) -> V1,
-    m: &HashMap<K0,HashMap<K1,V0>>
+    f : fn(V0) -> V1,
+    m : &HashMap<K0,HashMap<K1,V0>>
 ) -> HashMap<K0,HashMap<K1,V1>>
 where
-    K0: Clone+Eq+Hash,
-    K1: Clone+Eq+Hash,
-    V0: Clone
+    K0 : Clone+Eq+Hash,
+    K1 : Clone+Eq+Hash,
+    V0 : Clone
 {
     m.iter()
         .map(|(k0,m1)| (k0.clone(),map_1_lvl(f,m1)))
@@ -893,13 +952,13 @@ where
 }
 
 pub fn map_2_lvl_with_err<K0,K1,V0,V1,E>(
-    f:fn(V0) -> Result<V1,E>,
-    m: &HashMap<K0,HashMap<K1,V0>>
+    f : fn(V0) -> Result<V1,E>,
+    m : &HashMap<K0,HashMap<K1,V0>>
 ) -> Result<HashMap<K0,HashMap<K1,V1>>,E>
 where
-    K0: Clone+Eq+Hash,
-    K1: Clone+Eq+Hash,
-    V0: Clone
+    K0 : Clone+Eq+Hash,
+    K1 : Clone+Eq+Hash,
+    V0 : Clone
 {
     m.iter()
         .map(|(k0,m1)| {
@@ -910,32 +969,32 @@ where
 }
 
 pub fn map_3_lvl<K0,K1,K2,V0,V1>(
-    f: fn(V0) -> V1,
-    m: &HashMap<K0,HashMap<K1,HashMap<K2,V0>>>
+    f : fn(V0) -> V1,
+    m : &HashMap<K0,HashMap<K1,HashMap<K2,V0>>>
 ) -> HashMap<K0,HashMap<K1,HashMap<K2,V1>>>
 where
-    K0: Clone+Eq+Hash,
-    K1: Clone+Eq+Hash,
-    K2: Clone+Eq+Hash,
-    V0: Clone
+    K0 : Clone+Eq+Hash,
+    K1 : Clone+Eq+Hash,
+    K2 : Clone+Eq+Hash,
+    V0 : Clone
 {
-  m.iter()
+    m.iter()
         .map(|(k0,m1)| (k0.clone(),map_2_lvl::<K1,K2,V0,V1>(f,m1)))
         .collect()
 }
 
 #[allow(clippy::type_complexity)]
 pub fn map_3_lvl_with_error<K0,K1,K2,V0,V1,E>(
-    f: fn(V0) -> Result<V1,E>,
-    m: &HashMap<K0,HashMap<K1,HashMap<K2,V0>>>
+    f : fn(V0) -> Result<V1,E>,
+    m : &HashMap<K0,HashMap<K1,HashMap<K2,V0>>>
 ) -> Result<HashMap<K0,HashMap<K1,HashMap<K2,V1>>>,E>
 where
-    K0: Clone+Eq+Hash,
-    K1: Clone+Eq+Hash,
-    K2: Clone+Eq+Hash,
-    V0: Clone
+    K0 : Clone+Eq+Hash,
+    K1 : Clone+Eq+Hash,
+    K2 : Clone+Eq+Hash,
+    V0 : Clone
 {
-  m.iter()
+    m.iter()
         .map(|(k0,m1)| {
             let r = map_2_lvl_with_err::<K1,K2,V0,V1,E>(f,m1)?;
             Ok((k0.clone(), r))
@@ -953,33 +1012,33 @@ where
 // which may help to avoid unnecessary clones.
 #[allow(clippy::type_complexity)]
 pub fn map_3_lvl_with_keys_partially_applied_with_error<A0,K0,K1,K2,V0,V1,E>(
-    a0:A0,
-    f: fn(A0,K0,K1,K2,V0) -> Result<V1,E>,
-    m: &HashMap<K0,HashMap<K1,HashMap<K2,V0>>>
+    a0 : A0,
+    f  : fn(A0,K0,K1,K2,V0) -> Result<V1,E>,
+    m  : &HashMap<K0,HashMap<K1,HashMap<K2,V0>>>
 ) -> Result<HashMap<K0,HashMap<K1,HashMap<K2,V1>>>,E>
 where
-    A0: Clone,
-    K0: Clone+Eq+Hash,
-    K1: Clone+Eq+Hash,
-    K2: Clone+Eq+Hash,
-    V0: Clone
+    A0 : Clone,
+    K0 : Clone+Eq+Hash,
+    K1 : Clone+Eq+Hash,
+    K2 : Clone+Eq+Hash,
+    V0 : Clone
 {
     mod util_fns {
         use super::*;
 
         // f5 is a function that takes 5 args
         pub fn map_2_lvl_with_key_f5_with_err<A0,A1,K0,K1,V0,V1,E>(
-            a0:A0,
-            a1:A1,
-            f:fn(A0,A1,K0,K1,V0) -> Result<V1,E>,
-            m: &HashMap<K0,HashMap<K1,V0>>
+            a0 : A0,
+            a1 : A1,
+            f  : fn(A0,A1,K0,K1,V0) -> Result<V1,E>,
+            m  : &HashMap<K0,HashMap<K1,V0>>
         ) -> Result<HashMap<K0,HashMap<K1,V1>>,E>
         where
-            A0: Clone,
-            A1: Clone+Eq+Hash,
-            K0: Clone+Eq+Hash,
-            K1: Clone+Eq+Hash,
-            V0: Clone
+            A0 : Clone,
+            A1 : Clone+Eq+Hash,
+            K0 : Clone+Eq+Hash,
+            K1 : Clone+Eq+Hash,
+            V0 : Clone
         {
             m.iter()
                 .map(|(k0,m1)| {
@@ -991,18 +1050,18 @@ where
 
         // f5 is a function that takes 5 args
         pub fn map_1_lvl_with_key_f5_with_err<A0,A1,A2,K0,V0,V1,E>(
-            a0:A0,
-            a1:A1,
-            a2:A2,
-            f:fn(A0, A1, A2, K0, V0) -> Result<V1,E>,
-            m: &HashMap<K0,V0>
+            a0 : A0,
+            a1 : A1,
+            a2 : A2,
+            f  : fn(A0, A1, A2, K0, V0) -> Result<V1,E>,
+            m  : &HashMap<K0,V0>
         ) -> Result<HashMap<K0,V1>,E>
         where
-            A0: Clone,
-            A1: Clone+Eq+Hash,
-            A2: Clone+Eq+Hash,
-            K0: Clone+Eq+Hash,
-            V0: Clone
+            A0 : Clone,
+            A1 : Clone+Eq+Hash,
+            A2 : Clone+Eq+Hash,
+            K0 : Clone+Eq+Hash,
+            V0 : Clone
         {
             m.iter()
                 .map(|(k,v)| {

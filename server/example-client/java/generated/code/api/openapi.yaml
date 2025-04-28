@@ -40,9 +40,7 @@ paths:
         content:
           application/json:
             schema:
-              items:
-                $ref: '#/components/schemas/ClaimType'
-              type: array
+              $ref: '#/components/schemas/CreateSignerDataRequest'
         required: true
       responses:
         "200":
@@ -58,6 +56,60 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: ""
       summary: Create the secret and public data used to sign and verify credentials.
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /vcp/createBlindSigningInfo:
+    post:
+      description: Returns BlindSigningInfo
+      operationId: createBlindSigningInfo
+      parameters:
+      - description: "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if\
+          \ missing)."
+        explode: true
+        in: query
+        name: zkpLib
+        required: false
+        schema:
+          description: "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error\
+            \ if missing)."
+          nullable: true
+          type: string
+        style: form
+      - description: A seed for a random number generator. Defaults to zero if not
+          given.
+        explode: true
+        in: query
+        name: rngSeed
+        required: false
+        schema:
+          description: A seed for a random number generator. Defaults to zero if not
+            given.
+          format: uint64
+          minimum: 0.0
+          nullable: true
+          type: integer
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBlindSigningInfoRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlindSigningInfo'
+          description: ""
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ""
+      summary: Create BlindSigningInfo
       x-content-type: application/json
       x-accepts:
       - application/json
@@ -159,6 +211,115 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: ""
       summary: Create a signature from the given values and SignerData.
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /vcp/signWithBlindedAttributes:
+    post:
+      description: Returns a BlindSignature.
+      operationId: signWithBlindedAttributes
+      parameters:
+      - description: "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if\
+          \ missing)."
+        explode: true
+        in: query
+        name: zkpLib
+        required: false
+        schema:
+          description: "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error\
+            \ if missing)."
+          nullable: true
+          type: string
+        style: form
+      - description: A seed for a random number generator. Defaults to zero if not
+          given.
+        explode: true
+        in: query
+        name: rngSeed
+        required: false
+        schema:
+          description: A seed for a random number generator. Defaults to zero if not
+            given.
+          format: uint64
+          minimum: 0.0
+          nullable: true
+          type: integer
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignWithBlindedAttributesRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlindSignature'
+          description: ""
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ""
+      summary: "Create a BlindSignature from the given non-blinded values, blinding\
+        \ info and SignerData."
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /vcp/unblindBlindedSignature:
+    post:
+      description: Returns Signature.
+      operationId: unblindBlindedSignature
+      parameters:
+      - description: "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if\
+          \ missing)."
+        explode: true
+        in: query
+        name: zkpLib
+        required: false
+        schema:
+          description: "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error\
+            \ if missing)."
+          nullable: true
+          type: string
+        style: form
+      - description: A seed for a random number generator. Defaults to zero if not
+          given.
+        explode: true
+        in: query
+        name: rngSeed
+        required: false
+        schema:
+          description: A seed for a random number generator. Defaults to zero if not
+            given.
+          format: uint64
+          minimum: 0.0
+          nullable: true
+          type: integer
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnblindBlindedSignatureRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Signature'
+          description: ""
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ""
+      summary: Unblinded a blinded signature.
       x-content-type: application/json
       x-accepts:
       - application/json
@@ -584,6 +745,9 @@ components:
           signerPublicSchema:
           - CTText
           - CTText
+          signerBlindedAttrIdxs:
+          - 0
+          - 0
       properties:
         signerPublicData:
           $ref: '#/components/schemas/SignerPublicData'
@@ -601,6 +765,9 @@ components:
         signerPublicSchema:
         - CTText
         - CTText
+        signerBlindedAttrIdxs:
+        - 0
+        - 0
       properties:
         signerPublicSetupData:
           description: Data resulting from a Signer's setup.
@@ -609,7 +776,14 @@ components:
           items:
             $ref: '#/components/schemas/ClaimType'
           type: array
+        signerBlindedAttrIdxs:
+          items:
+            format: uint64
+            minimum: 0.0
+            type: integer
+          type: array
       required:
+      - signerBlindedAttrIdxs
       - signerPublicSchema
       - signerPublicSetupData
       type: object
@@ -640,6 +814,118 @@ components:
       required:
       - location
       - reason
+      type: object
+    CreateSignerDataRequest:
+      description: Supplies the schema and the (possibly empty) indices of attributes
+        to be blinded.
+      example:
+        claimTypes:
+        - CTText
+        - CTText
+        blindedAttributeIndices:
+        - 0
+        - 0
+      properties:
+        claimTypes:
+          description: The schema.
+          items:
+            $ref: '#/components/schemas/ClaimType'
+          type: array
+        blindedAttributeIndices:
+          description: The attributes to be blinded.
+          items:
+            format: uint64
+            minimum: 0.0
+            type: integer
+          type: array
+      required:
+      - blindedAttributeIndices
+      - claimTypes
+      type: object
+    BlindSigningInfo:
+      example:
+        blindInfoForSigner: blindInfoForSigner
+        infoForUnblinding: infoForUnblinding
+        blindedAttributes:
+        - index: 0
+          value:
+            contents: 0
+            tag: DVInt
+        - index: 0
+          value:
+            contents: 0
+            tag: DVInt
+      properties:
+        blindInfoForSigner:
+          description: Info sent by requester to Signer to create blind signature
+          type: string
+        blindedAttributes:
+          items:
+            $ref: '#/components/schemas/CredAttrIndexAndDataValue'
+          type: array
+        infoForUnblinding:
+          description: Data retained by requester to unblind blind signature
+          type: string
+      required:
+      - blindInfoForSigner
+      - blindedAttributes
+      - infoForUnblinding
+      type: object
+    BlindInfoForSigner:
+      description: Info sent by requester to Signer to create blind signature
+      type: string
+    CredAttrIndexAndDataValue:
+      example:
+        index: 0
+        value:
+          contents: 0
+          tag: DVInt
+      properties:
+        index:
+          format: uint64
+          minimum: 0.0
+          type: integer
+        value:
+          $ref: '#/components/schemas/DataValue'
+      required:
+      - index
+      - value
+      type: object
+    DataValue:
+      description: An int or text value.
+      oneOf:
+      - $ref: '#/components/schemas/DataValue_oneOf'
+      - $ref: '#/components/schemas/DataValue_oneOf_1'
+    InfoForUnblinding:
+      description: Data retained by requester to unblind blind signature
+      type: string
+    CreateBlindSigningInfoRequest:
+      description: Supplies the attribute indices and values to be blinded. The indices
+        must match the indices given to createSignerData.
+      example:
+        signerPublicData: ""
+        blindedIndicesAndValues:
+        - index: 0
+          value:
+            contents: 0
+            tag: DVInt
+        - index: 0
+          value:
+            contents: 0
+            tag: DVInt
+      properties:
+        signerPublicData:
+          allOf:
+          - $ref: '#/components/schemas/SignerPublicData'
+          description: See SignerPublicData.
+        blindedIndicesAndValues:
+          description: The values to be blind signed.
+          items:
+            $ref: '#/components/schemas/CredAttrIndexAndDataValue'
+          type: array
+      required:
+      - blindedIndicesAndValues
+      - signerPublicData
       type: object
     CreateAccumulatorResponse:
       description: Contains the AccumulatorData and the Accumulator.
@@ -710,11 +996,86 @@ components:
       - signerData
       - values
       type: object
-    DataValue:
-      description: An int or text value.
-      oneOf:
-      - $ref: '#/components/schemas/DataValue_oneOf'
-      - $ref: '#/components/schemas/DataValue_oneOf_1'
+    BlindSignature:
+      description: "A blinded signature, based on the 'values', etc., given in a TODO\
+        \ -- what's this?"
+      type: string
+    SignWithBlindedAttributesRequest:
+      description: Supplies non-blinded attributes and a commitment (BlindInfoForSigner)
+        to the blinded attributes.
+      example:
+        signerData: ""
+        blindInfoForSigner: blindInfoForSigner
+        nonBlindedAttributes:
+        - index: 0
+          value:
+            contents: 0
+            tag: DVInt
+        - index: 0
+          value:
+            contents: 0
+            tag: DVInt
+      properties:
+        nonBlindedAttributes:
+          description: The values to be signed.
+          items:
+            $ref: '#/components/schemas/CredAttrIndexAndDataValue'
+          type: array
+        blindInfoForSigner:
+          description: Info sent by requester to Signer to create blind signature
+          type: string
+        signerData:
+          allOf:
+          - $ref: '#/components/schemas/SignerData'
+          description: See SignerData.
+      required:
+      - blindInfoForSigner
+      - nonBlindedAttributes
+      - signerData
+      type: object
+    UnblindBlindedSignatureRequest:
+      description: "Supplies blinded attributes, InfoForUnblinding and the BlindSignature\
+        \ to be unblinded."
+      example:
+        claimTypes:
+        - CTText
+        - CTText
+        blindedIndicesAndValues:
+        - index: 0
+          value:
+            contents: 0
+            tag: DVInt
+        - index: 0
+          value:
+            contents: 0
+            tag: DVInt
+        infoForUnblinding: ""
+        blindSignature: ""
+      properties:
+        claimTypes:
+          description: The schema.
+          items:
+            $ref: '#/components/schemas/ClaimType'
+          type: array
+        blindedIndicesAndValues:
+          description: Blinded attributes. Same as used for CreateBlindSigningInfoRequest.
+          items:
+            $ref: '#/components/schemas/CredAttrIndexAndDataValue'
+          type: array
+        blindSignature:
+          allOf:
+          - $ref: '#/components/schemas/BlindSignature'
+          description: The signature to be unblinded.
+        infoForUnblinding:
+          allOf:
+          - $ref: '#/components/schemas/InfoForUnblinding'
+          description: See InfoForUnblinding.
+      required:
+      - blindSignature
+      - blindedIndicesAndValues
+      - claimTypes
+      - infoForUnblinding
+      type: object
     AccumulatorElement:
       description: "An element that may be added to or removed from an accumulator.\
         \  Note, elements are created from text (see createAccumulatorElement)."

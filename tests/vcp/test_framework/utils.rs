@@ -17,6 +17,7 @@ lazy_static! {
     pub static ref INITIAL_TEST_STATE: TestState = TestState {
         sparms: HashMap::new(),
         all_signer_data: HashMap::new(),
+        all_blind_signing_info: HashMap::new(),
         sigs_and_rel_data: HashMap::new(),
         accum_witnesses: HashMap::new(),
         accums: HashMap::new(),
@@ -66,49 +67,55 @@ pub fn extend_test(
 ) -> VCPResult<()> {
     for t_step in t_seq {
         match t_step {
-                TestStep::CreateIssuer(i_lbl, schema) => {
-                    (*step_create_issuer(platform_api, i_lbl, schema))(t_st)?
-                }
-                TestStep::CreateAccumulators(i_lbl) => {
-                    (*step_create_accumulators_for_issuer(platform_api, i_lbl))(t_st)?
-                }
-                TestStep::SignCredential(i_lbl, h_lbl, vals, attr_max_off_mb) => {
-                    (*step_sign_credential(platform_api, i_lbl, h_lbl, vals, attr_max_off_mb))(t_st)?
-                }
-                TestStep::AccumulatorAddRemove(i_lbl, a_idx, adds, removes) => {
-                    (*step_accumulator_add_remove(platform_api, i_lbl, a_idx,
-                                                  adds, removes))(t_st)?
-                }
-                TestStep::UpdateAccumulatorWitness(h_lbl, i_lbl, a_idx, seq_no) => {
-                    (*step_update_accumulator_witness(platform_api, h_lbl, i_lbl, a_idx, seq_no))(t_st)?
-                }
-                TestStep::Reveal(h_lbl, i_lbl, idxs) => {
-                    (*step_reveal(platform_api, h_lbl, i_lbl, idxs))(t_st)?
-                }
-                TestStep::InRange(h_lbl, i_lbl, idx, min_v, max_v, max_off) => {
-                    (*step_in_range(platform_api, h_lbl, i_lbl, idx, min_v, max_v, max_off))(t_st)?
-                }
-                TestStep::InAccum(h_lbl, i_lbl, idxs, sn) => {
-                    (*step_in_accum(platform_api, h_lbl, i_lbl, idxs, sn))(t_st)?
-                }
-                TestStep::Equality(h_lbl, i_lbl, a_idx, eqs) => {
-                    (*step_equality(h_lbl, i_lbl, a_idx, eqs))(t_st)?
-                }
-                TestStep::CreateAndVerifyProof(h_lbl, proof_mode, test_exp) => {
-                    (*step_create_and_verify_proof(platform_api, h_lbl, proof_mode, test_exp))(t_st)?
-                }
-                TestStep::CreateAuthority(a_lbl) => {
-                    (*step_create_authority(platform_api, a_lbl))(t_st)?
-                }
-                TestStep::EncryptFor(h_lbl, i_lbl, a_idx, a_lbl) => {
-                    (*step_encrypt_for(h_lbl, i_lbl, a_idx, a_lbl))(t_st)?
-                }
-                TestStep::Decrypt(h_lbl, i_lbl, a_idx, a_lbl) => {
-                    (*step_decrypt(h_lbl, i_lbl, a_idx, a_lbl))(t_st)?
-                }
-                TestStep::VerifyDecryption(h_lbl, proof_mode) => {
-                    (*step_verify_decryption(platform_api, h_lbl, proof_mode))(t_st)?
-                }
+            TestStep::CreateIssuer(i_lbl, schema, blind_attr_idxs, proof_mode) => {
+                (*step_create_issuer(platform_api, i_lbl, schema, blind_attr_idxs, proof_mode))(t_st)?
+            }
+            TestStep::CreateAccumulators(i_lbl) => {
+                (*step_create_accumulators_for_issuer(platform_api, i_lbl))(t_st)?
+            }
+            TestStep::SignCredential(i_lbl, h_lbl, vals, attr_max_off_mb, prf_mode) => {
+                (*step_sign_credential(platform_api, i_lbl, h_lbl, vals, attr_max_off_mb, prf_mode))(t_st)?
+            }
+            TestStep::CreateBlindSigningInfo(h_lbl, i_lbl, vals, proof_mode) => {
+                (*step_create_blind_signing_info(platform_api, h_lbl, i_lbl, vals, proof_mode))(t_st)?
+            }
+            TestStep::SignCredentialWithBlinding(i_lbl, h_lbl, vals, proof_mode) => {
+                (*step_sign_credential_with_blinding(platform_api, i_lbl, h_lbl, vals, proof_mode))(t_st)?
+            }
+            TestStep::AccumulatorAddRemove(i_lbl, a_idx, adds, removes) => {
+                (*step_accumulator_add_remove(platform_api, i_lbl, a_idx,
+                                              adds, removes))(t_st)?
+            }
+            TestStep::UpdateAccumulatorWitness(h_lbl, i_lbl, a_idx, seq_no) => {
+                (*step_update_accumulator_witness(platform_api, h_lbl, i_lbl, a_idx, seq_no))(t_st)?
+            }
+            TestStep::Reveal(h_lbl, i_lbl, idxs) => {
+                (*step_reveal(platform_api, h_lbl, i_lbl, idxs))(t_st)?
+            }
+            TestStep::InRange(h_lbl, i_lbl, idx, min_v, max_v, max_off) => {
+                (*step_in_range(platform_api, h_lbl, i_lbl, idx, min_v, max_v, max_off))(t_st)?
+            }
+            TestStep::InAccum(h_lbl, i_lbl, idxs, sn) => {
+                (*step_in_accum(platform_api, h_lbl, i_lbl, idxs, sn))(t_st)?
+            }
+            TestStep::Equality(h_lbl, i_lbl, a_idx, eqs) => {
+                (*step_equality(h_lbl, i_lbl, a_idx, eqs))(t_st)?
+            }
+            TestStep::CreateAndVerifyProof(h_lbl, proof_mode, test_exp) => {
+                (*step_create_and_verify_proof(platform_api, h_lbl, proof_mode, test_exp))(t_st)?
+            }
+            TestStep::CreateAuthority(a_lbl) => {
+                (*step_create_authority(platform_api, a_lbl))(t_st)?
+            }
+            TestStep::EncryptFor(h_lbl, i_lbl, a_idx, a_lbl) => {
+                (*step_encrypt_for(h_lbl, i_lbl, a_idx, a_lbl))(t_st)?
+            }
+            TestStep::Decrypt(h_lbl, i_lbl, a_idx, a_lbl) => {
+                (*step_decrypt(h_lbl, i_lbl, a_idx, a_lbl))(t_st)?
+            }
+            TestStep::VerifyDecryption(h_lbl, proof_mode) => {
+                (*step_verify_decryption(platform_api, h_lbl, proof_mode))(t_st)?
+            }
         };
     };
     Ok(())

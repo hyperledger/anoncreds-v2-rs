@@ -3,6 +3,10 @@ package com.example.vcp.demos;
 // ------------------------------------------------------------------------------
 import com.example.vcp.client.model.*;
 // ------------------------------------------------------------------------------
+import java.util.function.BiFunction;
+import java.util.ArrayList;
+import java.util.List;
+// ------------------------------------------------------------------------------
 
 public class Util
 {
@@ -14,9 +18,17 @@ public class Util
 
     // ------------------------------------------------------------------------------
 
-    public static void banner(final String m, final String z) {
+    public static void banner(final X x, final String m) {
         System.out.println();
-        System.out.println("------------------------- " + m + " " + z + " -------------------------");
+        System.out.println("------------------------- " +
+                           m +
+                           " "
+                           + zpkLibAndSigTypeString(x) +
+                           " -------------------------");
+    }
+
+    static String zpkLibAndSigTypeString(final X x) {
+        return  x.zkpLib + " " + x.sigType.toString();
     }
 
     public static void sop(final String m, final Object o) {
@@ -54,4 +66,14 @@ public class Util
              .tag(DVText.TagEnum.DV_TEXT));
     }
 
+    // ------------------------------------------------------------------------------
+
+    public static List<CredAttrIndexAndDataValue> enumerate(final List<DataValue> l)
+    {
+        List<CredAttrIndexAndDataValue> result = new ArrayList<>(l.size());
+        for (int i = 0; i < l.size(); i++) {
+            result.add(new CredAttrIndexAndDataValue().index(i).value(l.get(i)));
+        }
+        return result;
+    }
 }

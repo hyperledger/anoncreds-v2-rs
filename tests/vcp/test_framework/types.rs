@@ -27,6 +27,7 @@ pub type AccumsForSigner =
 // TODO: Should be by AccumulatorPublicData, to enable modeling different Issuers using
 // common RevocationManagers
 pub type AllSignerAccumulatorData = HashMap<api::SignerPublicData, AccumsForSigner>;
+pub type AllBlindSigningInfo      = HashMap<HolderLabel, HashMap<IssuerLabel, api::BlindSigningInfo>>;
 pub type HolderSigsAndRelatedData =
     HashMap<HolderLabel, HashMap<IssuerLabelAsCredentialLabel, api::SignatureAndRelatedData>>;
 pub type HolderAllWitnesses       =
@@ -52,6 +53,7 @@ pub type AllDecryptResps =
 pub struct TestState {
     pub sparms: HashMap<api::SharedParamKey, api::SharedParamValue>,
     pub all_signer_data: AllSignerData,
+    pub all_blind_signing_info: AllBlindSigningInfo,
     pub sigs_and_rel_data: HolderSigsAndRelatedData,
     pub accum_witnesses: HolderAllWitnesses,
     pub accums: AllSignerAccumulatorData,
@@ -168,7 +170,7 @@ pub struct ReplaceUpperBoundWithMaxSupportedPlusOffset
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 #[serde(tag = "tag", content = "contents")]
 pub enum TestStep {
-    CreateIssuer(IssuerLabel, Vec<api::ClaimType>),
+    CreateIssuer(IssuerLabel, Vec<api::ClaimType>, Vec<api::CredAttrIndex>, ProofMode),
     CreateAccumulators(IssuerLabel),
     // If the last argument for a SignCredential TestStep is
     //   Some(ReplaceValueWithMaximumPlus{attrIdxToReplaceWithMaxSupported:ci, plusOffset:offset}),
@@ -179,7 +181,20 @@ pub enum TestStep {
         IssuerLabel,
         HolderLabel,
         Vec<api::DataValue>,
-        Option<ReplaceValueWithMaximumPlus>
+        Option<ReplaceValueWithMaximumPlus>,
+        ProofMode
+    ),
+    CreateBlindSigningInfo(
+        HolderLabel,
+        IssuerLabel,
+        Vec<api::CredAttrIndexAndDataValue>,
+        ProofMode
+    ),
+    SignCredentialWithBlinding(
+        IssuerLabel,
+        HolderLabel,
+        Vec<api::CredAttrIndexAndDataValue>,
+        ProofMode
     ),
     AccumulatorAddRemove(
         IssuerLabel,

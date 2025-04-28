@@ -54,12 +54,16 @@ pub struct SignerPublicData {
 
     #[serde(rename = "signerPublicSchema")]
     pub signer_public_schema: Vec<ClaimType>,
+
+    #[serde(rename = "signerBlindedAttrIdxs")]
+    pub signer_blinded_attr_idxs: Vec<CredAttrIndex>,
 }
 
 impl SignerPublicData {
     pub fn new(signer_public_setup_data: SignerPublicSetupData,
-               signer_public_schema: Vec<ClaimType>) -> SignerPublicData {
-        SignerPublicData { signer_public_schema, signer_public_setup_data }
+               signer_public_schema: Vec<ClaimType>,
+               signer_blinded_attr_idxs: Vec<CredAttrIndex>) -> SignerPublicData {
+        SignerPublicData { signer_public_schema, signer_public_setup_data, signer_blinded_attr_idxs}
     }
 }
 
@@ -127,6 +131,33 @@ impl fmt::Display for DataValue {
 #[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Signature(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { Signature }
+
+/// A blinded signature, based on the 'values', etc., given in a TODO -- what's this?
+#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct BlindSignature(pub OpaqueMaterial);
+impl_Debug_for_OpaqueMaterial_wrapper! { BlindSignature }
+
+/// Info sent by requester to Signer to create blind signature
+#[derive(Clone, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct BlindInfoForSigner(pub OpaqueMaterial);
+impl_Debug_for_OpaqueMaterial_wrapper! { BlindInfoForSigner }
+
+/// Data retained by requester to unblind blind signature
+#[derive(Clone, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct InfoForUnblinding(pub OpaqueMaterial);
+impl_Debug_for_OpaqueMaterial_wrapper! { InfoForUnblinding }
+
+#[derive(Clone, Eq, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct BlindSigningInfo {
+    #[serde(rename = "blindInfoForSigner")]
+    pub blind_info_for_signer: BlindInfoForSigner,
+
+    #[serde(rename = "blindedAttributes")]
+    pub blinded_attributes: Vec<CredAttrIndexAndDataValue>,
+
+    #[serde(rename = "infoForUnblinding")]
+    pub info_for_unblinding: InfoForUnblinding,
+}
 
 // ------------------------------------------------------------------------------
 // proof requirements
@@ -533,19 +564,19 @@ pub enum SharedParamValue {
     SPVList(Vec<DataValue>),
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Eq, Debug, PartialEq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
 pub struct CredAttrIndexAndDataValue {
 
     #[serde(rename = "index")]
     pub index: CredAttrIndex,
 
     #[serde(rename = "value")]
-    pub value: Box<DataValue>,   // TO DISCUSS: why Box?
+    pub value: DataValue,
 }
 
 impl CredAttrIndexAndDataValue {
     pub fn new(index: CredAttrIndex, value: DataValue) -> CredAttrIndexAndDataValue {
-        CredAttrIndexAndDataValue { index, value: Box::new(value) }
+        CredAttrIndexAndDataValue { index, value }
     }
 }
 

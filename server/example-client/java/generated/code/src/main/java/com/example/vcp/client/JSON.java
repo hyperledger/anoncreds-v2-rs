@@ -96,8 +96,12 @@ public class JSON {
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.AccumulatorAddRemoveResponse.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.AccumulatorData.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.AuthorityData.CustomTypeAdapterFactory());
+        gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.BlindSigningInfo.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.CreateAccumulatorResponse.CustomTypeAdapterFactory());
+        gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.CreateBlindSigningInfoRequest.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.CreateProofRequest.CustomTypeAdapterFactory());
+        gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.CreateSignerDataRequest.CustomTypeAdapterFactory());
+        gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.CredAttrIndexAndDataValue.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.CredentialReqs.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.DataForVerifier.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.DataValue.CustomTypeAdapterFactory());
@@ -114,9 +118,11 @@ public class JSON {
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.SPVOne.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.SPVList.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.SignRequest.CustomTypeAdapterFactory());
+        gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.SignWithBlindedAttributesRequest.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.SignatureAndRelatedData.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.SignerData.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.SignerPublicData.CustomTypeAdapterFactory());
+        gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.UnblindBlindedSignatureRequest.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.UpdateAccumulatorWitnessRequest.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.VerifyDecryptionRequest.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.VerifyProofRequest.CustomTypeAdapterFactory());

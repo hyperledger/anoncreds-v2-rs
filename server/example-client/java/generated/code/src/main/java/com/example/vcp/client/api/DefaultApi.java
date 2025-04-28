@@ -29,12 +29,16 @@ import java.io.IOException;
 import com.example.vcp.client.model.AccumulatorAddRemoveRequest;
 import com.example.vcp.client.model.AccumulatorAddRemoveResponse;
 import com.example.vcp.client.model.AuthorityData;
-import com.example.vcp.client.model.ClaimType;
+import com.example.vcp.client.model.BlindSigningInfo;
 import com.example.vcp.client.model.CreateAccumulatorResponse;
+import com.example.vcp.client.model.CreateBlindSigningInfoRequest;
 import com.example.vcp.client.model.CreateProofRequest;
+import com.example.vcp.client.model.CreateSignerDataRequest;
 import com.example.vcp.client.model.Error;
 import com.example.vcp.client.model.SignRequest;
+import com.example.vcp.client.model.SignWithBlindedAttributesRequest;
 import com.example.vcp.client.model.SignerData;
+import com.example.vcp.client.model.UnblindBlindedSignatureRequest;
 import com.example.vcp.client.model.UpdateAccumulatorWitnessRequest;
 import com.example.vcp.client.model.VerifyDecryptionRequest;
 import com.example.vcp.client.model.VerifyProofRequest;
@@ -648,6 +652,153 @@ public class DefaultApi {
         return localVarCall;
     }
     /**
+     * Build call for createBlindSigningInfo
+     * @param createBlindSigningInfoRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @param _callback Callback for upload/download progress
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call createBlindSigningInfoCall(CreateBlindSigningInfoRequest createBlindSigningInfoRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+        String basePath = null;
+        // Operation Servers
+        String[] localBasePaths = new String[] {  };
+
+        // Determine Base Path to Use
+        if (localCustomBaseUrl != null){
+            basePath = localCustomBaseUrl;
+        } else if ( localBasePaths.length > 0 ) {
+            basePath = localBasePaths[localHostIndex];
+        } else {
+            basePath = null;
+        }
+
+        Object localVarPostBody = createBlindSigningInfoRequest;
+
+        // create path and map variables
+        String localVarPath = "/vcp/createBlindSigningInfo";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        if (zkpLib != null) {
+            localVarQueryParams.addAll(localVarApiClient.parameterToPair("zkpLib", zkpLib));
+        }
+
+        if (rngSeed != null) {
+            localVarQueryParams.addAll(localVarApiClient.parameterToPair("rngSeed", rngSeed));
+        }
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+            "application/json"
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        if (localVarContentType != null) {
+            localVarHeaderParams.put("Content-Type", localVarContentType);
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return localVarApiClient.buildCall(basePath, localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private okhttp3.Call createBlindSigningInfoValidateBeforeCall(CreateBlindSigningInfoRequest createBlindSigningInfoRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+        // verify the required parameter 'createBlindSigningInfoRequest' is set
+        if (createBlindSigningInfoRequest == null) {
+            throw new ApiException("Missing the required parameter 'createBlindSigningInfoRequest' when calling createBlindSigningInfo(Async)");
+        }
+
+        return createBlindSigningInfoCall(createBlindSigningInfoRequest, zkpLib, rngSeed, _callback);
+
+    }
+
+    /**
+     * Create BlindSigningInfo
+     * Returns BlindSigningInfo
+     * @param createBlindSigningInfoRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @return BlindSigningInfo
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public BlindSigningInfo createBlindSigningInfo(CreateBlindSigningInfoRequest createBlindSigningInfoRequest, String zkpLib, Integer rngSeed) throws ApiException {
+        ApiResponse<BlindSigningInfo> localVarResp = createBlindSigningInfoWithHttpInfo(createBlindSigningInfoRequest, zkpLib, rngSeed);
+        return localVarResp.getData();
+    }
+
+    /**
+     * Create BlindSigningInfo
+     * Returns BlindSigningInfo
+     * @param createBlindSigningInfoRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @return ApiResponse&lt;BlindSigningInfo&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public ApiResponse<BlindSigningInfo> createBlindSigningInfoWithHttpInfo(CreateBlindSigningInfoRequest createBlindSigningInfoRequest, String zkpLib, Integer rngSeed) throws ApiException {
+        okhttp3.Call localVarCall = createBlindSigningInfoValidateBeforeCall(createBlindSigningInfoRequest, zkpLib, rngSeed, null);
+        Type localVarReturnType = new TypeToken<BlindSigningInfo>(){}.getType();
+        return localVarApiClient.execute(localVarCall, localVarReturnType);
+    }
+
+    /**
+     * Create BlindSigningInfo (asynchronously)
+     * Returns BlindSigningInfo
+     * @param createBlindSigningInfoRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @param _callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call createBlindSigningInfoAsync(CreateBlindSigningInfoRequest createBlindSigningInfoRequest, String zkpLib, Integer rngSeed, final ApiCallback<BlindSigningInfo> _callback) throws ApiException {
+
+        okhttp3.Call localVarCall = createBlindSigningInfoValidateBeforeCall(createBlindSigningInfoRequest, zkpLib, rngSeed, _callback);
+        Type localVarReturnType = new TypeToken<BlindSigningInfo>(){}.getType();
+        localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
+        return localVarCall;
+    }
+    /**
      * Build call for createMembershipProvingKey
      * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
      * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
@@ -1067,7 +1218,7 @@ public class DefaultApi {
     }
     /**
      * Build call for createSignerData
-     * @param claimType  (required)
+     * @param createSignerDataRequest  (required)
      * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
      * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
      * @param _callback Callback for upload/download progress
@@ -1081,7 +1232,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createSignerDataCall(List<ClaimType> claimType, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call createSignerDataCall(CreateSignerDataRequest createSignerDataRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -1095,7 +1246,7 @@ public class DefaultApi {
             basePath = null;
         }
 
-        Object localVarPostBody = claimType;
+        Object localVarPostBody = createSignerDataRequest;
 
         // create path and map variables
         String localVarPath = "/vcp/createSignerData";
@@ -1135,20 +1286,20 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call createSignerDataValidateBeforeCall(List<ClaimType> claimType, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
-        // verify the required parameter 'claimType' is set
-        if (claimType == null) {
-            throw new ApiException("Missing the required parameter 'claimType' when calling createSignerData(Async)");
+    private okhttp3.Call createSignerDataValidateBeforeCall(CreateSignerDataRequest createSignerDataRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+        // verify the required parameter 'createSignerDataRequest' is set
+        if (createSignerDataRequest == null) {
+            throw new ApiException("Missing the required parameter 'createSignerDataRequest' when calling createSignerData(Async)");
         }
 
-        return createSignerDataCall(claimType, zkpLib, rngSeed, _callback);
+        return createSignerDataCall(createSignerDataRequest, zkpLib, rngSeed, _callback);
 
     }
 
     /**
      * Create the secret and public data used to sign and verify credentials.
      * Returns SignerData.
-     * @param claimType  (required)
+     * @param createSignerDataRequest  (required)
      * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
      * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
      * @return SignerData
@@ -1161,15 +1312,15 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public SignerData createSignerData(List<ClaimType> claimType, String zkpLib, Integer rngSeed) throws ApiException {
-        ApiResponse<SignerData> localVarResp = createSignerDataWithHttpInfo(claimType, zkpLib, rngSeed);
+    public SignerData createSignerData(CreateSignerDataRequest createSignerDataRequest, String zkpLib, Integer rngSeed) throws ApiException {
+        ApiResponse<SignerData> localVarResp = createSignerDataWithHttpInfo(createSignerDataRequest, zkpLib, rngSeed);
         return localVarResp.getData();
     }
 
     /**
      * Create the secret and public data used to sign and verify credentials.
      * Returns SignerData.
-     * @param claimType  (required)
+     * @param createSignerDataRequest  (required)
      * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
      * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
      * @return ApiResponse&lt;SignerData&gt;
@@ -1182,8 +1333,8 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<SignerData> createSignerDataWithHttpInfo(List<ClaimType> claimType, String zkpLib, Integer rngSeed) throws ApiException {
-        okhttp3.Call localVarCall = createSignerDataValidateBeforeCall(claimType, zkpLib, rngSeed, null);
+    public ApiResponse<SignerData> createSignerDataWithHttpInfo(CreateSignerDataRequest createSignerDataRequest, String zkpLib, Integer rngSeed) throws ApiException {
+        okhttp3.Call localVarCall = createSignerDataValidateBeforeCall(createSignerDataRequest, zkpLib, rngSeed, null);
         Type localVarReturnType = new TypeToken<SignerData>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
     }
@@ -1191,7 +1342,7 @@ public class DefaultApi {
     /**
      * Create the secret and public data used to sign and verify credentials. (asynchronously)
      * Returns SignerData.
-     * @param claimType  (required)
+     * @param createSignerDataRequest  (required)
      * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
      * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
      * @param _callback The callback to be executed when the API call finishes
@@ -1205,9 +1356,9 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createSignerDataAsync(List<ClaimType> claimType, String zkpLib, Integer rngSeed, final ApiCallback<SignerData> _callback) throws ApiException {
+    public okhttp3.Call createSignerDataAsync(CreateSignerDataRequest createSignerDataRequest, String zkpLib, Integer rngSeed, final ApiCallback<SignerData> _callback) throws ApiException {
 
-        okhttp3.Call localVarCall = createSignerDataValidateBeforeCall(claimType, zkpLib, rngSeed, _callback);
+        okhttp3.Call localVarCall = createSignerDataValidateBeforeCall(createSignerDataRequest, zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<SignerData>(){}.getType();
         localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
         return localVarCall;
@@ -1489,6 +1640,300 @@ public class DefaultApi {
     public okhttp3.Call signAsync(SignRequest signRequest, String zkpLib, Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = signValidateBeforeCall(signRequest, zkpLib, rngSeed, _callback);
+        Type localVarReturnType = new TypeToken<String>(){}.getType();
+        localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
+        return localVarCall;
+    }
+    /**
+     * Build call for signWithBlindedAttributes
+     * @param signWithBlindedAttributesRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @param _callback Callback for upload/download progress
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call signWithBlindedAttributesCall(SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+        String basePath = null;
+        // Operation Servers
+        String[] localBasePaths = new String[] {  };
+
+        // Determine Base Path to Use
+        if (localCustomBaseUrl != null){
+            basePath = localCustomBaseUrl;
+        } else if ( localBasePaths.length > 0 ) {
+            basePath = localBasePaths[localHostIndex];
+        } else {
+            basePath = null;
+        }
+
+        Object localVarPostBody = signWithBlindedAttributesRequest;
+
+        // create path and map variables
+        String localVarPath = "/vcp/signWithBlindedAttributes";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        if (zkpLib != null) {
+            localVarQueryParams.addAll(localVarApiClient.parameterToPair("zkpLib", zkpLib));
+        }
+
+        if (rngSeed != null) {
+            localVarQueryParams.addAll(localVarApiClient.parameterToPair("rngSeed", rngSeed));
+        }
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+            "application/json"
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        if (localVarContentType != null) {
+            localVarHeaderParams.put("Content-Type", localVarContentType);
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return localVarApiClient.buildCall(basePath, localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private okhttp3.Call signWithBlindedAttributesValidateBeforeCall(SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+        // verify the required parameter 'signWithBlindedAttributesRequest' is set
+        if (signWithBlindedAttributesRequest == null) {
+            throw new ApiException("Missing the required parameter 'signWithBlindedAttributesRequest' when calling signWithBlindedAttributes(Async)");
+        }
+
+        return signWithBlindedAttributesCall(signWithBlindedAttributesRequest, zkpLib, rngSeed, _callback);
+
+    }
+
+    /**
+     * Create a BlindSignature from the given non-blinded values, blinding info and SignerData.
+     * Returns a BlindSignature.
+     * @param signWithBlindedAttributesRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @return String
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public String signWithBlindedAttributes(SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, String zkpLib, Integer rngSeed) throws ApiException {
+        ApiResponse<String> localVarResp = signWithBlindedAttributesWithHttpInfo(signWithBlindedAttributesRequest, zkpLib, rngSeed);
+        return localVarResp.getData();
+    }
+
+    /**
+     * Create a BlindSignature from the given non-blinded values, blinding info and SignerData.
+     * Returns a BlindSignature.
+     * @param signWithBlindedAttributesRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @return ApiResponse&lt;String&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public ApiResponse<String> signWithBlindedAttributesWithHttpInfo(SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, String zkpLib, Integer rngSeed) throws ApiException {
+        okhttp3.Call localVarCall = signWithBlindedAttributesValidateBeforeCall(signWithBlindedAttributesRequest, zkpLib, rngSeed, null);
+        Type localVarReturnType = new TypeToken<String>(){}.getType();
+        return localVarApiClient.execute(localVarCall, localVarReturnType);
+    }
+
+    /**
+     * Create a BlindSignature from the given non-blinded values, blinding info and SignerData. (asynchronously)
+     * Returns a BlindSignature.
+     * @param signWithBlindedAttributesRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @param _callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call signWithBlindedAttributesAsync(SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, String zkpLib, Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
+
+        okhttp3.Call localVarCall = signWithBlindedAttributesValidateBeforeCall(signWithBlindedAttributesRequest, zkpLib, rngSeed, _callback);
+        Type localVarReturnType = new TypeToken<String>(){}.getType();
+        localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
+        return localVarCall;
+    }
+    /**
+     * Build call for unblindBlindedSignature
+     * @param unblindBlindedSignatureRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @param _callback Callback for upload/download progress
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call unblindBlindedSignatureCall(UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+        String basePath = null;
+        // Operation Servers
+        String[] localBasePaths = new String[] {  };
+
+        // Determine Base Path to Use
+        if (localCustomBaseUrl != null){
+            basePath = localCustomBaseUrl;
+        } else if ( localBasePaths.length > 0 ) {
+            basePath = localBasePaths[localHostIndex];
+        } else {
+            basePath = null;
+        }
+
+        Object localVarPostBody = unblindBlindedSignatureRequest;
+
+        // create path and map variables
+        String localVarPath = "/vcp/unblindBlindedSignature";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        if (zkpLib != null) {
+            localVarQueryParams.addAll(localVarApiClient.parameterToPair("zkpLib", zkpLib));
+        }
+
+        if (rngSeed != null) {
+            localVarQueryParams.addAll(localVarApiClient.parameterToPair("rngSeed", rngSeed));
+        }
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+            "application/json"
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        if (localVarContentType != null) {
+            localVarHeaderParams.put("Content-Type", localVarContentType);
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return localVarApiClient.buildCall(basePath, localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private okhttp3.Call unblindBlindedSignatureValidateBeforeCall(UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+        // verify the required parameter 'unblindBlindedSignatureRequest' is set
+        if (unblindBlindedSignatureRequest == null) {
+            throw new ApiException("Missing the required parameter 'unblindBlindedSignatureRequest' when calling unblindBlindedSignature(Async)");
+        }
+
+        return unblindBlindedSignatureCall(unblindBlindedSignatureRequest, zkpLib, rngSeed, _callback);
+
+    }
+
+    /**
+     * Unblinded a blinded signature.
+     * Returns Signature.
+     * @param unblindBlindedSignatureRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @return String
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public String unblindBlindedSignature(UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, String zkpLib, Integer rngSeed) throws ApiException {
+        ApiResponse<String> localVarResp = unblindBlindedSignatureWithHttpInfo(unblindBlindedSignatureRequest, zkpLib, rngSeed);
+        return localVarResp.getData();
+    }
+
+    /**
+     * Unblinded a blinded signature.
+     * Returns Signature.
+     * @param unblindBlindedSignatureRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @return ApiResponse&lt;String&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public ApiResponse<String> unblindBlindedSignatureWithHttpInfo(UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, String zkpLib, Integer rngSeed) throws ApiException {
+        okhttp3.Call localVarCall = unblindBlindedSignatureValidateBeforeCall(unblindBlindedSignatureRequest, zkpLib, rngSeed, null);
+        Type localVarReturnType = new TypeToken<String>(){}.getType();
+        return localVarApiClient.execute(localVarCall, localVarReturnType);
+    }
+
+    /**
+     * Unblinded a blinded signature. (asynchronously)
+     * Returns Signature.
+     * @param unblindBlindedSignatureRequest  (required)
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (optional)
+     * @param rngSeed A seed for a random number generator. Defaults to zero if not given. (optional)
+     * @param _callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call unblindBlindedSignatureAsync(UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, String zkpLib, Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
+
+        okhttp3.Call localVarCall = unblindBlindedSignatureValidateBeforeCall(unblindBlindedSignatureRequest, zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
         localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
         return localVarCall;

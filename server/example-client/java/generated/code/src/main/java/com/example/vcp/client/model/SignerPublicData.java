@@ -61,6 +61,11 @@ public class SignerPublicData {
   @javax.annotation.Nonnull
   private List<ClaimType> signerPublicSchema = new ArrayList<>();
 
+  public static final String SERIALIZED_NAME_SIGNER_BLINDED_ATTR_IDXS = "signerBlindedAttrIdxs";
+  @SerializedName(SERIALIZED_NAME_SIGNER_BLINDED_ATTR_IDXS)
+  @javax.annotation.Nonnull
+  private List<Integer> signerBlindedAttrIdxs = new ArrayList<>();
+
   public SignerPublicData() {
   }
 
@@ -110,6 +115,33 @@ public class SignerPublicData {
   }
 
 
+  public SignerPublicData signerBlindedAttrIdxs(@javax.annotation.Nonnull List<Integer> signerBlindedAttrIdxs) {
+    this.signerBlindedAttrIdxs = signerBlindedAttrIdxs;
+    return this;
+  }
+
+  public SignerPublicData addSignerBlindedAttrIdxsItem(Integer signerBlindedAttrIdxsItem) {
+    if (this.signerBlindedAttrIdxs == null) {
+      this.signerBlindedAttrIdxs = new ArrayList<>();
+    }
+    this.signerBlindedAttrIdxs.add(signerBlindedAttrIdxsItem);
+    return this;
+  }
+
+  /**
+   * Get signerBlindedAttrIdxs
+   * @return signerBlindedAttrIdxs
+   */
+  @javax.annotation.Nonnull
+  public List<Integer> getSignerBlindedAttrIdxs() {
+    return signerBlindedAttrIdxs;
+  }
+
+  public void setSignerBlindedAttrIdxs(@javax.annotation.Nonnull List<Integer> signerBlindedAttrIdxs) {
+    this.signerBlindedAttrIdxs = signerBlindedAttrIdxs;
+  }
+
+
 
   @Override
   public boolean equals(Object o) {
@@ -121,12 +153,13 @@ public class SignerPublicData {
     }
     SignerPublicData signerPublicData = (SignerPublicData) o;
     return Objects.equals(this.signerPublicSetupData, signerPublicData.signerPublicSetupData) &&
-        Objects.equals(this.signerPublicSchema, signerPublicData.signerPublicSchema);
+        Objects.equals(this.signerPublicSchema, signerPublicData.signerPublicSchema) &&
+        Objects.equals(this.signerBlindedAttrIdxs, signerPublicData.signerBlindedAttrIdxs);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(signerPublicSetupData, signerPublicSchema);
+    return Objects.hash(signerPublicSetupData, signerPublicSchema, signerBlindedAttrIdxs);
   }
 
   @Override
@@ -135,6 +168,7 @@ public class SignerPublicData {
     sb.append("class SignerPublicData {\n");
     sb.append("    signerPublicSetupData: ").append(toIndentedString(signerPublicSetupData)).append("\n");
     sb.append("    signerPublicSchema: ").append(toIndentedString(signerPublicSchema)).append("\n");
+    sb.append("    signerBlindedAttrIdxs: ").append(toIndentedString(signerBlindedAttrIdxs)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -159,11 +193,13 @@ public class SignerPublicData {
     openapiFields = new HashSet<String>();
     openapiFields.add("signerPublicSetupData");
     openapiFields.add("signerPublicSchema");
+    openapiFields.add("signerBlindedAttrIdxs");
 
     // a set of required properties/fields (JSON key names)
     openapiRequiredFields = new HashSet<String>();
     openapiRequiredFields.add("signerPublicSetupData");
     openapiRequiredFields.add("signerPublicSchema");
+    openapiRequiredFields.add("signerBlindedAttrIdxs");
   }
 
   /**
@@ -202,6 +238,12 @@ public class SignerPublicData {
         throw new IllegalArgumentException("Expected the field `linkedContent` to be an array in the JSON string but got `null`");
       } else if (!jsonObj.get("signerPublicSchema").isJsonArray()) {
         throw new IllegalArgumentException(String.format("Expected the field `signerPublicSchema` to be an array in the JSON string but got `%s`", jsonObj.get("signerPublicSchema").toString()));
+      }
+      // ensure the required json array is present
+      if (jsonObj.get("signerBlindedAttrIdxs") == null) {
+        throw new IllegalArgumentException("Expected the field `linkedContent` to be an array in the JSON string but got `null`");
+      } else if (!jsonObj.get("signerBlindedAttrIdxs").isJsonArray()) {
+        throw new IllegalArgumentException(String.format("Expected the field `signerBlindedAttrIdxs` to be an array in the JSON string but got `%s`", jsonObj.get("signerBlindedAttrIdxs").toString()));
       }
   }
 

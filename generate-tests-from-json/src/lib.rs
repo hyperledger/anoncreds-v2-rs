@@ -143,7 +143,6 @@ use std::collections::HashMap;
 ///      key values in the overrides file and (file)names of tests are preprocessed ("distilled") before matching:
 ///      - all instances of slow or SLOW are removed
 ///      - a required prefix like json_test_012_ is removed from test file names
-
 #[proc_macro]
 pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
     // for a running example, suppose:
@@ -224,11 +223,11 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
     // load overrides and "distills" keys so lookups don't fail due to differences in "slow" annotations
     let override_file_name = override_fn_lit.to_string().replace("\"", "");
     let overrides: LibrarySpecificTestHandlers = {
-        if override_file_name == "" {
+        if override_file_name.is_empty() {
             HashMap::new()
         } else {
             let f_in = fs::File::open(override_file_name.clone())
-                .map_err(|e| panic!("Error opening {override_file_name}: {}", e.to_string())).unwrap();
+                .map_err(|e| panic!("Error opening {override_file_name}: {}", e)).unwrap();
             serde_json::from_reader::<_,LibrarySpecificTestHandlers>(f_in)
                 .unwrap()
                 .into_iter()
@@ -246,9 +245,7 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
     //   dir_path = "my/target/dir"
     let dir:Vec<fs::DirEntry> = fs::read_dir(dir_path)
         .unwrap()
-        .into_iter()
-        .filter (|r| r.is_ok())
-        .map    (|r| r.unwrap())
+        .flatten()
         .filter (|r| !((*r).path().is_dir()))
         .collect();
 
@@ -300,9 +297,13 @@ pub fn map_test_over_dir(input: pm1::TokenStream) -> pm1::TokenStream {
         // generate an error and die).  It simply reverses the "sense" of the test so that it fails
         // if the underlying test succeeds, and vice versa.
         if test_name_as_string.contains("expected_to_fail") {
-            ts.extend(quote! {
-                #[should_panic]
-            })
+            if let Some(TestHandler::Fail(_)) = r#override {
+                // Do not emit "#[should_panic]" if test will be overridden to fail
+            } else {
+                ts.extend(quote! {
+                    #[should_panic]
+                })
+            }
         }
         // configure attributes to enable ignoring slow tests
         if test_name_as_string.clone().is_slow() {
@@ -392,36 +393,36 @@ enum TestHandler {
 }
 
 trait StringExt where Self: Sized {
-    fn remove_expected_prefix(self) -> Result<Self,Box<String>>;
+    fn remove_expected_prefix(self) -> Result<Self,String>;
     fn remove_slow(self) -> Self;
-    fn is_slow(self) -> bool;
-    fn is_slow_slow(self) -> bool;
+    fn is_slow(&self) -> bool;
+    fn is_slow_slow(&self) -> bool;
     fn remove_double_underscores(self) -> Self;
     fn distill_test_name(self) -> Self;
 }
 
 impl StringExt for String {
-    fn remove_expected_prefix(self) -> Result<Self,Box<String>> {
+    fn remove_expected_prefix(self) -> Result<Self,String> {
         if let Some(rest) = self.strip_prefix("json_test_") {
             let (num,rest2) = rest.split_at(NUM_DIGITS_FOR_JSON_TEST_IDS);
             if !num.chars().all(|c| char::is_digit(c,10)) {
-                return Err(Box::new(format!("{NUM_DIGITS_FOR_JSON_TEST_IDS}-digit test id not found after \"json_test_\" in {self}")));
+                return Err(format!("{NUM_DIGITS_FOR_JSON_TEST_IDS}-digit test id not found after \"json_test_\" in {self}"));
             };
             match rest2.strip_prefix("_") {
                 Some(_) => Ok(rest.to_string()),
-                None    => return Err(Box::new(format!("expected underscore after \"json_test_nnn\" not found in {self}")))
+                None    => Err(format!("expected underscore after \"json_test_nnn\" not found in {self}"))
             }
         } else {
-            return Err(Box::new(format!("expected test filename prefix \"json_test_\" not found in {self}")));
+            Err(format!("expected test filename prefix \"json_test_\" not found in {self}"))
         }
     }
     fn remove_slow(self) -> String {
         self.replace("slow","").replace("SLOW","")
     }
-    fn is_slow(self) -> bool {
+    fn is_slow(&self) -> bool {
         (self.contains("slow") || self.contains("SLOW")) && !(self.is_slow_slow())
     }
-    fn is_slow_slow(self) -> bool {
+    fn is_slow_slow(&self) -> bool {
         self.contains("slowslow") || self.contains("SLOWSLOW")
     }
     fn remove_double_underscores(self) -> String {

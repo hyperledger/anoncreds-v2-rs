@@ -24,7 +24,7 @@ public class AppTest
     // ------------------------------------------------------------------------------
 
     public void testRevealedAux(final X x) throws ApiException, IOException {
-        Util.banner("testRevealed", x.zkpLib);
+        Util.banner(x, "testRevealed");
 
         // Verifier
         x.credD.disclosed(TestData.DL_REVEALED);
@@ -33,9 +33,18 @@ public class AppTest
         expect(x, emptyDecryptRequests);
     }
 
-    public void testRevealedAC2C_BBS() throws ApiException, IOException { testRevealedAux(new X(TestData.AC2C_BBS)); }
-    public void testRevealedAC2C_PS()  throws ApiException, IOException { testRevealedAux(new X(TestData.AC2C_PS)); }
-    public void testRevealedDNC()      throws ApiException, IOException { testRevealedAux(new X(TestData.DNC));  }
+    public void testRevealedAC2C_BBS() throws ApiException, IOException {
+        testRevealedAux(new X(TestData.AC2C_BBS, X.SigType.NonBlinded));
+        testRevealedAux(new X(TestData.AC2C_BBS, X.SigType.Blinded));
+    }
+    public void testRevealedAC2C_PS()  throws ApiException, IOException {
+        testRevealedAux(new X(TestData.AC2C_PS,  X.SigType.NonBlinded));
+        testRevealedAux(new X(TestData.AC2C_PS,  X.SigType.Blinded));
+    }
+    public void testRevealedDNC()      throws ApiException, IOException {
+        testRevealedAux(new X(TestData.DNC,      X.SigType.NonBlinded));
+        testRevealedAux(new X(TestData.DNC,      X.SigType.Blinded));
+    }
     public void testRevealed()         throws ApiException, IOException {
         testRevealedAC2C_BBS();
         testRevealedAC2C_PS();
@@ -45,7 +54,7 @@ public class AppTest
     // ------------------------------------------------------------------------------
 
     public void testEqualitiesAux(final X x) throws ApiException, IOException {
-        Util.banner("testEqualities", x.zkpLib);
+        Util.banner(x, "testEqualities");
 
         // Verifier
         final EqInfo[] deqa = { new EqInfo().fromIndex(2).toLabel(TestData.SUB).toIndex(3) };
@@ -56,9 +65,18 @@ public class AppTest
         expect(x, emptyDecryptRequests);
     }
 
-    public void testEqualitiesAC2C_BBS() throws ApiException, IOException { testEqualitiesAux(new X(TestData.AC2C_BBS)); }
-    public void testEqualitiesAC2C_PS()  throws ApiException, IOException { testEqualitiesAux(new X(TestData.AC2C_PS)); }
-    public void testEqualitiesDNC()      throws ApiException, IOException { testEqualitiesAux(new X(TestData.DNC));  }
+    public void testEqualitiesAC2C_BBS() throws ApiException, IOException {
+        testEqualitiesAux(new X(TestData.AC2C_BBS, X.SigType.NonBlinded));
+        testEqualitiesAux(new X(TestData.AC2C_BBS, X.SigType.Blinded));
+    }
+    public void testEqualitiesAC2C_PS()  throws ApiException, IOException {
+        testEqualitiesAux(new X(TestData.AC2C_PS,  X.SigType.NonBlinded));
+        testEqualitiesAux(new X(TestData.AC2C_PS,  X.SigType.Blinded));
+    }
+    public void testEqualitiesDNC()      throws ApiException, IOException {
+        testEqualitiesAux(new X(TestData.DNC,      X.SigType.NonBlinded));
+        testEqualitiesAux(new X(TestData.DNC,      X.SigType.Blinded));
+    }
     public void testEqualities()         throws ApiException, IOException {
         testEqualitiesAC2C_BBS();
         testEqualitiesAC2C_PS();
@@ -68,7 +86,7 @@ public class AppTest
     // ------------------------------------------------------------------------------
 
     public void testRangeAux(final X x) throws ApiException, IOException {
-        Util.banner("testRange", x.zkpLib);
+        Util.banner(x, "testRange");
 
         // Verifier
         final var rpk            = x.api.createRangeProofProvingKey(x.zkpLib, 0);
@@ -95,9 +113,18 @@ public class AppTest
         expect(x, emptyDecryptRequests);
     }
 
-    public void testRangeAC2C_BBS() throws ApiException, IOException { testRangeAux(new X(TestData.AC2C_BBS)); }
-    public void testRangeAC2C_PS()  throws ApiException, IOException { testRangeAux(new X(TestData.AC2C_PS)); }
-    public void testRangeDNC()      throws ApiException, IOException { testRangeAux(new X(TestData.DNC));  }
+    public void testRangeAC2C_BBS() throws ApiException, IOException {
+        testRangeAux(new X(TestData.AC2C_BBS, X.SigType.NonBlinded));
+        testRangeAux(new X(TestData.AC2C_BBS, X.SigType.Blinded));
+    }
+    public void testRangeAC2C_PS()  throws ApiException, IOException {
+        testRangeAux(new X(TestData.AC2C_PS,  X.SigType.NonBlinded));
+        testRangeAux(new X(TestData.AC2C_PS,  X.SigType.Blinded));
+    }
+    public void testRangeDNC()      throws ApiException, IOException {
+        testRangeAux(new X(TestData.DNC,      X.SigType.NonBlinded));
+        testRangeAux(new X(TestData.DNC,      X.SigType.Blinded));
+    }
     public void testRange()         throws ApiException, IOException {
         testRangeAC2C_BBS();
         testRangeAC2C_PS();
@@ -107,7 +134,7 @@ public class AppTest
     // ------------------------------------------------------------------------------
 
     public void testVerifiableEncryptionAux(final X x) throws ApiException, IOException {
-        Util.banner("testVerifiableEncryption", x.zkpLib);
+        Util.banner(x, "testVerifiableEncryption");
         x.api.getApiClient().setReadTimeout(30 * 60 * 1000);
 
         // Authority
@@ -138,9 +165,18 @@ public class AppTest
         expect(x, drs);
     }
 
-    public void testVerifiableEncryptionAC2C_BBS() throws ApiException, IOException { testVerifiableEncryptionAux(new X(TestData.AC2C_BBS)); }
-    public void testVerifiableEncryptionAC2C_PS()  throws ApiException, IOException { testVerifiableEncryptionAux(new X(TestData.AC2C_PS)); }
-    public void testVerifiableEncryptionDNC()      throws ApiException, IOException { testVerifiableEncryptionAux(new X(TestData.DNC));  }
+    public void testVerifiableEncryptionAC2C_BBS() throws ApiException, IOException {
+        testVerifiableEncryptionAux(new X(TestData.AC2C_BBS, X.SigType.NonBlinded));
+        testVerifiableEncryptionAux(new X(TestData.AC2C_BBS, X.SigType.Blinded));
+    }
+    public void testVerifiableEncryptionAC2C_PS()  throws ApiException, IOException {
+        testVerifiableEncryptionAux(new X(TestData.AC2C_PS,  X.SigType.NonBlinded));
+        testVerifiableEncryptionAux(new X(TestData.AC2C_PS,  X.SigType.Blinded));
+    }
+    public void testVerifiableEncryptionDNC()      throws ApiException, IOException {
+        testVerifiableEncryptionAux(new X(TestData.DNC,      X.SigType.NonBlinded));
+        testVerifiableEncryptionAux(new X(TestData.DNC,      X.SigType.Blinded));
+    }
     public void testVerifiableEncryption()         throws ApiException, IOException {
         testVerifiableEncryptionAC2C_BBS();
         testVerifiableEncryptionAC2C_PS();
@@ -153,7 +189,7 @@ public class AppTest
     // - create an accumulator and add initial elements
     // TODOO: accumulator updates
     public void testAccumulatorsAux(final X x) throws ApiException, IOException {
-        Util.banner("testAccumulators", x.zkpLib);
+        Util.banner(x, "testAccumulators");
 
         // Revocation manager
         final var mpk        = x.api.createMembershipProvingKey(x.zkpLib, 0);
@@ -231,9 +267,18 @@ public class AppTest
         expect(x, emptyDecryptRequests);
     }
 
-    public void testAccumulatorsAC2C_BBS() throws ApiException, IOException { testAccumulatorsAux(new X(TestData.AC2C_BBS)); }
-    public void testAccumulatorsAC2C_PS()  throws ApiException, IOException { testAccumulatorsAux(new X(TestData.AC2C_PS)); }
-    public void testAccumulatorsDNC()      throws ApiException, IOException { testAccumulatorsAux(new X(TestData.DNC));  }
+    public void testAccumulatorsAC2C_BBS() throws ApiException, IOException {
+        testAccumulatorsAux(new X(TestData.AC2C_BBS, X.SigType.NonBlinded));
+        testAccumulatorsAux(new X(TestData.AC2C_BBS, X.SigType.Blinded));
+    }
+    public void testAccumulatorsAC2C_PS()  throws ApiException, IOException {
+        testAccumulatorsAux(new X(TestData.AC2C_PS,  X.SigType.NonBlinded));
+        testAccumulatorsAux(new X(TestData.AC2C_PS,  X.SigType.Blinded));
+    }
+    public void testAccumulatorsDNC()      throws ApiException, IOException {
+        testAccumulatorsAux(new X(TestData.DNC,      X.SigType.NonBlinded));
+        testAccumulatorsAux(new X(TestData.DNC,      X.SigType.Blinded));
+    }
     public void testAccumulators()         throws ApiException, IOException {
         testAccumulatorsAC2C_BBS();
         testAccumulatorsAC2C_PS();
@@ -247,7 +292,7 @@ public class AppTest
       final Map<String, Map<String, Map<String, DecryptRequest>>> decryptRequests)
         throws ApiException, IOException
     {
-        Util.banner("expect", x.zkpLib);
+        Util.banner(x, "expect");
         Util.sop("reqs", x.reqs);
         // Util.sop("shared", shared); // authority key TOO BIG
 
@@ -331,7 +376,7 @@ public class AppTest
       final String nonce)
         throws ApiException, IOException
     {
-        Util.banner("verifyDecryption", x.zkpLib);
+        Util.banner(x, "verifyDecryption");
         final var adks  = new HashMap<String, String>();
         for (Map.Entry<String, Map<String, Map<String, DecryptRequest>>> outer : decryptRequests.entrySet()) {
             Map<String, Map<String, DecryptRequest>> middle = outer.getValue();

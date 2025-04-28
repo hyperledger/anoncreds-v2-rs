@@ -9,6 +9,7 @@ use serde_cbor::*;
 use std::str;
 // ------------------------------------------------------------------------------
 
+// TODO: create and use macro for common patterns such as to/from_opaque_json
 pub trait VcpTryFrom<T>: Sized {
     fn vcp_try_from(value: T) -> VCPResult<Self>;
 }

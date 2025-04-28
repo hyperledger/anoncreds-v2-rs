@@ -10,7 +10,8 @@ use bbs_plus::prelude::SecretKey;
 use bbs_plus::prelude::SignatureG1;
 use bbs_plus::prelude::SignatureParamsG1;
 // ------------------------------------------------------------------------------
-use ark_bls12_381::Bls12_381;
+use ark_bls12_381::{Bls12_381, Fr, G1Affine};
+use ark_ec::pairing::Pairing;
 // ------------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------------
@@ -51,6 +52,48 @@ impl VcpTryFrom<SignatureG1::<Bls12_381>> for api::Signature {
 
 impl VcpTryFrom<&api::Signature> for SignatureG1::<Bls12_381> {
     fn vcp_try_from(x: &api::Signature) -> VCPResult<SignatureG1::<Bls12_381>> {
+        from_opaque_json(&x.0)
+    }
+}
+
+// ------------------------------------------------------------------------------
+
+impl VcpTryFrom<G1Affine> for api::BlindInfoForSigner {
+    fn vcp_try_from(x: G1Affine) -> VCPResult<api::BlindInfoForSigner> {
+        Ok(api::BlindInfoForSigner(to_opaque_ark(&x)?))
+    }
+}
+
+impl VcpTryFrom<&api::BlindInfoForSigner> for G1Affine {
+    fn vcp_try_from(x: &api::BlindInfoForSigner) -> VCPResult<G1Affine> {
+        from_opaque_ark(&x.0)
+    }
+}
+
+// ------------------------------------------------------------------------------
+
+impl VcpTryFrom<Fr> for api::InfoForUnblinding {
+    fn vcp_try_from(x: Fr) -> VCPResult<api::InfoForUnblinding> {
+        Ok(api::InfoForUnblinding(to_opaque_ark(&x)?))
+    }
+}
+
+impl VcpTryFrom<&api::InfoForUnblinding> for Fr {
+    fn vcp_try_from(x: &api::InfoForUnblinding) -> VCPResult<Fr> {
+        from_opaque_ark(&x.0)
+    }
+}
+
+// ------------------------------------------------------------------------------
+
+impl<E:Pairing> VcpTryFrom<SignatureG1<E>> for api::BlindSignature {
+    fn vcp_try_from(x: SignatureG1<E>) -> VCPResult<api::BlindSignature> {
+        Ok(api::BlindSignature(to_opaque_json(&x)?))
+    }
+}
+
+impl<E: Pairing> VcpTryFrom<&api::BlindSignature> for SignatureG1<E> {
+    fn vcp_try_from(x: &api::BlindSignature) -> VCPResult<SignatureG1<E>> {
         from_opaque_json(&x.0)
     }
 }

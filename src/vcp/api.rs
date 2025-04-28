@@ -22,6 +22,9 @@ pub use crate::vcp::types::*;
 pub struct PlatformApi {
     pub create_signer_data: CreateSignerData,
     pub sign: Sign,
+    pub create_blind_signing_info: CreateBlindSigningInfo,
+    pub sign_with_blinded_attributes: SignWithBlindedAttributes,
+    pub unblind_blinded_signature: UnblindBlindedSignature,
     // Range proof setup
     pub create_range_proof_proving_key: CreateRangeProofProvingKey,
     // This function should return the largest value for which the underlying ZKP

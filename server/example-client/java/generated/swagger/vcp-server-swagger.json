@@ -38,10 +38,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/ClaimType"
-                }
+                "$ref": "#/components/schemas/CreateSignerDataRequest"
               }
             }
           },
@@ -54,6 +51,69 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SignerData"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/createBlindSigningInfo": {
+      "post": {
+        "summary": "Create BlindSigningInfo",
+        "description": "Returns BlindSigningInfo",
+        "operationId": "createBlindSigningInfo",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "rngSeed",
+            "in": "query",
+            "description": "A seed for a random number generator. Defaults to zero if not given.",
+            "schema": {
+              "description": "A seed for a random number generator. Defaults to zero if not given.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0,
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBlindSigningInfoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlindSigningInfo"
                 }
               }
             }
@@ -158,6 +218,132 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Signature"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/signWithBlindedAttributes": {
+      "post": {
+        "summary": "Create a BlindSignature from the given non-blinded values, blinding info and SignerData.",
+        "description": "Returns a BlindSignature.",
+        "operationId": "signWithBlindedAttributes",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "rngSeed",
+            "in": "query",
+            "description": "A seed for a random number generator. Defaults to zero if not given.",
+            "schema": {
+              "description": "A seed for a random number generator. Defaults to zero if not given.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0,
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignWithBlindedAttributesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlindSignature"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vcp/unblindBlindedSignature": {
+      "post": {
+        "summary": "Unblinded a blinded signature.",
+        "description": "Returns Signature.",
+        "operationId": "unblindBlindedSignature",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "rngSeed",
+            "in": "query",
+            "description": "A seed for a random number generator. Defaults to zero if not given.",
+            "schema": {
+              "description": "A seed for a random number generator. Defaults to zero if not given.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0,
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnblindBlindedSignatureRequest"
               }
             }
           },
@@ -721,6 +907,7 @@
         "description": "A Signer's public keys and setup data.",
         "type": "object",
         "required": [
+          "signerBlindedAttrIdxs",
           "signerPublicSchema",
           "signerPublicSetupData"
         ],
@@ -732,6 +919,14 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ClaimType"
+            }
+          },
+          "signerBlindedAttrIdxs": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
             }
           }
         }
@@ -766,6 +961,147 @@
           },
           "location": {
             "type": "string"
+          }
+        }
+      },
+      "CreateSignerDataRequest": {
+        "description": "Supplies the schema and the (possibly empty) indices of attributes to be blinded.",
+        "type": "object",
+        "required": [
+          "blindedAttributeIndices",
+          "claimTypes"
+        ],
+        "properties": {
+          "claimTypes": {
+            "description": "The schema.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClaimType"
+            }
+          },
+          "blindedAttributeIndices": {
+            "description": "The attributes to be blinded.",
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "BlindSigningInfo": {
+        "type": "object",
+        "required": [
+          "blindInfoForSigner",
+          "blindedAttributes",
+          "infoForUnblinding"
+        ],
+        "properties": {
+          "blindInfoForSigner": {
+            "$ref": "#/components/schemas/BlindInfoForSigner"
+          },
+          "blindedAttributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CredAttrIndexAndDataValue"
+            }
+          },
+          "infoForUnblinding": {
+            "$ref": "#/components/schemas/InfoForUnblinding"
+          }
+        }
+      },
+      "BlindInfoForSigner": {
+        "description": "Info sent by requester to Signer to create blind signature",
+        "type": "string"
+      },
+      "CredAttrIndexAndDataValue": {
+        "type": "object",
+        "required": [
+          "index",
+          "value"
+        ],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "value": {
+            "$ref": "#/components/schemas/DataValue"
+          }
+        }
+      },
+      "DataValue": {
+        "description": "An int or text value.",
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "contents",
+              "tag"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string",
+                "enum": [
+                  "DVInt"
+                ]
+              },
+              "contents": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "contents",
+              "tag"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string",
+                "enum": [
+                  "DVText"
+                ]
+              },
+              "contents": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "InfoForUnblinding": {
+        "description": "Data retained by requester to unblind blind signature",
+        "type": "string"
+      },
+      "CreateBlindSigningInfoRequest": {
+        "description": "Supplies the attribute indices and values to be blinded. The indices must match the indices given to createSignerData.",
+        "type": "object",
+        "required": [
+          "blindedIndicesAndValues",
+          "signerPublicData"
+        ],
+        "properties": {
+          "signerPublicData": {
+            "description": "See SignerPublicData.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SignerPublicData"
+              }
+            ]
+          },
+          "blindedIndicesAndValues": {
+            "description": "The values to be blind signed.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CredAttrIndexAndDataValue"
+            }
           }
         }
       },
@@ -842,48 +1178,80 @@
           }
         }
       },
-      "DataValue": {
-        "description": "An int or text value.",
-        "oneOf": [
-          {
-            "type": "object",
-            "required": [
-              "contents",
-              "tag"
-            ],
-            "properties": {
-              "tag": {
-                "type": "string",
-                "enum": [
-                  "DVInt"
-                ]
-              },
-              "contents": {
-                "type": "integer",
-                "format": "uint64",
-                "minimum": 0.0
-              }
+      "BlindSignature": {
+        "description": "A blinded signature, based on the 'values', etc., given in a TODO -- what's this?",
+        "type": "string"
+      },
+      "SignWithBlindedAttributesRequest": {
+        "description": "Supplies non-blinded attributes and a commitment (BlindInfoForSigner) to the blinded attributes.",
+        "type": "object",
+        "required": [
+          "blindInfoForSigner",
+          "nonBlindedAttributes",
+          "signerData"
+        ],
+        "properties": {
+          "nonBlindedAttributes": {
+            "description": "The values to be signed.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CredAttrIndexAndDataValue"
             }
           },
-          {
-            "type": "object",
-            "required": [
-              "contents",
-              "tag"
-            ],
-            "properties": {
-              "tag": {
-                "type": "string",
-                "enum": [
-                  "DVText"
-                ]
-              },
-              "contents": {
-                "type": "string"
+          "blindInfoForSigner": {
+            "$ref": "#/components/schemas/BlindInfoForSigner"
+          },
+          "signerData": {
+            "description": "See SignerData.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SignerData"
               }
-            }
+            ]
           }
-        ]
+        }
+      },
+      "UnblindBlindedSignatureRequest": {
+        "description": "Supplies blinded attributes, InfoForUnblinding and the BlindSignature to be unblinded.",
+        "type": "object",
+        "required": [
+          "blindSignature",
+          "blindedIndicesAndValues",
+          "claimTypes",
+          "infoForUnblinding"
+        ],
+        "properties": {
+          "claimTypes": {
+            "description": "The schema.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClaimType"
+            }
+          },
+          "blindedIndicesAndValues": {
+            "description": "Blinded attributes. Same as used for CreateBlindSigningInfoRequest.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CredAttrIndexAndDataValue"
+            }
+          },
+          "blindSignature": {
+            "description": "The signature to be unblinded.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BlindSignature"
+              }
+            ]
+          },
+          "infoForUnblinding": {
+            "description": "See InfoForUnblinding.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InfoForUnblinding"
+              }
+            ]
+          }
+        }
       },
       "AccumulatorElement": {
         "description": "An element that may be added to or removed from an accumulator.  Note, elements are created from text (see createAccumulatorElement).",

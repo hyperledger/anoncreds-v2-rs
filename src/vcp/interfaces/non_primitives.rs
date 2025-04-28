@@ -9,6 +9,63 @@ use std::rc::Rc;
 use std::sync::Arc;
 // ---------------------------------------------------------------------------
 
+pub type CreateSignerData = Arc<
+    dyn Fn(
+        Natural, // RNG seed
+        &[ClaimType],
+        &[CredAttrIndex],
+        ProofMode
+        ) -> VCPResult<SignerData>
+        + Send
+        + Sync,
+>;
+
+pub type CreateBlindSigningInfo = Arc<
+    dyn Fn(
+        Natural, // RNG seed
+        &SignerPublicData,
+        &[CredAttrIndexAndDataValue],  // Blinded attributes
+        ProofMode
+    ) -> VCPResult<BlindSigningInfo>
+    + Send
+    + Sync,
+>;
+
+pub type Sign = Arc<
+    dyn Fn(
+        Natural, // RNG seed
+        &[DataValue],
+        &SignerData,
+        ProofMode
+    ) -> VCPResult<Signature>
+    + Send
+    + Sync,
+>;
+
+pub type SignWithBlindedAttributes = Arc<
+    dyn Fn(
+        Natural, // RNG seed
+        &[CredAttrIndexAndDataValue],  // Non-blinded attributes
+        &BlindInfoForSigner,
+        &SignerData,
+        ProofMode
+    ) -> VCPResult<BlindSignature>
+    + Send
+    + Sync,
+>;
+
+pub type UnblindBlindedSignature = Arc<
+    dyn Fn(
+        &[ClaimType],
+        &[CredAttrIndexAndDataValue],  // Blinded attributes, same as used for CreateBlindSigningInfo
+        &BlindSignature,
+        &InfoForUnblinding,
+        ProofMode
+    ) -> VCPResult<Signature>
+    + Send
+    + Sync,
+>;
+
 pub type CreateProof = Arc<
     dyn Fn(
             &HashMap<CredentialLabel, CredentialReqs>,
