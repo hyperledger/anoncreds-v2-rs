@@ -10,39 +10,27 @@
  {"contents": "AC2C panics if a requested Membership witness is not provided, which causes the test to fail; but the purpose of the test is to ensure that a prover cannot successfully create a proof without providing the necessary witness, which it can't, so we don't consider this behaviour to be a test failure",
   "tag": "Skip"},
 
- "020_encrypt_and_decrypt_one_attribute_and_verify":
- {"contents": "AC2C does not yet fully support verifiable encryption",
-  "tag": "Fail"},
-
- "021_encrypt_and_decrypt_one_attribute_request_decryption_first":
- {"contents": "AC2C does not yet fully support verifiable encryption",
-  "tag": "Fail"},
-
- "022_decrypt_one_attribute_but_not_encrypted_negative_test":
- {"contents": "AC2C does not yet fully support verifiable encryption",
-  "tag": "Fail"},
-
  "024_encrypt_and_decrypt_one_attribute_and_verify_decryption_correct_value":
- {"contents": "AC2C does not yet fully support verifiable encryption",
+ {"contents": "AC2C does not yet fully support verifying decryption",
   "tag": "Fail"},
 
  "025_encrypt_and_decrypt_one_attribute_two_authorities_and_verify_decryption_correct_value":
- {"contents": "AC2C does not yet fully support verifiable encryption",
+ {"contents": "AC2C does not yet fully support verifying decryption",
   "tag": "Fail"},
 
  "026_encrypt_and_decrypt_two_attributes_same_authority_and_verify_decryption_correct_values":
- {"contents": "AC2C does not yet fully support verifiable encryption",
+ {"contents": "AC2C does not yet fully support verifying decryption",
   "tag": "Fail"},
 
  "027_encrypt_and_decrypt_two_attributes_different_authorities_and_verify_decryption_correct_values":
- {"contents": "AC2C does not yet fully support verifiable encryption",
+ {"contents": "AC2C does not yet fully support verifying decryption",
   "tag": "Fail"},
 
  "038_SLOWSLOW_encrypt_and_decrypt_two_attributes_same_authority_and_verify_decryption_correct_values_multiple_equalities_strict_eq_eq":
- {"contents": "AC2C does not yet fully support verifiable encryption",
+ {"contents": "AC2C does not yet fully support verifying decryption",
   "tag": "Fail"},
 
  "039_SLOWSLOW_encrypt_and_decrypt_two_attributes_same_authority_and_verify_decryption_correct_values_multiple_equalities_testbackend_eq_eq":
- {"contents": "AC2C does not yet fully support verifiable encryption",
+ {"contents": "AC2C does not yet fully support verifying decryption",
   "tag": "Fail"}
 }

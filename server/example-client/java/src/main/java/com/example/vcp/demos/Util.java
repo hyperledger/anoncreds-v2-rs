@@ -31,9 +31,22 @@ public class Util
         return  x.zkpLib + " " + x.sigType.toString();
     }
 
+    static void bannerAux(final String m) {
+        System.out.println();
+        System.out.println("------------------------- " + m + " -------------------------");
+    }
+
+    static String zpkLibAndSigTypeString(final X x) {
+        return  x.zkpLib + " " + x.sigType.toString();
+    }
+
+    static final boolean DO_PRINT = false;
+
     public static void sop(final String m, final Object o) {
-        // banner(m, "");
-        // System.out.println(o);
+        if (DO_PRINT) {
+            bannerAux(m);
+            System.out.println(o);
+        }
     }
 
     // ---------------------------------------------------------------------------

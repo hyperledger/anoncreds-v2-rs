@@ -165,13 +165,38 @@ public class AppTest
         expect(x, drs);
     }
 
+    static void checkAC2CVerifiableEncryptionException(final ApiException e) {
+        assertEquals("code", 400, e.getCode());
+        assertTrue("reason", e.getMessage().contains("specific_verify_decryption_ac2c : UNIMPLEMENTED"));
+        System.out.println("AC2C failed verify_decryption as expected");
+    }
     public void testVerifiableEncryptionAC2C_BBS() throws ApiException, IOException {
-        testVerifiableEncryptionAux(new X(TestData.AC2C_BBS, X.SigType.NonBlinded));
-        testVerifiableEncryptionAux(new X(TestData.AC2C_BBS, X.SigType.Blinded));
+        try {
+            testVerifiableEncryptionAux(new X(TestData.AC2C_BBS, X.SigType.NonBlinded));
+        } catch (ApiException e) {
+            checkAC2CVerifiableEncryptionException(e);
+        }
+        try {
+            testVerifiableEncryptionAux(new X(TestData.AC2C_BBS, X.SigType.Blinded));
+        } catch (ApiException e) {
+            checkAC2CVerifiableEncryptionException(e);
+        }
     }
     public void testVerifiableEncryptionAC2C_PS()  throws ApiException, IOException {
-        testVerifiableEncryptionAux(new X(TestData.AC2C_PS,  X.SigType.NonBlinded));
-        testVerifiableEncryptionAux(new X(TestData.AC2C_PS,  X.SigType.Blinded));
+        try {
+            testVerifiableEncryptionAux(new X(TestData.AC2C_PS,  X.SigType.NonBlinded));
+        } catch (ApiException e) {
+            checkAC2CVerifiableEncryptionException(e);
+        }
+        try {
+            testVerifiableEncryptionAux(new X(TestData.AC2C_PS,  X.SigType.Blinded));
+        } catch (ApiException e) {
+            checkAC2CVerifiableEncryptionException(e);
+        }
+    }
+    public void testVerifiableEncryptionAC2C()         throws ApiException, IOException {
+        testVerifiableEncryptionAC2C_BBS();
+        testVerifiableEncryptionAC2C_PS();
     }
     public void testVerifiableEncryptionDNC()      throws ApiException, IOException {
         testVerifiableEncryptionAux(new X(TestData.DNC,      X.SigType.NonBlinded));

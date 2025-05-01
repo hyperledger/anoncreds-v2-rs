@@ -136,15 +136,15 @@ static ENCRYPTED_FOR_PREFIX : &str = "EncryptedForPrefix-";
 static MEMBERSHIP_PREFIX    : &str = "MembershipPrefix-";
 static STMT_PREFIX          : &str = "StmtIdPrefix-";
 
-fn encrypted_for_label_for(c_lbl : &str, a_idx : &u64) -> String {
+pub fn encrypted_for_label_for(c_lbl : &CredentialLabel, a_idx : &CredAttrIndex, auth_spk: &SharedParamKey) -> String {
+    format!("{ENCRYPTED_FOR_PREFIX}{c_lbl}-{a_idx}-{auth_spk}")
+}
+
+fn membership_label_for(c_lbl : &CredentialLabel, a_idx : &CredAttrIndex) -> String {
     format!("{MEMBERSHIP_PREFIX}{c_lbl}{a_idx}")
 }
 
-fn membership_label_for(c_lbl : &str, a_idx : &u64) -> String {
-    format!("{MEMBERSHIP_PREFIX}{c_lbl}{a_idx}")
-}
-
-fn stmt_label_for(l: &str) -> String {
+fn stmt_label_for(l: &CredentialLabel) -> String {
     format!("{STMT_PREFIX}{l}")
 }
 
@@ -153,7 +153,7 @@ enum SupportedDisclosure<S: ShortGroupSignatureScheme> {
     RangeProof(Box<RangeProofCommitmentSetup>, u64, u64),
     SignatureAndReveal(Box<IssuerPublic<S>>, Vec<u64>),
     InAccumProof(Box<vb20::PublicKey>, vb20::Accumulator),
-    EncryptedFor(PublicKey<Bls12381G2Impl>)
+    EncryptedFor(SharedParamKey, PublicKey<Bls12381G2Impl>)
 }
 
 fn transform_instruction<S: ShortGroupSignatureScheme>(
@@ -221,7 +221,7 @@ fn transform_instruction<S: ShortGroupSignatureScheme>(
                 attr_idx_general : *attr_idx_general,
                 related_pi_idx   : *related_pi_idx,
                 discl_general    : SupportedDisclosure::EncryptedFor
-                    (verifiable_encryption_key)}))
+                    (auth_pub_spk.clone(), verifiable_encryption_key)}))
         }
     }
 }
@@ -307,16 +307,16 @@ fn generate_statements<S: ShortGroupSignatureScheme>(
                         });
                         Vec::from([membership_statement])
                     },
-                    SupportedDisclosure::EncryptedFor(public_key) => {
+                    SupportedDisclosure::EncryptedFor(auth_spk, public_key) => {
                         let sig_stmt_id          = stmt_label_for(c_lbl);
-                        let mem_stmt_id          = encrypted_for_label_for(c_lbl, a_idx);
+                        let encryption_stmt_id   = encrypted_for_label_for(c_lbl, a_idx, auth_spk);
                         let encryption_statement = <Statements<S>>::from(VerifiableEncryptionStatement {
                             // NOTE: It seems that G1Projective::GENERATOR is always used, so we
                             // hard code it here, but in principle there could be different
                             // generators that would have to be stored alongside the public key
                             message_generator        : G1Projective::GENERATOR,
                             encryption_key           : *public_key,
-                            id                       : mem_stmt_id,
+                            id                       : encryption_stmt_id,
                             reference_id             : sig_stmt_id,
                             claim                    : *a_idx as usize,
                             allow_message_decryption : true,

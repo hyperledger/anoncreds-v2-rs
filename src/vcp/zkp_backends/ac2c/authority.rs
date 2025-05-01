@@ -28,12 +28,8 @@ pub fn create_authority_data<S: ShortGroupSignatureScheme>() -> CreateAuthorityD
         let Issuer::<S> {verifiable_decryption_key, ..} = from_api(&signer_secret_data)?;
         Ok(AuthorityData::new(
             AuthorityPublicData(signer_public_setup_data.0),
-            to_api(verifiable_decryption_key)?,
-            // NOTE: this is the key for verifying correct decryption (e.g., by
-            // Governance Body), *not* for actual decryption.
-            // TODO-VERIFIABLE-ENCRYPTION: replace with real data if needed when AC2C supports verifying
-            // correct decryption
-            AuthorityDecryptionKey("BOGUS-SEE-TODO-VERIFIABLE-ENCRYPTION".to_string())))
+            AuthoritySecretData("BOGUS-AUTHORITY-DOES-NOT-SIGN-ANYTHING".to_string()),
+            to_api(verifiable_decryption_key)?))
     })
 }
 

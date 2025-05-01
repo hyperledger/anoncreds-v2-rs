@@ -5,6 +5,7 @@ use crate::vcp::r#impl::*;
 use crate::vcp::types::DataValue;
 use crate::vcp::{Error, VCPResult};
 // ----------------------------------------------------------------------------
+use indexmap::IndexMap;
 use lazy_static::*;
 use std::cmp::Ordering;
 use std::collections::{BTreeMap,BTreeSet, HashMap, HashSet};
@@ -540,6 +541,32 @@ where
     }
 }
 
+impl<K, V> KeyValueContainer<'_, K, V> for IndexMap<K, V>
+where
+    K: std::hash::Hash + Eq,
+{
+    fn get(&self, key: &K) -> Option<&V> {
+        self.get(key)
+    }
+    fn get_mut(&mut self, key: &K) -> Option<&mut V> {
+        self.get_mut(key)
+    }
+    fn insert(& mut self, key: K, val: V) -> Option< V> {
+        self.insert(key,val)
+    }
+    fn len(&self)-> usize {
+        self.len()
+    }
+    fn is_empty(&self)-> bool {
+        self.is_empty()
+    }
+    fn one(k: K, v: V) -> IndexMap<K, V> {
+        let mut m = IndexMap::<K, V>::new();
+        m.insert(k,v);
+        m
+    }
+}
+
 impl<K, V> KeyValueContainer<'_, K, V> for BTreeMap<K, V>
 where
     K: std::hash::Hash + Eq + std::cmp::Ord,
@@ -668,6 +695,36 @@ pub fn insert_throw_if_present_2_lvl<'a,
         },
         None => {
             m.insert(k1.clone(),HashMap::<K2, V>::one(k2.clone(),v.clone()));
+            Ok(())
+        }
+    }
+}
+
+// TODO: ideally make this work for any KeyValueContainer, but only used for HashMap so far
+// TODO: add tests
+pub fn insert_throw_if_present_3_lvl<'a,
+                                     K1: Eq+Debug+Hash+Clone,
+                                     K2: Eq+Debug+Hash+Clone,
+                                     K3: Eq+Debug+Hash+Clone,
+                                     V: Clone+Debug+'a,
+                                     E: Debug>(
+    k1: &K1,
+    k2: &K2,
+    k3: &K3,
+    v: V,
+    m: &'a mut HashMap<K1, HashMap<K2, HashMap<K3, V>>>,
+    mk_e: fn(String) -> E,
+    s: &[String])
+    -> Result<(),E> {
+    match m.get_mut(k1) {
+        Some(m1) => {
+            // TODO: add something to s to indicate outer map with key k1 present
+            insert_throw_if_present_2_lvl(k2, k3, v, m1, mk_e, s)
+        },
+        None => {
+            m.insert(k1.clone(),
+                     HashMap::<K2, HashMap::<K3, V>>::one(k2.clone(),
+                                                          HashMap::<K3, V>::one(k3.clone(), v.clone())));
             Ok(())
         }
     }

@@ -12,8 +12,8 @@ use crate::vcp::zkp_backends::ac2c::presentation_request_setup::attr_label_for_i
 use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
 use crate::prelude;
 use crate::prelude::{
-    ClaimData,ClaimSchema,CredentialSchema,
-    HashedClaim, Issuer, IssuerPublic, NumberClaim, RevocationClaim,
+    ClaimData,ClaimSchema,CredentialSchema, HashedClaim, Issuer,
+    IssuerPublic, NumberClaim, RevocationClaim, ScalarClaim
 };
 // ------------------------------------------------------------------------------
 use std::sync::Arc;
@@ -157,9 +157,8 @@ fn create_schema_claim(
                 validators     : vec![],
             }),
         ClaimType::CTEncryptableText =>
-            // TODO-VERIFIABLE-ENCRYPTION: reversible encoding, etc.
             Ok(ClaimSchema {
-                claim_type     : prelude::ClaimType::Hashed,
+                claim_type     : prelude::ClaimType::Scalar,
                 label          : aix,
                 print_friendly : true,
                 validators     : vec![],
@@ -206,10 +205,10 @@ fn val_to_claim_data(
     match ct_dv
     {
         (ClaimType::CTText             , DataValue::DVText(t)) => Ok(HashedClaim::from(t).into()),
-        // TODO-VERIFIABLE-ENCRYPTION: need a new ReversiblyEncodedClaim; using HashedClaim for now
-        // to make progress.  Will be better to implement and test reversible encoding when
-        // decryption is implemented.
-        (ClaimType::CTEncryptableText  , DataValue::DVText(t)) => Ok(HashedClaim::from(t).into()),
+        (ClaimType::CTEncryptableText  , DataValue::DVText(t)) =>
+            Ok(ScalarClaim::encode_str(t)
+               .map_err(|e| Error::General(
+                   format!("val_claim_to_data: CTEncryptableText encoding error {e:?}")))?.into()),
         (ClaimType::CTInt              , DataValue::DVInt(i))  => Ok(NumberClaim::from(*i as usize).into()),
         (ClaimType::CTAccumulatorMember, DataValue::DVText(t)) => Ok(HashedClaim::from(t).into()),
         _x => Err(Error::General(format!("val_to_claim_data, UNEXPECTED combination: {:?} {:?}", ct_dv.0, ct_dv.1)))

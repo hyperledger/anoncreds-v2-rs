@@ -1,16 +1,18 @@
 // ------------------------------------------------------------------------------
-use crate::get_location_and_backtrace_on_panic;
+use crate::{get_location_and_backtrace_on_panic, str_vec_from};
 use crate::vcp::{convert_to_crypto_library_error, Error, VCPResult, UnexpectedError};
 use crate::vcp::r#impl::catch_unwind_util::*;
 use crate::vcp::r#impl::to_from_api::*;
 use crate::vcp::r#impl::types::WarningsAndResult;
-use crate::vcp::r#impl::util::Assert;
+use crate::vcp::r#impl::util::{
+    insert_throw_if_present, insert_throw_if_present_3_lvl,
+    lookup_throw_if_absent, three_lvl_map_to_vec_of_tuples, Assert};
 use crate::vcp::interfaces::crypto_interface::*;
 use crate::vcp::zkp_backends::ac2c::presentation_request_setup::*;
 // ------------------------------------------------------------------------------
-use crate::claim::ClaimData;
+use crate::claim::{ClaimData, ScalarClaim};
 use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
-use crate::prelude::{Presentation, PresentationCredential, PresentationSchema};
+use crate::prelude::{Presentation, PresentationCredential, PresentationProofs, PresentationSchema};
 // ------------------------------------------------------------------------------
 use indexmap::IndexMap;
 use std::collections::HashMap;
@@ -53,13 +55,45 @@ where <S as ShortGroupSignatureScheme>::PublicKey: RefUnwindSafe,
         get_location_and_backtrace_on_panic!(
             Presentation::verify(&proof_ac2c, &pres_sch, nonce.as_bytes())
                 .map_err(|e| convert_to_crypto_library_error("AC2C", "specific_verifier_ac2c", e)))?;
-        // TODO-VERIFIABLE-ENCRYPTION: get decrypt responses when supported by AC2C
-        if !decr_reqs.is_empty() {
-            return Err(Error::General("specific_verifier_ac2c: has decryption requests : UNIMPLEMENTED".to_string()));
+        let mut decrypt_responses = HashMap::new();
+
+        for (i_lbl, a_idx, a_lbl, DecryptRequest { authority_secret_data, authority_decryption_key }) in
+            three_lvl_map_to_vec_of_tuples(decr_reqs)
+        {
+            let stmt_id = encrypted_for_label_for(i_lbl,a_idx,a_lbl);
+            let prf = lookup_throw_if_absent(&stmt_id, &proof_ac2c.proofs, Error::General,
+                                             &str_vec_from!("specific_verifier_ac2c",
+                                                            "encryption proof not found"))?;
+            if let PresentationProofs::VerifiableEncryption(verenc) = prf {
+                let dk = from_api(authority_decryption_key)?;
+                let decrypted_value_scalar = verenc
+                    .decrypt_scalar(&dk)
+                    .ok_or(Error::General(format!(
+                        "Error decrypting attribute {a_idx} of credential \
+                         issued by {i_lbl} for {a_lbl}")))?;
+
+                let decrypted_value = ScalarClaim::from(decrypted_value_scalar)
+                         .decode_to_str().map_err(|e| Error::General(format!(
+                             "Error {e:?} decoding decrypted scalar {decrypted_value_scalar:?} \
+                              for attribute {a_idx} of credential issued by {i_lbl} for {a_lbl}")))?;
+                let dr = DecryptResponse {
+                    value: decrypted_value,
+                    decryption_proof:
+                    DecryptionProof("BOGUS-DECRYPTION-VERIFICATION-NOT-YET-SUPPORTED".to_string()),
+                };
+                insert_throw_if_present_3_lvl(i_lbl, a_idx, a_lbl, dr, &mut decrypt_responses,
+                                              Error::General,
+                                              &str_vec_from!("specific_verifier_ac2c",
+                                                             "duplicate decrypt response"))?;
+            } else {
+                return Err(Error::General(format!(
+                    "Expected VerifiableEncryptionProof for statement {stmt_id}, \
+                                                   but found {prf:?}")));
+            }
         }
         Ok(WarningsAndDecryptResponses {
             warnings: warns,
-            decrypt_responses: HashMap::new()
+            decrypt_responses
         })
     })
 }

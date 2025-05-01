@@ -81,13 +81,9 @@ test-equalities: reset-db
 test-range: reset-db
 	mvn test -Dtest="AppTest#testRange"
 
-.PHONY: test-verifiable-encryption-ac2c-bbs
-test-verifiable-encryption-ac2c-bbs: reset-db
-	mvn test -Dtest="AppTest#testVerifiableEncryptionAC2C_BBS"
-
-.PHONY: test-verifiable-encryption-ac2c-ps
-test-verifiable-encryption-ac2c-ps: reset-db
-	mvn test -Dtest="AppTest#testVerifiableEncryptionAC2C_PS"
+.PHONY: test-verifiable-encryption-ac2c
+test-verifiable-encryption-ac2c: reset-db
+	mvn test -Dtest="AppTest#testVerifiableEncryptionAC2C"
 
 .PHONY: test-verifiable-encryption-dnc
 test-verifiable-encryption-dnc: reset-db
