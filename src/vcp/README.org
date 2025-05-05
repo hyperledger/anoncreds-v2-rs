@@ -202,12 +202,21 @@ decrypted values match the original signed values.
 
 ** TestSteps
 
+Here we describe the effects and arguments of each =TestStep= and identify any API methods it invokes.
+
+Some =TestStep= s take a =ProofMode= argument.  If =TestBackend= is provided, any "General" (i.e.,
+independent of specific underlying cryptography/ZKP library used) error checking is bypassed,
+enabling testing the behaviour of the underlying library with erroneous input that would normally be
+rejected by the "General" checks.
+
 *** CreateIssuer
 **** Effects
    - Creates new Issuer with associated ~SignerData~
 **** Arguments
    - ~IssuerLabel~: label to identify new Issuer
    - ~[ ClaimType ]~: schema for new Issuer
+   - =[ CredAttrIdx ]=: list of attribute indices, if any, that will be blinded
+   - =ProofMode=
 **** API method(s) invoked
    - ~create_signer_data~
 
@@ -227,7 +236,6 @@ decrypted values match the original signed values.
      ~AccumulatorAddRemove~ step).  If the fourth argument is provided, the value of the identified
      attribute is replaced by the maximum value for which a range proof can be supported by the
      underlying ZKP library, plus the identified offset.
-
 **** Arguments
    - ~IssuerLabel~: label identifying previously created Issuer
    - ~HolderLabel~: label identifying Holder
@@ -236,8 +244,43 @@ decrypted values match the original signed values.
      =attrIdxToReplaceWithMaxSupported= and an offset =plusOffset=.  Argument used only for
      testing that the underlying ZKP library's =get_range_proof_max_value= API function returns an
      accurate value.
+   - =ProofMode=
 **** API method(s) invoked
   - ~sign~
+
+*** CreateBlindSigningInfo
+**** Effects
+   - Creates =BlindSigningInfo= based on values for each attribute to be blinded and stores the
+     =BlindSigningInfo= in =TestState=, where it can be retrieved by a subsequent
+     =SignCredentialWithBlinding= step for the same Issuer and Holder.
+**** Arguments
+   - ~HolderLabel~: label identifying Holder
+   - ~IssuerLabel~: label identifying previously created Issuer
+   - =[ CredAttrIndexAndDataValue ]=: attribute indices and associated values to be blinded
+   - =ProofMode=
+**** API method(s) invoked
+   - ~create_blind_signing_info~
+
+*** SignCredentialWithBlinding
+**** Effects
+   - Same as for =SignCredential=, but retrieves =BlindSigningInfo= from =TestState= to enable a) using
+     the =BlindInfoForSigner= component to sign without knowledge of the blinded attributes, and
+     then b) using the blinded attributes and =InfoForUnblinding= components to unblind the blinded
+     signature produced.  It then stores the resulting signature in the =TestState= along with related
+     data, same as for the =SignCredential= step.  This step models several events, including the
+     Holder who is requesting a credential from an Issuer sending the =BlindInfoForSigner= created
+     by a previous =CreateBlindSigningInfo=
+     to the Issuer, the Issuer signing the credential with blinding and sending the blinded
+     signature to the Holder, and the Holder using the =InfoForUnblinding= to unblind the signature
+     and store it.
+**** Arguments
+   - ~IssuerLabel~: label identifying previously created Issuer
+   - ~HolderLabel~: label identifying Holder
+   - =[ CredAttrIndexAndDataValue ]=: attribute indices and associated values for non-blinded attributes
+   - =ProofMode=
+**** API method(s) invoked
+   - =sign_with_blinded_attributes=
+   - =unblind_blinded_signature=
 
 *** AccumulatorAddRemove
 **** Effects
@@ -397,6 +440,7 @@ decrypted values match the original signed values.
        which step fails.  In some cases, some underlying ZKP libraries fail to generate a
        proof, while others generate a proof that does not verify successfully.  This
        ~CreateVerifyExpectation~ is useful in such cases.
+     - =ProofMode=
 **** API method(s) invoked
    - ~create_proof~
    - ~verify_proof~
@@ -439,6 +483,7 @@ decrypted values match the original signed values.
     step by specified Holder
 **** Arguments
    - ~HolderLabel~
+   - =ProofMode=
 **** API method(s) invoked
   - ~verify_decryption~
 
@@ -470,8 +515,8 @@ For a given test with a given underlying ZKP library, it could be that:
   but we don't want to see it reported as a failure, e.g., because the issue is understood and will
   be addressed in future work, or because the issue is not related to the main purpose of the test.
   An example of the latter is if the underlying ZKP library panics when incorrectly used,
-  and the purpose of the test is only to ensure that it does not enable a prover to create a proof
-  that a verifier successfully verifies.
+  and the purpose of the test is only to ensure that it does not enable creating a proof
+  that successfully verifies.
 
 If tests are run directly using ~cargo test~, then these tests that are overridden to =Fail= are
 reported as failures.  To avoid confusion, such tests have ~_overridden_to_fail~ appended to their
@@ -756,13 +801,14 @@ It takes
 - a =Natural= (an RNG seed), and
 - a list of =ClaimType= (both defined in [[./interfaces/types.rs][./interfaces/types.rs]])
   - this is the "schema" for credentials that will be issued and signed by the Issuer
+- a list of indices indicating which indices in the list of =ClaimType= are to have their values blinded
 
 Assuming the AC2C implementation of primitives are connected to =PlatformApi=,
 as described in <<connecting-zkp-libary-to-platform>>,
 then =create_signer_data= (in [[./zkp_backends/ac2c/signer.rs][./zkp_backends/ac2c/signer.rs]]) is invoked.
 
 The =create_signer_data= implementation
-- creates an AC2C schema representation based on a list of VCP =ClaimType=
+- creates an AC2C schema representation based on a list of VCP =ClaimType= and the list of blinded indices
 - creates AC2C public and secret data (that includes public/secret keys)
 - returns VCP =SignerData=
 
@@ -778,20 +824,51 @@ An Issuer would securely store the private data and make the public data availab
 # --------------------------------------------------
 ** Issuer signing a credential
 
-To sign credentials, an Issuer uses the =PlatformApi= ([[./api.rs][./api.rs]]) =sign= function
-of type =Sign= ([[./interfaces/primitives.rs][./interfaces/primitives.rs]]).
+To sign credentials, an Issuer uses either
+- the =sign= function, of type =Sign= ([[./interfaces/non_primitives.rs][./interfaces/non_primitives.rs]]), or
+- the =sign_with_blinded_attributes= function,
+  of type =SignWithBlindedAttributes= ([[./interfaces/non_primitives.rs][./interfaces/non_primitives.rs]])
+both in =PlatformApi= ([[./api.rs][./api.rs]]).
 
-It takes
+If no attributes are to be blinded, then use =sign=.
+Otherwise, use =sign_with_blinded_attributes=, shown here.
+
+=sign_with_blinded_attributes= takes
 - a =Natural= (an RNG seed)
-- a list of =DataValue= ([[./interfaces/types.rs][./interfaces/types.rs]])
+- a list of =CredAttrIndexAndDataValue= ([[./interfaces/types.rs][./interfaces/types.rs]])
+  containing index and =DataValue= pairs for non-blinded attributes
+- =BlindInfoForSigner= ([[./interfaces/types.rs][./interfaces/types.rs]])
+  - a commitment to the blinded attributes (created by the Holder before requesting a credential
+    from an Issuer)
 - =SignerData= (from =create_signer_data= above)
 
-The AC2C implementation of =sign= is in [[./zkp_backends/ac2c/signer.rs][./zkp_backends/ac2c/signer.rs]].
+Note: before =sign_with_blinded_attributes= is called, the Holder calls
+=create_blind_signing_info= ([[./api.rs][./api.rs]])
+of type =CreateBlindSigningInfo= ([[./interfaces/primitives.rs][./interfaces/non_primitives.rs]])
+with
+- a =Natural= (an RNG seed)
+- =SignerPublicData=
+- a list of =CredAttrIndexAndDataValue= ([[./interfaces/types.rs][./interfaces/types.rs]])
+  containing index and =DataValue= pairs for blinded attributes
+=creater_blind_signing_data= returns =BlindInfoForSigner=
+(the commitment to the attribute values), which is given to =sign_with_blinded_attributes= (above).
 
-That =sign= implementation
-- converts each VCP =DataValue= to an AC2C claim
-- uses AC2C to sign the claims using the secret data from =SignerData=
-- returns a =Signature= (an opaque representation of an AC2C signature)
+The AC2C implementation of =sign_with_blinded_attributes= is in [[./zkp_backends/ac2c/signer.rs][./zkp_backends/ac2c/signer.rs]].
+
+The =sign_with_blinded_attributes= implementation
+- converts each VCP non-blinded =DataValue= to an AC2C claim
+- uses AC2C's =blind_sign_credential=, providing the claims, the =BlindInfoForSigner=,
+  and the secret data from =SignerData=
+- returns a =BlindSignature= (an opaque representation of an AC2C =BlindCredentialBundle=)
+
+# --------------------------------------------------
+** Unblinding a blinded signature
+
+Before creating proofs using a blinded signature, a Holder calls
+=unblind_blinded_signature= ([[./api.rs][./api.rs]])
+of type =UnblindBlindedSignature= ([[./interfaces/primitives.rs][./interfaces/non_primitives.rs]])
+to obtain a =Signature= ([[./interfaces/types.rs][./interfaces/types.rs]]), which is then stored for later use when creating a proof
+(specifically, the "proof-of-knowledge" of a signature).
 
 # --------------------------------------------------
 ** Creating a proof
@@ -799,7 +876,7 @@ That =sign= implementation
 The general =create_proof= function ([[./impl/general/proof.rs][./impl/general/proof.rs]]) takes
 - proof requirements : =HashMap<CredentialLabel, CredentialReqs>=
   - =CredentialLabel=
-    - an identifier used to refer to a credential for which a Prover must
+    - an identifier used to refer to a credential for which a Holder (now Prover) must
       prove knowledge of a signature satisfying the associated =CredentialReqs=, as well as
       for establishing equalities between attributes
       in different credentials
@@ -816,7 +893,7 @@ The general =create_proof= function ([[./impl/general/proof.rs][./impl/general/p
     - =Signature=
       - used to create a proof-of-knowledge
     - list of =DataValue=
-      - the values that we used to create the signature
+      - the values that were used to create the signature
     - =AccumulatorWitnesses=
       - set membership witnesses for any accumulators in the requirements (could be none)
     - =Option<Nonce>=

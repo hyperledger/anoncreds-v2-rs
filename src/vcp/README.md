@@ -2,51 +2,54 @@
 
 # Table of Contents
 
-1.  [Introduction](#org3fd48e6)
-2.  [Caveats](#org44185ef)
-3.  [User abstraction](#orgaee3b12)
-4.  [Running tests](#org7eb1c4f)
-5.  [The test framework](#org3e3cb35)
-    1.  [JSON test file naming and contents](#org43eadff)
-    2.  [Overview of test framework](#orgef6ee72)
-    3.  [An example](#org2bdc9cd)
-    4.  [TestSteps](#org936e91c)
-        1.  [CreateIssuer](#orgc721458)
-        2.  [CreateAccumulators](#orgdad51fd)
-        3.  [SignCredential](#orgc744a67)
-        4.  [AccumulatorAddRemove](#orgc962a5c)
-        5.  [UpdateAccumulatorWitness](#org5e52b89)
-        6.  [Reveal](#orgef3e8bf)
-        7.  [InRange](#org989ea2e)
-        8.  [InAccum](#org124e231)
-        9.  [Equality](#org9d50fe8)
-        10. [CreateAndVerifyProof](#org93ca760)
-        11. [CreateAuthority](#orgfa651cd)
-        12. [EncryptFor](#orgf8c6700)
-        13. [Decrypt](#org336be73)
-        14. [VerifyDecryption](#org08591ba)
-    5.  [Overriding tests](#org6c9d023)
-    6.  [Test framework files](#orgf25ac5c)
-6.  [The VCP architecture](#orgb5e3f5c)
-    1.  [General](#org15cb762)
-    2.  [Specific](#orga5bd330)
-7.  [Guide to `src/vcp` code](#org2881e06)
-    1.  [Directory structure](#orga0479ad)
-    2.  [Example of connecting a specific ZKP library to `PlatformApi`](#org27cfad0)
-    3.  [Creating an Issuer's public and secret data (e.g., keys)](#orgd838945)
-    4.  [Issuer signing a credential](#orgddde932)
-    5.  [Creating a proof](#orgd5a498d)
-    6.  [Verifying a proof](#org7154b0c)
-    7.  [Proofs with revealed values](#org7bfd1c2)
-    8.  [Proofs with range proofs](#org5e9deb2)
-    9.  [Proofs with verifiable encryption](#org79c11e5)
-    10. [Proofs with equalities between attributes](#org5d9ad9e)
-    11. [Proofs with accumulators](#org5d686d6)
-    12. [Accumulator functions](#org5f3b635)
+1.  [Introduction](#orge81d445)
+2.  [Caveats](#orge440a8e)
+3.  [User abstraction](#orgeec1e9b)
+4.  [Running tests](#org3f80190)
+5.  [The test framework](#orgde0c45b)
+    1.  [JSON test file naming and contents](#org0543b0d)
+    2.  [Overview of test framework](#orgb9423de)
+    3.  [An example](#orgb1d1752)
+    4.  [TestSteps](#orgca66941)
+        1.  [CreateIssuer](#org7802df1)
+        2.  [CreateAccumulators](#orgc9616eb)
+        3.  [SignCredential](#orgc06bffb)
+        4.  [CreateBlindSigningInfo](#orgb5dcef8)
+        5.  [SignCredentialWithBlinding](#orgb0691a2)
+        6.  [AccumulatorAddRemove](#orgc31966c)
+        7.  [UpdateAccumulatorWitness](#orgc8e1fd6)
+        8.  [Reveal](#org1881a39)
+        9.  [InRange](#org9c59f44)
+        10. [InAccum](#org869fc3f)
+        11. [Equality](#org11416f7)
+        12. [CreateAndVerifyProof](#org3ed724b)
+        13. [CreateAuthority](#orgb18a0e6)
+        14. [EncryptFor](#org420dbb1)
+        15. [Decrypt](#orgf7daf62)
+        16. [VerifyDecryption](#orgdb7abf3)
+    5.  [Overriding tests](#org88d226a)
+    6.  [Test framework files](#orgd2ece7f)
+6.  [The VCP architecture](#orga429cef)
+    1.  [General](#org9ba7ded)
+    2.  [Specific](#orgda0bb66)
+7.  [Guide to `src/vcp` code](#org260bbb3)
+    1.  [Directory structure](#org1462116)
+    2.  [Example of connecting a specific ZKP library to `PlatformApi`](#orgf8c20e7)
+    3.  [Creating an Issuer's public and secret data (e.g., keys)](#org75f2af0)
+    4.  [Issuer signing a credential](#org144fc9c)
+    5.  [Unblinding a blinded signature](#org8976013)
+    6.  [Creating a proof](#org878dcfd)
+    7.  [Verifying a proof](#org0839c8b)
+    8.  [Proofs with revealed values](#orge8c3b21)
+    9.  [Proofs with range proofs](#org8cd0218)
+    10. [Proofs with verifiable encryption](#org4dabdb3)
+    11. [Proofs with equalities between attributes](#org79a27bc)
+    12. [Proofs with accumulators](#org4171918)
+    13. [Accumulator functions](#org30892fc)
 
 
 
-<a id="org3fd48e6"></a>
+<a id="orge81d445"></a>
 
 # Introduction
 
@@ -70,7 +73,7 @@ This work is by [Harold Carr](https://github.com/haroldcarr) and [Mark Moir](htt
 of the University of Maryland at College Park, during his Summer 2024 internship at Oracle Labs.
 
 
-<a id="org44185ef"></a>
+<a id="orge440a8e"></a>
 
 # Caveats
 
@@ -93,7 +96,7 @@ exploration.  In particular,
     feedback and engagement towards something that we can offer as a contribution.
 
 
-<a id="orgaee3b12"></a>
+<a id="orgeec1e9b"></a>
 
 # User abstraction
 
@@ -102,7 +105,7 @@ From an application/user perspective, our abstraction is defined by the
 
 -   By using the `implement_platform_api_using` function in [./api_utils.rs](./api_utils.rs) and providing an instance of
     `CryptoInterface`, such as `CRYPTO_INTERFACE_AC2C` (defined in [./zkp_backends/ac2c/crypto_interface.rs](./zkp_backends/ac2c/crypto_interface.rs)) and calling
-    its methods directly.  See [7.1](#orgacfec14) for more details.
+    its methods directly.  See [7.1](#org70c99f1) for more details.
 -   By accessing the functionality via a Swagger/OpenAPI interface. We have built an HTTP/REST
     server serving such an interface.  See [../../server/README.org](../../server/README.org).
 -   Via our test framework, described below.  We recommend this approach as the easiest way to get
@@ -117,7 +120,7 @@ are less general, more historic, less well organised, etc.  We recommend focusin
 that are run by the test framework.
 
 
-<a id="org7eb1c4f"></a>
+<a id="org3f80190"></a>
 
 # Running tests
 
@@ -127,11 +130,11 @@ described in the next section.
 
 The [../../Makefile](../../Makefile) supports a number of `make` targets for running/skipping tests according to various
 criteria.  The two most important are `make test` and `make test-all`.  The former skips tests that are
-overridden to fail (see Section [5.4.14.3](#org19f6fc4)), so that unexpected failures are not masked by
+overridden to fail (see Section [5.4.16.3](#org77a4156)), so that unexpected failures are not masked by
 those tests.  The latter runs these tests as well, so that the failures can be seen.
 
 
-<a id="org3e3cb35"></a>
+<a id="orgde0c45b"></a>
 
 # The test framework
 
@@ -163,7 +166,7 @@ handful of Makefile targets enable by using `cargo test` directly.  Here are som
     cargo test --features=ignore_slow_slow dnc::run_json_zkp_functionality_tests
 
 
-<a id="org43eadff"></a>
+<a id="org0543b0d"></a>
 
 ## JSON test file naming and contents
 
@@ -190,7 +193,7 @@ to run only the test described in the next section:
     cargo test example_single_issuer_and_credential_in_accum_no_update
 
 
-<a id="orgef6ee72"></a>
+<a id="orgb9423de"></a>
 
 ## Overview of test framework
 
@@ -209,7 +212,7 @@ We make the simplifying assumption that each Holder can possess at most one cred
 each Issuer. This enables referring to credentials by the label of the Issuer that signed them.
 
 
-<a id="org2bdc9cd"></a>
+<a id="orgb1d1752"></a>
 
 ## An example
 
@@ -260,12 +263,19 @@ as the one signed in the relevant credential, and (in examples involving decrypt
 decrypted values match the original signed values.
 
 
-<a id="org936e91c"></a>
+<a id="orgca66941"></a>
 
 ## TestSteps
 
+Here we describe the effects and arguments of each `TestStep` and identify any API methods it invokes.
 
-<a id="orgc721458"></a>
+Some `TestStep` s take a `ProofMode` argument.  If `TestBackend` is provided, any "General" (i.e.,
+independent of specific underlying cryptography/ZKP library used) error checking is bypassed,
+enabling testing the behaviour of the underlying library with erroneous input that would normally be
+rejected by the "General" checks.
+
+
+<a id="org7802df1"></a>
 
 ### CreateIssuer
 
@@ -277,13 +287,15 @@ decrypted values match the original signed values.
 
     -   `IssuerLabel`: label to identify new Issuer
     -   `[ ClaimType ]`: schema for new Issuer
+    -   `[ CredAttrIdx ]`: list of attribute indices, if any, that will be blinded
+    -   `ProofMode`
 
 3.  API method(s) invoked
 
     -   `create_signer_data`
 
 
-<a id="orgdad51fd"></a>
+<a id="orgc9616eb"></a>
 
 ### CreateAccumulators
 
@@ -300,7 +312,7 @@ decrypted values match the original signed values.
     -   `create_accumulator_data` (once for each created accumulator)
 
 
-<a id="orgc744a67"></a>
+<a id="orgc06bffb"></a>
 
 ### SignCredential
 
@@ -322,13 +334,66 @@ decrypted values match the original signed values.
         `attrIdxToReplaceWithMaxSupported` and an offset `plusOffset`.  Argument used only for
         testing that the underlying ZKP library's `get_range_proof_max_value` API function returns an
         accurate value.
+    -   `ProofMode`
 
 3.  API method(s) invoked
 
     -   `sign`
 
 
-<a id="orgc962a5c"></a>
+<a id="orgb5dcef8"></a>
+
+### CreateBlindSigningInfo
+
+1.  Effects
+
+    -   Creates `BlindSigningInfo` based on values for each attribute to be blinded and stores the
+        `BlindSigningInfo` in `TestState`, where it can be retrieved by a subsequent
+        `SignCredentialWithBlinding` step for the same Issuer and Holder.
+
+2.  Arguments
+
+    -   `HolderLabel`: label identifying Holder
+    -   `IssuerLabel`: label identifying previously created Issuer
+    -   `[ CredAttrIndexAndDataValue ]`: attribute indices and associated values to be blinded
+    -   `ProofMode`
+
+3.  API method(s) invoked
+
+    -   `create_blind_signing_info`
+
+
+<a id="orgb0691a2"></a>
+
+### SignCredentialWithBlinding
+
+1.  Effects
+
+    -   Same as for `SignCredential`, but retrieves `BlindSigningInfo` from `TestState` to enable a) using
+        the `BlindInfoForSigner` component to sign without knowledge of the blinded attributes, and
+        then b) using the blinded attributes and `InfoForUnblinding` components to unblind the blinded
+        signature produced.  It then stores the resulting signature in the `TestState` along with related
+        data, same as for the `SignCredential` step.  This step models several events, including the
+        Holder who is requesting a credential from an Issuer sending the `BlindInfoForSigner` created
+        by a previous `CreateBlindSigningInfo`
+        to the Issuer, the Issuer signing the credential with blinding and sending the blinded
+        signature to the Holder, and the Holder using the `InfoForUnblinding` to unblind the signature
+        and store it.
+
+2.  Arguments
+
+    -   `IssuerLabel`: label identifying previously created Issuer
+    -   `HolderLabel`: label identifying Holder
+    -   `[ CredAttrIndexAndDataValue ]`: attribute indices and associated values for non-blinded attributes
+    -   `ProofMode`
+
+3.  API method(s) invoked
+
+    -   `sign_with_blinded_attributes`
+    -   `unblind_blinded_signature`
+
+
+<a id="orgc31966c"></a>
 
 ### AccumulatorAddRemove
 
@@ -356,7 +421,7 @@ decrypted values match the original signed values.
     -   `accumulator_add_remove`
 
 
-<a id="org5e52b89"></a>
+<a id="orgc8e1fd6"></a>
 
 ### UpdateAccumulatorWitness
 
@@ -399,7 +464,7 @@ decrypted values match the original signed values.
     -   `update_accumulator_witness`, potentially multiple times as described above
 
 
-<a id="orgef3e8bf"></a>
+<a id="org1881a39"></a>
 
 ### Reveal
 
@@ -424,7 +489,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org989ea2e"></a>
+<a id="org9c59f44"></a>
 
 ### InRange
 
@@ -462,7 +527,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org124e231"></a>
+<a id="org869fc3f"></a>
 
 ### InAccum
 
@@ -486,7 +551,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org9d50fe8"></a>
+<a id="org11416f7"></a>
 
 ### Equality
 
@@ -516,7 +581,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org93ca760"></a>
+<a id="org3ed724b"></a>
 
 ### CreateAndVerifyProof
 
@@ -552,6 +617,7 @@ decrypted values match the original signed values.
             which step fails.  In some cases, some underlying ZKP libraries fail to generate a
             proof, while others generate a proof that does not verify successfully.  This
             `CreateVerifyExpectation` is useful in such cases.
+        -   `ProofMode`
 
 3.  API method(s) invoked
 
@@ -559,7 +625,7 @@ decrypted values match the original signed values.
     -   `verify_proof`
 
 
-<a id="orgfa651cd"></a>
+<a id="orgb18a0e6"></a>
 
 ### CreateAuthority
 
@@ -574,7 +640,7 @@ decrypted values match the original signed values.
     -   `create_authority_data`
 
 
-<a id="orgf8c6700"></a>
+<a id="org420dbb1"></a>
 
 ### EncryptFor
 
@@ -596,7 +662,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org336be73"></a>
+<a id="orgf7daf62"></a>
 
 ### Decrypt
 
@@ -617,7 +683,7 @@ decrypted values match the original signed values.
     -   none
 
 
-<a id="org08591ba"></a>
+<a id="orgdb7abf3"></a>
 
 ### VerifyDecryption
 
@@ -629,15 +695,16 @@ decrypted values match the original signed values.
 2.  Arguments
 
     -   `HolderLabel`
+    -   `ProofMode`
 
 3.  API method(s) invoked
 
     -   `verify_decryption`
     
-    <a id="org19f6fc4"></a>
+    <a id="org77a4156"></a>
 
 
-<a id="org6c9d023"></a>
+<a id="org88d226a"></a>
 
 ## Overriding tests
 
@@ -669,8 +736,8 @@ For a given test with a given underlying ZKP library, it could be that:
     but we don't want to see it reported as a failure, e.g., because the issue is understood and will
     be addressed in future work, or because the issue is not related to the main purpose of the test.
     An example of the latter is if the underlying ZKP library panics when incorrectly used,
-    and the purpose of the test is only to ensure that it does not enable a prover to create a proof
-    that a verifier successfully verifies.
+    and the purpose of the test is only to ensure that it does not enable creating a proof
+    that successfully verifies.
 
 If tests are run directly using `cargo test`, then these tests that are overridden to `Fail` are
 reported as failures.  To avoid confusion, such tests have `_overridden_to_fail` appended to their
@@ -687,7 +754,7 @@ We would like to improve the override system.  In the meantime, it is documented
 [../../generate-tests-from-json/src/lib.rs](../../generate-tests-from-json/src/lib.rs).
 
 
-<a id="orgf25ac5c"></a>
+<a id="orgd2ece7f"></a>
 
 ## Test framework files
 
@@ -736,7 +803,7 @@ Located in [../../tests/vcp/](../../tests/vcp/):
 Note: the other tests located in [tests/vcp](../../tests/vcp) (various unit tests) can be ignored.
 
 
-<a id="orgb5e3f5c"></a>
+<a id="orga429cef"></a>
 
 # The VCP architecture
 
@@ -786,7 +853,7 @@ VCP is comprised of three main parts
         verify) for a specific underlying ZKP library
 
 
-<a id="org15cb762"></a>
+<a id="org9ba7ded"></a>
 
 ## General
 
@@ -812,7 +879,7 @@ Both the general `create_proof` and `verify_proof` then pass that info to "speci
 create and verify.  The AC2C versions are shown in the above diagram.
 
 
-<a id="orga5bd330"></a>
+<a id="orgda0bb66"></a>
 
 ## Specific
 
@@ -831,12 +898,12 @@ along with disclosed values.
 to verify the proof.
 
 
-<a id="org2881e06"></a>
+<a id="org260bbb3"></a>
 
 # Guide to `src/vcp` code
 
 
-<a id="orga0479ad"></a>
+<a id="org1462116"></a>
 
 ## Directory structure
 
@@ -934,10 +1001,10 @@ The directory structure for the DNC implementation of `CryptoInterface` is:
     
             types.rs                      : Type aliases used in the DNC implementation
 
-<a id="orgacfec14"></a>
+<a id="org70c99f1"></a>
 
 
-<a id="org27cfad0"></a>
+<a id="orgf8c20e7"></a>
 
 ## Example of connecting a specific ZKP library to `PlatformApi`
 
@@ -956,7 +1023,7 @@ An example of making this connection can be seen in the `run_json_test_ac2c` fun
 [../../tests/vcp/zkp_functionality_tests/test_definitions.rs](../../tests/vcp/zkp_functionality_tests/test_definitions.rs).
 
 
-<a id="orgd838945"></a>
+<a id="org75f2af0"></a>
 
 ## Creating an Issuer's public and secret data (e.g., keys)
 
@@ -969,14 +1036,15 @@ It takes
 -   a `Natural` (an RNG seed), and
 -   a list of `ClaimType` (both defined in [./interfaces/types.rs](./interfaces/types.rs))
     -   this is the "schema" for credentials that will be issued and signed by the Issuer
+-   a list of indices indicating which indices in the list of `ClaimType` are to have their values blinded
 
 Assuming the AC2C implementation of primitives are connected to `PlatformApi`,
-as described in <a id="org8bc6f0e"></a>,
+as described in <a id="orgf13b265"></a>,
 then `create_signer_data` (in [./zkp_backends/ac2c/signer.rs](./zkp_backends/ac2c/signer.rs)) is invoked.
 
 The `create_signer_data` implementation
 
--   creates an AC2C schema representation based on a list of VCP `ClaimType`
+-   creates an AC2C schema representation based on a list of VCP `ClaimType` and the list of blinded indices
 -   creates AC2C public and secret data (that includes public/secret keys)
 -   returns VCP `SignerData`
 
@@ -991,29 +1059,66 @@ The `create_signer_data` implementation
 An Issuer would securely store the private data and make the public data available.
 
 
-<a id="orgddde932"></a>
+<a id="org144fc9c"></a>
 
 ## Issuer signing a credential
 
-To sign credentials, an Issuer uses the `PlatformApi` ([./api.rs](./api.rs)) `sign` function
-of type `Sign` ([./interfaces/primitives.rs](./interfaces/primitives.rs)).
+To sign credentials, an Issuer uses either
 
-It takes
+-   the `sign` function, of type `Sign` ([./interfaces/non_primitives.rs](./interfaces/non_primitives.rs)), or
+-   the `sign_with_blinded_attributes` function,
+    of type `SignWithBlindedAttributes` ([./interfaces/non_primitives.rs](./interfaces/non_primitives.rs))
+
+both in `PlatformApi` ([./api.rs](./api.rs)).
+
+If no attributes are to be blinded, then use `sign`.
+Otherwise, use `sign_with_blinded_attributes`, shown here.
+
+`sign_with_blinded_attributes` takes
 
 -   a `Natural` (an RNG seed)
--   a list of `DataValue` ([./interfaces/types.rs](./interfaces/types.rs))
+-   a list of `CredAttrIndexAndDataValue` ([./interfaces/types.rs](./interfaces/types.rs))
+    containing index and `DataValue` pairs for non-blinded attributes
+-   `BlindInfoForSigner` ([./interfaces/types.rs](./interfaces/types.rs))
+    -   a commitment to the blinded attributes (created by the Holder before requesting a credential
+        from an Issuer)
 -   `SignerData` (from `create_signer_data` above)
 
-The AC2C implementation of `sign` is in [./zkp_backends/ac2c/signer.rs](./zkp_backends/ac2c/signer.rs).
+Note: before `sign_with_blinded_attributes` is called, the Holder calls
+`create_blind_signing_info` ([./api.rs](./api.rs))
+of type `CreateBlindSigningInfo` ([./interfaces/non_primitives.rs](./interfaces/primitives.rs))
+with
 
-That `sign` implementation
+-   a `Natural` (an RNG seed)
+-   `SignerPublicData`
+-   a list of `CredAttrIndexAndDataValue` ([./interfaces/types.rs](./interfaces/types.rs))
+    containing index and `DataValue` pairs for blinded attributes
 
--   converts each VCP `DataValue` to an AC2C claim
--   uses AC2C to sign the claims using the secret data from `SignerData`
--   returns a `Signature` (an opaque representation of an AC2C signature)
+`creater_blind_signing_data` returns `BlindInfoForSigner`
+(the commitment to the attribute values), which is given to `sign_with_blinded_attributes` (above).
+
+The AC2C implementation of `sign_with_blinded_attributes` is in [./zkp_backends/ac2c/signer.rs](./zkp_backends/ac2c/signer.rs).
+
+The `sign_with_blinded_attributes` implementation
+
+-   converts each VCP non-blinded `DataValue` to an AC2C claim
+-   uses AC2C's `blind_sign_credential`, providing the claims, the `BlindInfoForSigner`,
+    and the secret data from `SignerData`
+-   returns a `BlindSignature` (an opaque representation of an AC2C `BlindCredentialBundle`)
 
 
-<a id="orgd5a498d"></a>
+<a id="org8976013"></a>
+
+## Unblinding a blinded signature
+
+Before creating proofs using a blinded signature, a Holder calls
+`unblind_blinded_signature` ([./api.rs](./api.rs))
+of type `UnblindBlindedSignature` ([./interfaces/non_primitives.rs](./interfaces/primitives.rs))
+to obtain a `Signature` ([./interfaces/types.rs](./interfaces/types.rs)), which is then stored for later use when creating a proof
+(specifically, the "proof-of-knowledge" of a signature).
+
+
+<a id="org878dcfd"></a>
 
 ## Creating a proof
 
@@ -1021,7 +1126,7 @@ The general `create_proof` function ([./impl/general/proof.rs](./impl/general/pr
 
 -   proof requirements : `HashMap<CredentialLabel, CredentialReqs>`
     -   `CredentialLabel`
-        -   an identifier used to refer to a credential for which a Prover must
+        -   an identifier used to refer to a credential for which a Holder (now Prover) must
             prove knowledge of a signature satisfying the associated `CredentialReqs`, as well as
             for establishing equalities between attributes
             in different credentials
@@ -1038,7 +1143,7 @@ The general `create_proof` function ([./impl/general/proof.rs](./impl/general/pr
         -   `Signature`
             -   used to create a proof-of-knowledge
         -   list of `DataValue`
-            -   the values that we used to create the signature
+            -   the values that were used to create the signature
         -   `AccumulatorWitnesses`
             -   set membership witnesses for any accumulators in the requirements (could be none)
         -   `Option<Nonce>`
@@ -1068,7 +1173,7 @@ The AC2C `specific_prover` (named `specific_prover_ac2c` in [./zkp_backends/ac2c
 -   returns `DataForVerifier` that contains the VCP proof and any warnings
 
 
-<a id="org7154b0c"></a>
+<a id="org0839c8b"></a>
 
 ## Verifying a proof
 
@@ -1095,7 +1200,7 @@ converts the VCP information and data into formats used by AC2C, and then calls
 the AC2C `Presentation:verify` to verify the proof.
 
 
-<a id="org7bfd1c2"></a>
+<a id="orge8c3b21"></a>
 
 ## Proofs with revealed values
 
@@ -1151,7 +1256,7 @@ In the `specific_verifier_ac2c` case, it calls `anoncreds-v2-rs` `Presentation::
 the `PresentationSchema` to verify the proof.
 
 
-<a id="org5e9deb2"></a>
+<a id="org8cd0218"></a>
 
 ## Proofs with range proofs
 
@@ -1188,7 +1293,7 @@ which creates two `anoncreds-v2-rs` statements:
 Those statements are then used to create and verify proofs
 
 
-<a id="org79c11e5"></a>
+<a id="org4dabdb3"></a>
 
 ## Proofs with verifiable encryption
 
@@ -1215,7 +1320,7 @@ which creates a `anoncreds-v2-rs` `VerifiableEncryptionStatement`
 NOTE: AC2C does not yet support decryption.
 
 
-<a id="org5d9ad9e"></a>
+<a id="org79a27bc"></a>
 
 ## Proofs with equalities between attributes
 
@@ -1240,7 +1345,7 @@ where each `EqualityReq` is a list of pairs that point to values that should be 
 `EqualityStatement` for each equality.
 
 
-<a id="org5d686d6"></a>
+<a id="org4171918"></a>
 
 ## Proofs with accumulators
 
@@ -1269,7 +1374,7 @@ The AC2C implementation then transforms that `ResolvedDisclosure` into
 which creates a `anoncreds-v2-rs` `MembershipStatement`
 
 
-<a id="org5f3b635"></a>
+<a id="org30892fc"></a>
 
 ## Accumulator functions
 
