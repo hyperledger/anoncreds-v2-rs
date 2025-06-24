@@ -104,7 +104,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call accumulatorAddRemoveCall(String zkpLib, AccumulatorAddRemoveRequest accumulatorAddRemoveRequest, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call accumulatorAddRemoveCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull AccumulatorAddRemoveRequest accumulatorAddRemoveRequest, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -154,7 +154,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call accumulatorAddRemoveValidateBeforeCall(String zkpLib, AccumulatorAddRemoveRequest accumulatorAddRemoveRequest, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call accumulatorAddRemoveValidateBeforeCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull AccumulatorAddRemoveRequest accumulatorAddRemoveRequest, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'zkpLib' is set
         if (zkpLib == null) {
             throw new ApiException("Missing the required parameter 'zkpLib' when calling accumulatorAddRemove(Async)");
@@ -184,7 +184,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public AccumulatorAddRemoveResponse accumulatorAddRemove(String zkpLib, AccumulatorAddRemoveRequest accumulatorAddRemoveRequest) throws ApiException {
+    public AccumulatorAddRemoveResponse accumulatorAddRemove(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull AccumulatorAddRemoveRequest accumulatorAddRemoveRequest) throws ApiException {
         ApiResponse<AccumulatorAddRemoveResponse> localVarResp = accumulatorAddRemoveWithHttpInfo(zkpLib, accumulatorAddRemoveRequest);
         return localVarResp.getData();
     }
@@ -204,7 +204,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<AccumulatorAddRemoveResponse> accumulatorAddRemoveWithHttpInfo(String zkpLib, AccumulatorAddRemoveRequest accumulatorAddRemoveRequest) throws ApiException {
+    public ApiResponse<AccumulatorAddRemoveResponse> accumulatorAddRemoveWithHttpInfo(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull AccumulatorAddRemoveRequest accumulatorAddRemoveRequest) throws ApiException {
         okhttp3.Call localVarCall = accumulatorAddRemoveValidateBeforeCall(zkpLib, accumulatorAddRemoveRequest, null);
         Type localVarReturnType = new TypeToken<AccumulatorAddRemoveResponse>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -226,7 +226,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call accumulatorAddRemoveAsync(String zkpLib, AccumulatorAddRemoveRequest accumulatorAddRemoveRequest, final ApiCallback<AccumulatorAddRemoveResponse> _callback) throws ApiException {
+    public okhttp3.Call accumulatorAddRemoveAsync(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull AccumulatorAddRemoveRequest accumulatorAddRemoveRequest, final ApiCallback<AccumulatorAddRemoveResponse> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = accumulatorAddRemoveValidateBeforeCall(zkpLib, accumulatorAddRemoveRequest, _callback);
         Type localVarReturnType = new TypeToken<AccumulatorAddRemoveResponse>(){}.getType();
@@ -248,7 +248,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createAccumulatorDataCall(String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call createAccumulatorDataCall(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -301,7 +301,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call createAccumulatorDataValidateBeforeCall(String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call createAccumulatorDataValidateBeforeCall(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         return createAccumulatorDataCall(zkpLib, rngSeed, _callback);
 
     }
@@ -321,7 +321,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public CreateAccumulatorResponse createAccumulatorData(String zkpLib, Integer rngSeed) throws ApiException {
+    public CreateAccumulatorResponse createAccumulatorData(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         ApiResponse<CreateAccumulatorResponse> localVarResp = createAccumulatorDataWithHttpInfo(zkpLib, rngSeed);
         return localVarResp.getData();
     }
@@ -341,7 +341,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<CreateAccumulatorResponse> createAccumulatorDataWithHttpInfo(String zkpLib, Integer rngSeed) throws ApiException {
+    public ApiResponse<CreateAccumulatorResponse> createAccumulatorDataWithHttpInfo(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         okhttp3.Call localVarCall = createAccumulatorDataValidateBeforeCall(zkpLib, rngSeed, null);
         Type localVarReturnType = new TypeToken<CreateAccumulatorResponse>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -363,7 +363,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createAccumulatorDataAsync(String zkpLib, Integer rngSeed, final ApiCallback<CreateAccumulatorResponse> _callback) throws ApiException {
+    public okhttp3.Call createAccumulatorDataAsync(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback<CreateAccumulatorResponse> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = createAccumulatorDataValidateBeforeCall(zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<CreateAccumulatorResponse>(){}.getType();
@@ -385,7 +385,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createAccumulatorElementCall(String zkpLib, String body, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call createAccumulatorElementCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull String body, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -435,7 +435,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call createAccumulatorElementValidateBeforeCall(String zkpLib, String body, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call createAccumulatorElementValidateBeforeCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull String body, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'zkpLib' is set
         if (zkpLib == null) {
             throw new ApiException("Missing the required parameter 'zkpLib' when calling createAccumulatorElement(Async)");
@@ -465,7 +465,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public String createAccumulatorElement(String zkpLib, String body) throws ApiException {
+    public String createAccumulatorElement(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull String body) throws ApiException {
         ApiResponse<String> localVarResp = createAccumulatorElementWithHttpInfo(zkpLib, body);
         return localVarResp.getData();
     }
@@ -485,7 +485,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<String> createAccumulatorElementWithHttpInfo(String zkpLib, String body) throws ApiException {
+    public ApiResponse<String> createAccumulatorElementWithHttpInfo(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull String body) throws ApiException {
         okhttp3.Call localVarCall = createAccumulatorElementValidateBeforeCall(zkpLib, body, null);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -507,7 +507,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createAccumulatorElementAsync(String zkpLib, String body, final ApiCallback<String> _callback) throws ApiException {
+    public okhttp3.Call createAccumulatorElementAsync(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull String body, final ApiCallback<String> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = createAccumulatorElementValidateBeforeCall(zkpLib, body, _callback);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
@@ -529,7 +529,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createAuthorityDataCall(String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call createAuthorityDataCall(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -582,7 +582,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call createAuthorityDataValidateBeforeCall(String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call createAuthorityDataValidateBeforeCall(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         return createAuthorityDataCall(zkpLib, rngSeed, _callback);
 
     }
@@ -602,7 +602,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public AuthorityData createAuthorityData(String zkpLib, Integer rngSeed) throws ApiException {
+    public AuthorityData createAuthorityData(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         ApiResponse<AuthorityData> localVarResp = createAuthorityDataWithHttpInfo(zkpLib, rngSeed);
         return localVarResp.getData();
     }
@@ -622,7 +622,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<AuthorityData> createAuthorityDataWithHttpInfo(String zkpLib, Integer rngSeed) throws ApiException {
+    public ApiResponse<AuthorityData> createAuthorityDataWithHttpInfo(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         okhttp3.Call localVarCall = createAuthorityDataValidateBeforeCall(zkpLib, rngSeed, null);
         Type localVarReturnType = new TypeToken<AuthorityData>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -644,7 +644,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createAuthorityDataAsync(String zkpLib, Integer rngSeed, final ApiCallback<AuthorityData> _callback) throws ApiException {
+    public okhttp3.Call createAuthorityDataAsync(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback<AuthorityData> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = createAuthorityDataValidateBeforeCall(zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<AuthorityData>(){}.getType();
@@ -667,7 +667,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createBlindSigningInfoCall(CreateBlindSigningInfoRequest createBlindSigningInfoRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call createBlindSigningInfoCall(@javax.annotation.Nonnull CreateBlindSigningInfoRequest createBlindSigningInfoRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -721,7 +721,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call createBlindSigningInfoValidateBeforeCall(CreateBlindSigningInfoRequest createBlindSigningInfoRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call createBlindSigningInfoValidateBeforeCall(@javax.annotation.Nonnull CreateBlindSigningInfoRequest createBlindSigningInfoRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'createBlindSigningInfoRequest' is set
         if (createBlindSigningInfoRequest == null) {
             throw new ApiException("Missing the required parameter 'createBlindSigningInfoRequest' when calling createBlindSigningInfo(Async)");
@@ -747,7 +747,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public BlindSigningInfo createBlindSigningInfo(CreateBlindSigningInfoRequest createBlindSigningInfoRequest, String zkpLib, Integer rngSeed) throws ApiException {
+    public BlindSigningInfo createBlindSigningInfo(@javax.annotation.Nonnull CreateBlindSigningInfoRequest createBlindSigningInfoRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         ApiResponse<BlindSigningInfo> localVarResp = createBlindSigningInfoWithHttpInfo(createBlindSigningInfoRequest, zkpLib, rngSeed);
         return localVarResp.getData();
     }
@@ -768,7 +768,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<BlindSigningInfo> createBlindSigningInfoWithHttpInfo(CreateBlindSigningInfoRequest createBlindSigningInfoRequest, String zkpLib, Integer rngSeed) throws ApiException {
+    public ApiResponse<BlindSigningInfo> createBlindSigningInfoWithHttpInfo(@javax.annotation.Nonnull CreateBlindSigningInfoRequest createBlindSigningInfoRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         okhttp3.Call localVarCall = createBlindSigningInfoValidateBeforeCall(createBlindSigningInfoRequest, zkpLib, rngSeed, null);
         Type localVarReturnType = new TypeToken<BlindSigningInfo>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -791,7 +791,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createBlindSigningInfoAsync(CreateBlindSigningInfoRequest createBlindSigningInfoRequest, String zkpLib, Integer rngSeed, final ApiCallback<BlindSigningInfo> _callback) throws ApiException {
+    public okhttp3.Call createBlindSigningInfoAsync(@javax.annotation.Nonnull CreateBlindSigningInfoRequest createBlindSigningInfoRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback<BlindSigningInfo> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = createBlindSigningInfoValidateBeforeCall(createBlindSigningInfoRequest, zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<BlindSigningInfo>(){}.getType();
@@ -813,7 +813,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createMembershipProvingKeyCall(String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call createMembershipProvingKeyCall(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -866,7 +866,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call createMembershipProvingKeyValidateBeforeCall(String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call createMembershipProvingKeyValidateBeforeCall(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         return createMembershipProvingKeyCall(zkpLib, rngSeed, _callback);
 
     }
@@ -886,7 +886,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public String createMembershipProvingKey(String zkpLib, Integer rngSeed) throws ApiException {
+    public String createMembershipProvingKey(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         ApiResponse<String> localVarResp = createMembershipProvingKeyWithHttpInfo(zkpLib, rngSeed);
         return localVarResp.getData();
     }
@@ -906,7 +906,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<String> createMembershipProvingKeyWithHttpInfo(String zkpLib, Integer rngSeed) throws ApiException {
+    public ApiResponse<String> createMembershipProvingKeyWithHttpInfo(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         okhttp3.Call localVarCall = createMembershipProvingKeyValidateBeforeCall(zkpLib, rngSeed, null);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -928,7 +928,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createMembershipProvingKeyAsync(String zkpLib, Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
+    public okhttp3.Call createMembershipProvingKeyAsync(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = createMembershipProvingKeyValidateBeforeCall(zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
@@ -950,7 +950,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createProofCall(String zkpLib, CreateProofRequest createProofRequest, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call createProofCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull CreateProofRequest createProofRequest, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -1000,7 +1000,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call createProofValidateBeforeCall(String zkpLib, CreateProofRequest createProofRequest, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call createProofValidateBeforeCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull CreateProofRequest createProofRequest, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'zkpLib' is set
         if (zkpLib == null) {
             throw new ApiException("Missing the required parameter 'zkpLib' when calling createProof(Async)");
@@ -1030,7 +1030,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public WarningsAndDataForVerifier createProof(String zkpLib, CreateProofRequest createProofRequest) throws ApiException {
+    public WarningsAndDataForVerifier createProof(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull CreateProofRequest createProofRequest) throws ApiException {
         ApiResponse<WarningsAndDataForVerifier> localVarResp = createProofWithHttpInfo(zkpLib, createProofRequest);
         return localVarResp.getData();
     }
@@ -1050,7 +1050,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<WarningsAndDataForVerifier> createProofWithHttpInfo(String zkpLib, CreateProofRequest createProofRequest) throws ApiException {
+    public ApiResponse<WarningsAndDataForVerifier> createProofWithHttpInfo(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull CreateProofRequest createProofRequest) throws ApiException {
         okhttp3.Call localVarCall = createProofValidateBeforeCall(zkpLib, createProofRequest, null);
         Type localVarReturnType = new TypeToken<WarningsAndDataForVerifier>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -1072,7 +1072,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createProofAsync(String zkpLib, CreateProofRequest createProofRequest, final ApiCallback<WarningsAndDataForVerifier> _callback) throws ApiException {
+    public okhttp3.Call createProofAsync(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull CreateProofRequest createProofRequest, final ApiCallback<WarningsAndDataForVerifier> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = createProofValidateBeforeCall(zkpLib, createProofRequest, _callback);
         Type localVarReturnType = new TypeToken<WarningsAndDataForVerifier>(){}.getType();
@@ -1094,7 +1094,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createRangeProofProvingKeyCall(String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call createRangeProofProvingKeyCall(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -1147,7 +1147,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call createRangeProofProvingKeyValidateBeforeCall(String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call createRangeProofProvingKeyValidateBeforeCall(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         return createRangeProofProvingKeyCall(zkpLib, rngSeed, _callback);
 
     }
@@ -1167,7 +1167,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public String createRangeProofProvingKey(String zkpLib, Integer rngSeed) throws ApiException {
+    public String createRangeProofProvingKey(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         ApiResponse<String> localVarResp = createRangeProofProvingKeyWithHttpInfo(zkpLib, rngSeed);
         return localVarResp.getData();
     }
@@ -1187,7 +1187,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<String> createRangeProofProvingKeyWithHttpInfo(String zkpLib, Integer rngSeed) throws ApiException {
+    public ApiResponse<String> createRangeProofProvingKeyWithHttpInfo(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         okhttp3.Call localVarCall = createRangeProofProvingKeyValidateBeforeCall(zkpLib, rngSeed, null);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -1209,7 +1209,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createRangeProofProvingKeyAsync(String zkpLib, Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
+    public okhttp3.Call createRangeProofProvingKeyAsync(@javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = createRangeProofProvingKeyValidateBeforeCall(zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
@@ -1232,7 +1232,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createSignerDataCall(CreateSignerDataRequest createSignerDataRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call createSignerDataCall(@javax.annotation.Nonnull CreateSignerDataRequest createSignerDataRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -1286,7 +1286,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call createSignerDataValidateBeforeCall(CreateSignerDataRequest createSignerDataRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call createSignerDataValidateBeforeCall(@javax.annotation.Nonnull CreateSignerDataRequest createSignerDataRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'createSignerDataRequest' is set
         if (createSignerDataRequest == null) {
             throw new ApiException("Missing the required parameter 'createSignerDataRequest' when calling createSignerData(Async)");
@@ -1312,7 +1312,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public SignerData createSignerData(CreateSignerDataRequest createSignerDataRequest, String zkpLib, Integer rngSeed) throws ApiException {
+    public SignerData createSignerData(@javax.annotation.Nonnull CreateSignerDataRequest createSignerDataRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         ApiResponse<SignerData> localVarResp = createSignerDataWithHttpInfo(createSignerDataRequest, zkpLib, rngSeed);
         return localVarResp.getData();
     }
@@ -1333,7 +1333,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<SignerData> createSignerDataWithHttpInfo(CreateSignerDataRequest createSignerDataRequest, String zkpLib, Integer rngSeed) throws ApiException {
+    public ApiResponse<SignerData> createSignerDataWithHttpInfo(@javax.annotation.Nonnull CreateSignerDataRequest createSignerDataRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         okhttp3.Call localVarCall = createSignerDataValidateBeforeCall(createSignerDataRequest, zkpLib, rngSeed, null);
         Type localVarReturnType = new TypeToken<SignerData>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -1356,7 +1356,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call createSignerDataAsync(CreateSignerDataRequest createSignerDataRequest, String zkpLib, Integer rngSeed, final ApiCallback<SignerData> _callback) throws ApiException {
+    public okhttp3.Call createSignerDataAsync(@javax.annotation.Nonnull CreateSignerDataRequest createSignerDataRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback<SignerData> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = createSignerDataValidateBeforeCall(createSignerDataRequest, zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<SignerData>(){}.getType();
@@ -1377,7 +1377,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call getRangeProofMaxValueCall(String zkpLib, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call getRangeProofMaxValueCall(@javax.annotation.Nonnull String zkpLib, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -1426,7 +1426,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call getRangeProofMaxValueValidateBeforeCall(String zkpLib, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call getRangeProofMaxValueValidateBeforeCall(@javax.annotation.Nonnull String zkpLib, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'zkpLib' is set
         if (zkpLib == null) {
             throw new ApiException("Missing the required parameter 'zkpLib' when calling getRangeProofMaxValue(Async)");
@@ -1450,7 +1450,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public Integer getRangeProofMaxValue(String zkpLib) throws ApiException {
+    public Integer getRangeProofMaxValue(@javax.annotation.Nonnull String zkpLib) throws ApiException {
         ApiResponse<Integer> localVarResp = getRangeProofMaxValueWithHttpInfo(zkpLib);
         return localVarResp.getData();
     }
@@ -1469,7 +1469,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<Integer> getRangeProofMaxValueWithHttpInfo(String zkpLib) throws ApiException {
+    public ApiResponse<Integer> getRangeProofMaxValueWithHttpInfo(@javax.annotation.Nonnull String zkpLib) throws ApiException {
         okhttp3.Call localVarCall = getRangeProofMaxValueValidateBeforeCall(zkpLib, null);
         Type localVarReturnType = new TypeToken<Integer>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -1490,7 +1490,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call getRangeProofMaxValueAsync(String zkpLib, final ApiCallback<Integer> _callback) throws ApiException {
+    public okhttp3.Call getRangeProofMaxValueAsync(@javax.annotation.Nonnull String zkpLib, final ApiCallback<Integer> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = getRangeProofMaxValueValidateBeforeCall(zkpLib, _callback);
         Type localVarReturnType = new TypeToken<Integer>(){}.getType();
@@ -1513,7 +1513,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call signCall(SignRequest signRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call signCall(@javax.annotation.Nonnull SignRequest signRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -1567,7 +1567,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call signValidateBeforeCall(SignRequest signRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call signValidateBeforeCall(@javax.annotation.Nonnull SignRequest signRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'signRequest' is set
         if (signRequest == null) {
             throw new ApiException("Missing the required parameter 'signRequest' when calling sign(Async)");
@@ -1593,7 +1593,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public String sign(SignRequest signRequest, String zkpLib, Integer rngSeed) throws ApiException {
+    public String sign(@javax.annotation.Nonnull SignRequest signRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         ApiResponse<String> localVarResp = signWithHttpInfo(signRequest, zkpLib, rngSeed);
         return localVarResp.getData();
     }
@@ -1614,7 +1614,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<String> signWithHttpInfo(SignRequest signRequest, String zkpLib, Integer rngSeed) throws ApiException {
+    public ApiResponse<String> signWithHttpInfo(@javax.annotation.Nonnull SignRequest signRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         okhttp3.Call localVarCall = signValidateBeforeCall(signRequest, zkpLib, rngSeed, null);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -1637,7 +1637,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call signAsync(SignRequest signRequest, String zkpLib, Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
+    public okhttp3.Call signAsync(@javax.annotation.Nonnull SignRequest signRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = signValidateBeforeCall(signRequest, zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
@@ -1660,7 +1660,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call signWithBlindedAttributesCall(SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call signWithBlindedAttributesCall(@javax.annotation.Nonnull SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -1714,7 +1714,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call signWithBlindedAttributesValidateBeforeCall(SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call signWithBlindedAttributesValidateBeforeCall(@javax.annotation.Nonnull SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'signWithBlindedAttributesRequest' is set
         if (signWithBlindedAttributesRequest == null) {
             throw new ApiException("Missing the required parameter 'signWithBlindedAttributesRequest' when calling signWithBlindedAttributes(Async)");
@@ -1740,7 +1740,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public String signWithBlindedAttributes(SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, String zkpLib, Integer rngSeed) throws ApiException {
+    public String signWithBlindedAttributes(@javax.annotation.Nonnull SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         ApiResponse<String> localVarResp = signWithBlindedAttributesWithHttpInfo(signWithBlindedAttributesRequest, zkpLib, rngSeed);
         return localVarResp.getData();
     }
@@ -1761,7 +1761,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<String> signWithBlindedAttributesWithHttpInfo(SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, String zkpLib, Integer rngSeed) throws ApiException {
+    public ApiResponse<String> signWithBlindedAttributesWithHttpInfo(@javax.annotation.Nonnull SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         okhttp3.Call localVarCall = signWithBlindedAttributesValidateBeforeCall(signWithBlindedAttributesRequest, zkpLib, rngSeed, null);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -1784,7 +1784,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call signWithBlindedAttributesAsync(SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, String zkpLib, Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
+    public okhttp3.Call signWithBlindedAttributesAsync(@javax.annotation.Nonnull SignWithBlindedAttributesRequest signWithBlindedAttributesRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = signWithBlindedAttributesValidateBeforeCall(signWithBlindedAttributesRequest, zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
@@ -1807,7 +1807,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call unblindBlindedSignatureCall(UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call unblindBlindedSignatureCall(@javax.annotation.Nonnull UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -1861,7 +1861,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call unblindBlindedSignatureValidateBeforeCall(UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, String zkpLib, Integer rngSeed, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call unblindBlindedSignatureValidateBeforeCall(@javax.annotation.Nonnull UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'unblindBlindedSignatureRequest' is set
         if (unblindBlindedSignatureRequest == null) {
             throw new ApiException("Missing the required parameter 'unblindBlindedSignatureRequest' when calling unblindBlindedSignature(Async)");
@@ -1887,7 +1887,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public String unblindBlindedSignature(UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, String zkpLib, Integer rngSeed) throws ApiException {
+    public String unblindBlindedSignature(@javax.annotation.Nonnull UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         ApiResponse<String> localVarResp = unblindBlindedSignatureWithHttpInfo(unblindBlindedSignatureRequest, zkpLib, rngSeed);
         return localVarResp.getData();
     }
@@ -1908,7 +1908,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<String> unblindBlindedSignatureWithHttpInfo(UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, String zkpLib, Integer rngSeed) throws ApiException {
+    public ApiResponse<String> unblindBlindedSignatureWithHttpInfo(@javax.annotation.Nonnull UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed) throws ApiException {
         okhttp3.Call localVarCall = unblindBlindedSignatureValidateBeforeCall(unblindBlindedSignatureRequest, zkpLib, rngSeed, null);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -1931,7 +1931,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call unblindBlindedSignatureAsync(UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, String zkpLib, Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
+    public okhttp3.Call unblindBlindedSignatureAsync(@javax.annotation.Nonnull UnblindBlindedSignatureRequest unblindBlindedSignatureRequest, @javax.annotation.Nullable String zkpLib, @javax.annotation.Nullable Integer rngSeed, final ApiCallback<String> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = unblindBlindedSignatureValidateBeforeCall(unblindBlindedSignatureRequest, zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
@@ -1953,7 +1953,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call updateAccumulatorWitnessCall(String zkpLib, UpdateAccumulatorWitnessRequest updateAccumulatorWitnessRequest, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call updateAccumulatorWitnessCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull UpdateAccumulatorWitnessRequest updateAccumulatorWitnessRequest, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -2003,7 +2003,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call updateAccumulatorWitnessValidateBeforeCall(String zkpLib, UpdateAccumulatorWitnessRequest updateAccumulatorWitnessRequest, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call updateAccumulatorWitnessValidateBeforeCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull UpdateAccumulatorWitnessRequest updateAccumulatorWitnessRequest, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'zkpLib' is set
         if (zkpLib == null) {
             throw new ApiException("Missing the required parameter 'zkpLib' when calling updateAccumulatorWitness(Async)");
@@ -2033,7 +2033,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public String updateAccumulatorWitness(String zkpLib, UpdateAccumulatorWitnessRequest updateAccumulatorWitnessRequest) throws ApiException {
+    public String updateAccumulatorWitness(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull UpdateAccumulatorWitnessRequest updateAccumulatorWitnessRequest) throws ApiException {
         ApiResponse<String> localVarResp = updateAccumulatorWitnessWithHttpInfo(zkpLib, updateAccumulatorWitnessRequest);
         return localVarResp.getData();
     }
@@ -2053,7 +2053,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<String> updateAccumulatorWitnessWithHttpInfo(String zkpLib, UpdateAccumulatorWitnessRequest updateAccumulatorWitnessRequest) throws ApiException {
+    public ApiResponse<String> updateAccumulatorWitnessWithHttpInfo(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull UpdateAccumulatorWitnessRequest updateAccumulatorWitnessRequest) throws ApiException {
         okhttp3.Call localVarCall = updateAccumulatorWitnessValidateBeforeCall(zkpLib, updateAccumulatorWitnessRequest, null);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -2075,7 +2075,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call updateAccumulatorWitnessAsync(String zkpLib, UpdateAccumulatorWitnessRequest updateAccumulatorWitnessRequest, final ApiCallback<String> _callback) throws ApiException {
+    public okhttp3.Call updateAccumulatorWitnessAsync(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull UpdateAccumulatorWitnessRequest updateAccumulatorWitnessRequest, final ApiCallback<String> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = updateAccumulatorWitnessValidateBeforeCall(zkpLib, updateAccumulatorWitnessRequest, _callback);
         Type localVarReturnType = new TypeToken<String>(){}.getType();
@@ -2097,7 +2097,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call verifyDecryptionCall(String zkpLib, VerifyDecryptionRequest verifyDecryptionRequest, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call verifyDecryptionCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull VerifyDecryptionRequest verifyDecryptionRequest, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -2147,7 +2147,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call verifyDecryptionValidateBeforeCall(String zkpLib, VerifyDecryptionRequest verifyDecryptionRequest, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call verifyDecryptionValidateBeforeCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull VerifyDecryptionRequest verifyDecryptionRequest, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'zkpLib' is set
         if (zkpLib == null) {
             throw new ApiException("Missing the required parameter 'zkpLib' when calling verifyDecryption(Async)");
@@ -2177,7 +2177,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public List<Warning> verifyDecryption(String zkpLib, VerifyDecryptionRequest verifyDecryptionRequest) throws ApiException {
+    public List<Warning> verifyDecryption(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull VerifyDecryptionRequest verifyDecryptionRequest) throws ApiException {
         ApiResponse<List<Warning>> localVarResp = verifyDecryptionWithHttpInfo(zkpLib, verifyDecryptionRequest);
         return localVarResp.getData();
     }
@@ -2197,7 +2197,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<List<Warning>> verifyDecryptionWithHttpInfo(String zkpLib, VerifyDecryptionRequest verifyDecryptionRequest) throws ApiException {
+    public ApiResponse<List<Warning>> verifyDecryptionWithHttpInfo(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull VerifyDecryptionRequest verifyDecryptionRequest) throws ApiException {
         okhttp3.Call localVarCall = verifyDecryptionValidateBeforeCall(zkpLib, verifyDecryptionRequest, null);
         Type localVarReturnType = new TypeToken<List<Warning>>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -2219,7 +2219,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call verifyDecryptionAsync(String zkpLib, VerifyDecryptionRequest verifyDecryptionRequest, final ApiCallback<List<Warning>> _callback) throws ApiException {
+    public okhttp3.Call verifyDecryptionAsync(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull VerifyDecryptionRequest verifyDecryptionRequest, final ApiCallback<List<Warning>> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = verifyDecryptionValidateBeforeCall(zkpLib, verifyDecryptionRequest, _callback);
         Type localVarReturnType = new TypeToken<List<Warning>>(){}.getType();
@@ -2241,7 +2241,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call verifyProofCall(String zkpLib, VerifyProofRequest verifyProofRequest, final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call verifyProofCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull VerifyProofRequest verifyProofRequest, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -2291,7 +2291,7 @@ public class DefaultApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call verifyProofValidateBeforeCall(String zkpLib, VerifyProofRequest verifyProofRequest, final ApiCallback _callback) throws ApiException {
+    private okhttp3.Call verifyProofValidateBeforeCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull VerifyProofRequest verifyProofRequest, final ApiCallback _callback) throws ApiException {
         // verify the required parameter 'zkpLib' is set
         if (zkpLib == null) {
             throw new ApiException("Missing the required parameter 'zkpLib' when calling verifyProof(Async)");
@@ -2321,7 +2321,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public WarningsAndDecryptResponses verifyProof(String zkpLib, VerifyProofRequest verifyProofRequest) throws ApiException {
+    public WarningsAndDecryptResponses verifyProof(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull VerifyProofRequest verifyProofRequest) throws ApiException {
         ApiResponse<WarningsAndDecryptResponses> localVarResp = verifyProofWithHttpInfo(zkpLib, verifyProofRequest);
         return localVarResp.getData();
     }
@@ -2341,7 +2341,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<WarningsAndDecryptResponses> verifyProofWithHttpInfo(String zkpLib, VerifyProofRequest verifyProofRequest) throws ApiException {
+    public ApiResponse<WarningsAndDecryptResponses> verifyProofWithHttpInfo(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull VerifyProofRequest verifyProofRequest) throws ApiException {
         okhttp3.Call localVarCall = verifyProofValidateBeforeCall(zkpLib, verifyProofRequest, null);
         Type localVarReturnType = new TypeToken<WarningsAndDecryptResponses>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
@@ -2363,7 +2363,7 @@ public class DefaultApi {
         <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call verifyProofAsync(String zkpLib, VerifyProofRequest verifyProofRequest, final ApiCallback<WarningsAndDecryptResponses> _callback) throws ApiException {
+    public okhttp3.Call verifyProofAsync(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull VerifyProofRequest verifyProofRequest, final ApiCallback<WarningsAndDecryptResponses> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = verifyProofValidateBeforeCall(zkpLib, verifyProofRequest, _callback);
         Type localVarReturnType = new TypeToken<WarningsAndDecryptResponses>(){}.getType();

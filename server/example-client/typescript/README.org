@@ -1,0 +1,125 @@
+This demonstrates
+- running the vcp-server and getting its OpenAPI specification
+- generating typescript client code from that specification
+- manually writing code to use the generated code
+- interacting with vcp-server
+
+* hand written part
+
+Code generated from the OpenAPI specification handles marshalling from/to JSON/Typescript objects, networking, etc.
+That generated code is then called from "hand written" application code.  In this example, the hand written
+code resides in:
+
+=./src/=
+
+* how to build and run
+
+#+begin_src shell
+cd <the-directory-containing-this-README>
+
+# start server in background or a separate shell
+pushd ../..
+make run &
+popd
+
+# expects server to be running
+make get-vcp-server-swagger
+
+# install openapi-generator-cli
+make install-openapi-cli
+# the following should show 7.13.0
+openapi-generator-cli version
+
+# generate and compile code from swagger the description
+# expects server to be running; see above
+# (NOTE: many warnings expected)
+make codegen
+# this is to rename the generated sum types
+make tweak-generated-code
+
+# this compiles the generated code and makes it available to the hand-written code
+make compile-install-generated
+
+# compile manually written code
+make build
+
+# run tests : expects server to be running (see above)
+make test
+make test-revealed
+...
+
+# kill the server when done
+#+end_src
+
+* BUG in VCP/typescript of DNC verify decryption
+
+Using DNC, creating and verifying proofs and decrypting values using the  typescript client works.
+But when it gets to the verifying decryption it fails.
+
+NOTE: These DNC operations work fine in the Java client and in the Rust tests.
+So it seems that something is amiss in the typescript client.
+We have not investigated the failure. We will fix when/if we need this typescript client.
+In the meantime, PRs are welcome.
+
+NOTE: verifying decryption fails when using AC2C because the underlying AC2C library
+does not yet support verifying decryption.
+
+Here is the failure report (note: ignore references to ac2c in the report).
+
+#+begin_src bash
+$ make test-verifiable-encryption-dnc-blinded
+pnpm run test --verifiable-encryption-dnc-blinded
+
+> example-vcp-typescript-client@1.0.0 test /server/example-client/typescript
+> ts-node src/cli.ts --verifiable-encryption-dnc-blinded
+
+
+------------------------- testVerifiableEncryption DNC Blinded -------------------------
+
+------------------------- expect DNC Blinded -------------------------
+
+------------------------- verifyDecryption DNC Blinded -------------------------
+/server/example-client/typescript/src/vcp/test/AppTest.ts:171
+  assert.strictEqual((e as ApiError).apiErrorMessage.reason,
+         ^
+AssertionError: expected 'B64DecodeError(InvalidByte(0, 34))' to equal 'General("specific_verify_decryption_a…'
+    at checkAC2CVerifiableEncryptionException (/server/example-client/typescript/src/vcp/test/AppTest.ts:171:10)
+    at /server/example-client/typescript/src/vcp/test/AppTest.ts:394:19
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  showDiff: true,
+  actual: 'B64DecodeError(InvalidByte(0, 34))',
+  expected: 'General("specific_verify_decryption_ac2c : UNIMPLEMENTED")',
+  operator: 'strictEqual'
+}
+ ELIFECYCLE  Test failed. See above for more details.
+make: *** [Makefile:82: test-verifiable-encryption-dnc-blinded] Error 1
+
+
+$ make test-verifiable-encryption-dnc-non-blinded
+pnpm run test --verifiable-encryption-dnc-non-blinded
+
+> example-vcp-typescript-client@1.0.0 test /server/example-client/typescript
+> ts-node src/cli.ts --verifiable-encryption-dnc-non-blinded
+
+
+------------------------- testVerifiableEncryption DNC NonBlinded -------------------------
+
+------------------------- expect DNC NonBlinded -------------------------
+
+------------------------- verifyDecryption DNC NonBlinded -------------------------
+/server/example-client/typescript/src/vcp/test/AppTest.ts:171
+  assert.strictEqual((e as ApiError).apiErrorMessage.reason,
+         ^
+AssertionError: expected 'B64DecodeError(InvalidByte(0, 34))' to equal 'General("specific_verify_decryption_a…'
+    at checkAC2CVerifiableEncryptionException (/server/example-client/typescript/src/vcp/test/AppTest.ts:171:10)
+    at /server/example-client/typescript/src/vcp/test/AppTest.ts:394:19
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  showDiff: true,
+  actual: 'B64DecodeError(InvalidByte(0, 34))',
+  expected: 'General("specific_verify_decryption_ac2c : UNIMPLEMENTED")',
+  operator: 'strictEqual'
+}
+ ELIFECYCLE  Test failed. See above for more details.
+make: *** [Makefile:78: test-verifiable-encryption-dnc-non-blinded] Error 1
+541 o2023 typescript> 
+#+end_src

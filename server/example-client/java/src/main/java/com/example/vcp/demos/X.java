@@ -88,8 +88,8 @@ public class X {
             .values(TestData.sVals());
 
         // Verifier
-        final var shared      = TestData.shared(dSignerData.getSignerPublicData().toJson(),
-                                                sSignerData.getSignerPublicData().toJson());
+        final var shared      = TestData.shared(dSignerData.getSignerPublicData(),
+                                                sSignerData.getSignerPublicData());
 
         Util.sop("shared", shared);
 

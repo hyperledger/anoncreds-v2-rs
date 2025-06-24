@@ -16,8 +16,8 @@ GEN_DIR  = ./generated
 GENERATE_CONFIG = \
   --enum-name-mappings DVInt=DV_INT,DVText=DV_TEXT \
   --enum-name-mappings SPVOne=SPV_ONE,SPVList=SPV_LIST \
-  --enum-name-mappings UNSUPPORTEDFEATURE=UNSUPPORTED_FEATURE \
-  --enum-name-mappings REVEALPRIVACYWARNING=REVEAL_PRIVACY_WARNING
+  --enum-name-mappings UnsupportedFeature=WARNING_UNSUPPORTED_FEATURE \
+  --enum-name-mappings RevealPrivacyWarning=WARNING_REVEAL_PRIVACY
 
 include ../Makefile-openapi
 

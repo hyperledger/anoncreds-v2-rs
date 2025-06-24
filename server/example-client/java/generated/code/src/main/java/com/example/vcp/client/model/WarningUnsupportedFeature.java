@@ -53,7 +53,7 @@ public class WarningUnsupportedFeature {
    */
   @JsonAdapter(TagEnum.Adapter.class)
   public enum TagEnum {
-    UNSUPPORTED_FEATURE("UnsupportedFeature");
+    WARNING_UNSUPPORTED_FEATURE("UnsupportedFeature");
 
     private String value;
 

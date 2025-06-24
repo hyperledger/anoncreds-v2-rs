@@ -20,15 +20,20 @@ API_PACKAGE_WITH_SLASH     = $(CLIENT)/api
 MODEL_PACKAGE              = $(CLIENT).model
 MODEL_PACKAGE_WITH_SLASH   = $(CLIENT)/model
 
+.PHONEY: get-vcp-server-swagger
 get-vcp-server-swagger:
 	rm    -f $(SWAGGER_FILE)
 	mkdir -p $(SWAGGER_DIR)
 	curl http://localhost:8080/openapi.json -o $(SWAGGER_FILE)
 
+.PHONEY: install-openapi-cli
 install-openapi-cli:
-	nix-shell -p openapi-generator-cli
+	nix-shell \
+            -p openapi-generator-cli \
+            -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/dda3dcd3fe03e991015e9a74b22d35950f264a54.tar.gz
 
 # TODO: --skip-validate-spec : because the spec fails validation : investigate why
+.PHONEY: codegen
 codegen:
 	rm    -rf $(CODE_GEN_DIR)
 	mkdir  -p $(CODE_GEN_DIR)

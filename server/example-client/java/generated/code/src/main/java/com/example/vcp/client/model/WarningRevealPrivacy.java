@@ -55,7 +55,7 @@ public class WarningRevealPrivacy {
    */
   @JsonAdapter(TagEnum.Adapter.class)
   public enum TagEnum {
-    REVEAL_PRIVACY_WARNING("RevealPrivacyWarning");
+    WARNING_REVEAL_PRIVACY("RevealPrivacyWarning");
 
     private String value;
 

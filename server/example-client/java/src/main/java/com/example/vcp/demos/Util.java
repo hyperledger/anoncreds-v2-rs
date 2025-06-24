@@ -19,12 +19,7 @@ public class Util
     // ------------------------------------------------------------------------------
 
     public static void banner(final X x, final String m) {
-        System.out.println();
-        System.out.println("------------------------- " +
-                           m +
-                           " "
-                           + zpkLibAndSigTypeString(x) +
-                           " -------------------------");
+        bannerAux(m + " " + zpkLibAndSigTypeString(x));
     }
 
     static String zpkLibAndSigTypeString(final X x) {
@@ -34,10 +29,6 @@ public class Util
     static void bannerAux(final String m) {
         System.out.println();
         System.out.println("------------------------- " + m + " -------------------------");
-    }
-
-    static String zpkLibAndSigTypeString(final X x) {
-        return  x.zkpLib + " " + x.sigType.toString();
     }
 
     static final boolean DO_PRINT = false;

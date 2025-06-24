@@ -9,7 +9,6 @@ import java.util.stream.*;
 
 public class TestData
 {
-    public static final String AC2C                  = "AC2C";
     public static final String AC2C_BBS              = "AC2C_BBS";
     public static final String AC2C_PS               = "AC2C_PS";
     public static final String DNC                   = "DNC";
@@ -17,7 +16,7 @@ public class TestData
     // --------------------------------------------------
 
     public static final String AUTH_LABEL            = "authorityPublic";
-    public static final String NONCE                 = "nonce -from-java";
+    public static final String NONCE                 = "nonce-from-java";
 
     // --------------------------------------------------
 
@@ -154,12 +153,12 @@ public class TestData
 
     // ---------------------------------------------------------------------------
 
-    public static Map<String, SharedParamValue> shared(final String dlSPub,
-                                                       final String subSPub)
+    public static Map<String, SharedParamValue> shared(final SignerPublicData dlSPub,
+                                                       final SignerPublicData subSPub)
     {
         final var shared = new HashMap<String, SharedParamValue>();
-        shared.put(DL_SIGNER_PUBLIC , Util.mkSPVOneText(dlSPub));
-        shared.put(SUB_SIGNER_PUBLIC, Util.mkSPVOneText(subSPub));
+        shared.put(DL_SIGNER_PUBLIC , Util.mkSPVOneText(dlSPub.toJson()));
+        shared.put(SUB_SIGNER_PUBLIC, Util.mkSPVOneText(subSPub.toJson()));
         return shared;
     }
 
