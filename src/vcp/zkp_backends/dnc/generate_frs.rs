@@ -26,10 +26,12 @@ pub fn generate_fr_from_val_and_ct(
 {
     match ct_dv
     {
-        (ClaimType::CTText             , DataValue::DVText(t)) => Ok(field_elems_from_seeds(t)?),
-        (ClaimType::CTEncryptableText  , DataValue::DVText(t)) => Ok(text_to_field_element(t.to_string())?),
-        (ClaimType::CTInt              , DataValue::DVInt(i))  => Ok(Fr::from(*i)),
+        (ClaimType::CTText             , DataValue::DVText(t)) |
+        (ClaimType::CTTextOrInt        , DataValue::DVText(t)) => Ok(field_elems_from_seeds(t)?),
+        (ClaimType::CTInt              , DataValue::DVInt(i))  |
+        (ClaimType::CTTextOrInt        , DataValue::DVInt(i))  => Ok(Fr::from(*i)),
         (ClaimType::CTAccumulatorMember, DataValue::DVText(t)) => Ok(field_elems_from_seeds(t)?),
+        (ClaimType::CTEncryptableText  , DataValue::DVText(t)) => Ok(text_to_field_element(t.to_string())?),
         _x => Err(Error::General(format!("generate_fr_from_val_and_ct, UNEXPECTED combination: {:?} {:?}",
                                          ct_dv.0, ct_dv.1)))
     }

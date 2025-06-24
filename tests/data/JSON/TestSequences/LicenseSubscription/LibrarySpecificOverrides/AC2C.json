@@ -32,5 +32,11 @@
 
  "039_SLOWSLOW_encrypt_and_decrypt_two_attributes_same_authority_and_verify_decryption_correct_values_multiple_equalities_testbackend_eq_eq":
  {"contents": "AC2C does not yet fully support verifying decryption",
+  "tag": "Fail"},
+ "061_flexible_schema_test_10_int_text_range":
+ {"contents": "AC2C converts Int to Text for CTTextOrInt because the schema prevents signing as Int",
+  "tag": "Fail"},
+ "072_flexible_schema_test_21_int_text_range":
+ {"contents": "AC2C converts Int to Text for CTTextOrInt because the schema prevents signing as Int",
   "tag": "Fail"}
 }

@@ -149,7 +149,9 @@ fn create_schema_claim(
 {
     let aix = attr_label_for_idx(idx as u64);
     match ct {
-        ClaimType::CTText =>
+        // For AC2C, we have to pick a ClaimSchema when creating an Issuer, so we default to Hashed.
+        // This means that we will not be able to support range proofs for CTTextOrInt attributes
+        ClaimType::CTText | ClaimType::CTTextOrInt =>
             Ok(ClaimSchema {
                 claim_type     : prelude::ClaimType::Hashed,
                 label          : aix,
@@ -205,6 +207,9 @@ fn val_to_claim_data(
     match ct_dv
     {
         (ClaimType::CTText             , DataValue::DVText(t)) => Ok(HashedClaim::from(t).into()),
+        (ClaimType::CTTextOrInt        , DataValue::DVText(t)) => Ok(HashedClaim::from(t).into()),
+        // Turn Int into Text so we can still sign; will cause an error if/when range proof requested
+        (ClaimType::CTTextOrInt        , DataValue::DVInt(i))  => Ok(HashedClaim::from(i.to_string()).into()),
         (ClaimType::CTEncryptableText  , DataValue::DVText(t)) =>
             Ok(ScalarClaim::encode_str(t)
                .map_err(|e| Error::General(

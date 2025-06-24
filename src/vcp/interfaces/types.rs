@@ -91,6 +91,8 @@ pub enum ClaimType {
     CTInt,
     #[serde(rename = "CTAccumulatorMember")]
     CTAccumulatorMember,
+    #[serde(rename = "CTTextOrInt")]
+    CTTextOrInt,
 }
 
 impl fmt::Display for ClaimType {
@@ -100,6 +102,7 @@ impl fmt::Display for ClaimType {
             ClaimType::CTEncryptableText   => write!(f, "CTEncryptableText"),
             ClaimType::CTInt               => write!(f, "CTInt"),
             ClaimType::CTAccumulatorMember => write!(f, "CTAccumulatorMember"),
+            ClaimType::CTTextOrInt         => write!(f, "CTTextOrInt"),
         }
     }
 }
@@ -132,8 +135,10 @@ impl fmt::Display for DataValue {
 pub struct Signature(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { Signature }
 
+impl Eq for Signature {}
+
 /// A blinded signature, based on the 'values', etc., given in a TODO -- what's this?
-#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct BlindSignature(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { BlindSignature }
 

@@ -265,8 +265,11 @@ fn add_statement_and_maybe_witness(
                 let val                 = get_data_value(vals, attr_idx_general)?;
                 let val_p               = match val {
                     // rangeProofCheatOffset enables emulating cheating Prover; see comment at definition
-                    DataValue::DVInt(v) => DataValue::DVInt(v + RANGE_PROOF_CHEAT_OFFSET),
-                    x                   => panic!("add_statement_and_maybe_witness; RangeProof is only for DVInt; {x}"),
+                    DataValue::DVInt(v) =>
+                        DataValue::DVInt(v + RANGE_PROOF_CHEAT_OFFSET),
+                    x                   =>
+                        return Err(Error::General(format!(
+                            "add_statement_and_maybe_witness; RangeProof is only for DVInt; {x}"))),
                 };
                 if (RANGE_PROOF_CHEAT_OFFSET != 0) {
                     println!("WARNING: Prover is offsetting value for range proof by {RANGE_PROOF_CHEAT_OFFSET}");
