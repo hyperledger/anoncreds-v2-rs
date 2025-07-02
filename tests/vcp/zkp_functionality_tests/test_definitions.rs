@@ -9,6 +9,7 @@ use crate::vcp::data_for_tests as td;
 use crate::vcp::test_framework as tf;
 use crate::vcp::test_framework::utility_functions::*;
 // ----------------------------------------------------------------------------
+use std::fmt::Debug;
 use lazy_static::lazy_static;
 use maplit::hashmap;
 use std::collections::HashMap;
@@ -251,6 +252,9 @@ macro_rules! pok_test {
     };
 }
 
+#[derive(Debug)]
+pub enum RevealedState { Correct, Empty, Less, Change, More }
+
 #[macro_export]
 macro_rules! revealed_test {
     ($platform_api: expr, $lib_spec: expr) => {
@@ -271,11 +275,34 @@ macro_rules! revealed_test {
                     SHARED_AND_SIGS.4.to_owned();
             }
 
+            $crate::test_verify_disclosed!
+              { $platform_api, $lib_spec, verify_disclosed_correct, RevealedState::Correct }
+            $crate::test_verify_disclosed!
+              { $platform_api, $lib_spec, verify_disclosed_empty  , RevealedState::Empty }
+            $crate::test_verify_disclosed!
+              { $platform_api, $lib_spec, verify_disclosed_less   , RevealedState::Less }
+            $crate::test_verify_disclosed!
+              { $platform_api, $lib_spec, verify_disclosed_change , RevealedState::Change }
+            $crate::test_verify_disclosed!
+              { $platform_api, $lib_spec, verify_disclosed_more   , RevealedState::More }
+
             $crate::test_in_range! { $platform_api, $lib_spec, 0, revealed_0 }
             $crate::test_in_range! { $platform_api, $lib_spec, 3, revealed_3 }
 
             $crate::test_out_of_range! { $platform_api, $lib_spec, 5  , index_out_of_bounds_5   }
             $crate::test_out_of_range! { $platform_api, $lib_spec, 200, index_out_of_bounds_200 }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! test_verify_disclosed {
+    ($platform_api: expr, $lib_spec: expr, $name: ident, $mode: expr) => {
+        #[test]
+        fn $name() {
+            let proof_reqs = td::proof_reqs_with((vec![0], vec![0]), (vec![], vec![]), (vec![], vec![]), (vec![], vec![]),   (vec![], vec![]));
+            expect_disclosed($platform_api, $lib_spec, &proof_reqs, &SHARED, &D_SIG_CD, &S_SIG_CD, &hashmap!(), Strict,
+                             $mode);
         }
     };
 }
@@ -785,6 +812,115 @@ pub fn it_with(lib_spec: &LibrarySpecificTestHandlers, label: TestLabel, k: impl
         Some(TestHandler::NotSoSlow) => k(), // I can't quite directly translate the dynamic test label from Haskell
         Some(TestHandler::Skip(s)) => { println!("{:?} skipped because {:?}", label, s) },
         Some(TestHandler::Fail(s)) => panic!("not run because: {s}"),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn expect_disclosed(
+    platform_api   : &api::PlatformApi,
+    _lib_spec      : &LibrarySpecificTestHandlers,
+    proof_reqs     : &HashMap<api::CredentialLabel, api::CredentialReqs>,
+    shared         : &HashMap<api::SharedParamKey, api::SharedParamValue>,
+    d_sig_cd       : &(api::Signature, Vec<api::DataValue>, api::AccumulatorWitnesses),
+    s_sig_cd       : &(api::Signature, Vec<api::DataValue>, api::AccumulatorWitnesses),
+    decrypt_reqs   : &HashMap<api::CredentialLabel,
+                              HashMap<api::CredAttrIndex,
+                                      HashMap<api::AuthorityLabel, api::DecryptRequest>>>,
+    proof_mode     : ProofMode,
+    revealed_state : RevealedState
+) {
+    let api::WarningsAndDataForVerifier { data_for_verifier: dfv, .. } =
+        match do_create_proof(platform_api, proof_reqs, shared, d_sig_cd, s_sig_cd, proof_mode.clone()) {
+            Err(e) => panic!("expect_disclosed create_proof; unexpected failure; {e:?}"),
+            Ok(x)  => x,
+        };
+    match revealed_state {
+        RevealedState::Correct => {
+            if let Err(e) = do_verify_proof(platform_api, proof_reqs, shared, dfv, decrypt_reqs, proof_mode) {
+                panic!("'Correct' unexpected failure; {e:?}")
+            };
+        },
+        RevealedState::Empty => {
+            let dfv = api::DataForVerifier { revealed_idxs_and_vals : HashMap::new(), proof: dfv.proof };
+            match do_verify_proof(platform_api, proof_reqs, shared, dfv, decrypt_reqs, proof_mode) {
+                Err(api::Error::General(e)) => {
+                    if ! e.contains("Unequal keys for maps to be merged") {
+                        panic!("'Empty' failed in the wrong way; {e:?}");
+                    }
+                }
+                x => panic_on_ok_or_wrong_error(RevealedState::Empty, x),
+            };
+        },
+        RevealedState::Less   =>
+            verify_proof_and_check_for_expected_outcome(
+                RevealedState::Less,   platform_api, proof_reqs, shared, decrypt_reqs, proof_mode,
+                // note: this removes the existing disclosure
+                modify_data_for_verifier(dfv, None)),
+        RevealedState::Change =>
+            verify_proof_and_check_for_expected_outcome(
+                RevealedState::Change, platform_api, proof_reqs, shared, decrypt_reqs, proof_mode,
+                // note: change existing
+                modify_data_for_verifier(dfv, Some((0, api::DataValue::DVText("WRONG".into()))))),
+        RevealedState::More   =>
+            verify_proof_and_check_for_expected_outcome(
+                RevealedState::More,   platform_api, proof_reqs, shared, decrypt_reqs, proof_mode,
+                // note: add a disclosure
+                modify_data_for_verifier(dfv, Some((1, api::DataValue::DVText("EXTRA VALUE".into()))))),
+    }
+
+    fn verify_proof_and_check_for_expected_outcome(
+        revealed_state : RevealedState,
+        platform_api   : &api::PlatformApi,
+        proof_reqs     : &HashMap<api::CredentialLabel, api::CredentialReqs>,
+        shared         : &HashMap<api::SharedParamKey, api::SharedParamValue>,
+        decrypt_reqs   : &HashMap<api::CredentialLabel,
+                                  HashMap<api::CredAttrIndex,
+                                          HashMap<api::AuthorityLabel, api::DecryptRequest>>>,
+        proof_mode     : ProofMode,
+        dfv            : api::DataForVerifier
+    ) {
+        match do_verify_proof(platform_api, proof_reqs, shared, dfv, decrypt_reqs, proof_mode) {
+            Err(api::Error::General(e)) => panic_on_wrong_general_error_msg(&e, revealed_state),
+            x                           => panic_on_ok_or_wrong_error(revealed_state, x),
+        };
+    }
+
+    fn contains_expected_error_messages(e: &str) -> bool {
+        let ac2c_1 = "verify_disclosed_messages: disclosed_messages_from_proof";
+        let ac2c_2 = "differ from revealed values";
+        let dnc    = "DNC prf.verify BBSPlusProofContributionFailed(0, FirstSchnorrVerificationFailed)";
+        (e.contains(ac2c_1) && e.contains(ac2c_2)) || e.contains(dnc)
+    }
+
+    // The Option controls make the inner map of disclosed values for one credential:
+    // - None : an empty map (essentially removing existing values)
+    // - Some : set the attribute to the given value
+    //          this either overwrites (if given an existing CredAttrIndex)
+    //          or adds a new disclosure
+    fn modify_data_for_verifier(
+        dfv: api::DataForVerifier,
+        inner_value: Option<(api::CredAttrIndex, api::DataValue)>
+    ) -> api::DataForVerifier {
+        let mut riav = dfv.revealed_idxs_and_vals;
+        let inner = if let Some((idx, dv)) = inner_value {
+            let mut inner = riav.get(&td::S_CRED_LABEL.clone()).expect("I know it is there").clone();
+            inner.insert(idx, dv);
+            inner
+        } else {
+            HashMap::new()
+        };
+        riav.insert(td::S_CRED_LABEL.clone(), inner).expect("It's still there");
+        api::DataForVerifier { revealed_idxs_and_vals : riav, proof: dfv.proof }
+    }
+
+    fn panic_on_wrong_general_error_msg(e: &str, revealed_state: RevealedState) {
+        if !contains_expected_error_messages(e) {
+            panic!("'{revealed_state:?}' failed in the wrong way; {e:?}")
+        }
+    }
+
+    fn panic_on_ok_or_wrong_error<T: Debug>(rs: RevealedState, x: T)  {
+        panic!("{x:?} was 'Ok' or failed in the wrong way; {rs:?}")
     }
 }
 
