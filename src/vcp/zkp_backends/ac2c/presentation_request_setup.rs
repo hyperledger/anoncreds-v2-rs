@@ -144,7 +144,7 @@ fn membership_label_for(c_lbl : &CredentialLabel, a_idx : &CredAttrIndex) -> Str
     format!("{MEMBERSHIP_PREFIX}{c_lbl}{a_idx}")
 }
 
-fn stmt_label_for(l: &CredentialLabel) -> String {
+pub(crate) fn stmt_label_for(l: &CredentialLabel) -> String {
     format!("{STMT_PREFIX}{l}")
 }
 

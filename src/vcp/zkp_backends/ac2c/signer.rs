@@ -200,7 +200,7 @@ pub fn create_schema_claims(
         .collect::<VCPResult<Vec<_>>>()
 }
 
-fn val_to_claim_data(
+pub fn val_to_claim_data(
     ct_dv : (&ClaimType, &DataValue)
 ) -> VCPResult<ClaimData>
 {

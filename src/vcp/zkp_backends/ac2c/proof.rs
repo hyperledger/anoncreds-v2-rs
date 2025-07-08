@@ -9,6 +9,7 @@ use crate::vcp::r#impl::util::{
     lookup_throw_if_absent, three_lvl_map_to_vec_of_tuples, Assert};
 use crate::vcp::interfaces::crypto_interface::*;
 use crate::vcp::zkp_backends::ac2c::presentation_request_setup::*;
+use crate::vcp::zkp_backends::ac2c::signer::*;
 // ------------------------------------------------------------------------------
 use crate::claim::{ClaimData, ScalarClaim};
 use crate::knox::short_group_sig_core::short_group_traits::ShortGroupSignatureScheme;
@@ -50,7 +51,10 @@ where <S as ShortGroupSignatureScheme>::PublicKey: RefUnwindSafe,
             warnings: warns,
             result: pres_sch,
         } = presentation_schema_from::<S>(prf_instrs, eqs)?;
-        let proof_ac2c = from_api(proof_api)?;
+        let proof_ac2c: Presentation<S> = from_api(proof_api)?;
+
+        verify_disclosed_messages(&proof_ac2c.disclosed_messages, prf_instrs)?;
+
         // throws if verify fails
         get_location_and_backtrace_on_panic!(
             Presentation::verify(&proof_ac2c, &pres_sch, nonce.as_bytes())
@@ -98,6 +102,49 @@ where <S as ShortGroupSignatureScheme>::PublicKey: RefUnwindSafe,
     })
 }
 
+fn verify_disclosed_messages(
+    disclosed_messages_from_proof : &IndexMap<String, IndexMap<String, ClaimData>>,
+    prf_instrs : &[ProofInstructionGeneral<ResolvedDisclosure>],
+) -> VCPResult<()> {
+    let mut new_disclosed_messages : IndexMap<String, IndexMap<String, ClaimData>> = IndexMap::new();
+    // Build the disclosed messages from the proof instructions
+    // to enable checking they are the same as the ones in the proof (i.e., Presentation)
+    for pig in prf_instrs.iter() {
+        if let ProofInstructionGeneral {
+            cred_label, attr_idx_general,
+            discl_general : ResolvedDisclosure::CredentialResolvedWrapper
+                (CredentialResolved { rev_idxs_and_vals, .. }),
+            ..
+        } = pig {
+            let disclosed_messages_from_prf_instr = rev_idxs_and_vals;
+            for (i, (dv,ct)) in disclosed_messages_from_prf_instr.iter() {
+                let stmt_label = stmt_label_for(cred_label);
+                let attr_label = attr_label_for_idx(*i);
+                let claim_data_from_prf_instr = val_to_claim_data((ct,dv))?;
+                let inner_map = new_disclosed_messages.entry(stmt_label.to_string()).or_default();
+                inner_map.insert(attr_label.to_string(), claim_data_from_prf_instr.clone());
+            }
+        }
+    }
+    let dmfp = remove_empty_inner_maps(disclosed_messages_from_proof);
+    if dmfp != new_disclosed_messages {
+        return Err(Error::General(format!(
+            "verify_disclosed_messages: disclosed_messages_from_proof \
+             {dmfp:?} \
+             differ from revealed \
+             values {new_disclosed_messages:?}")));
+    }
+    Ok(())
+}
+
+fn remove_empty_inner_maps(
+    data: &IndexMap<String, IndexMap<String, ClaimData>>,
+) -> IndexMap<String, IndexMap<String, ClaimData>> {
+    data.into_iter()
+        .filter(|(_, inner_map)| !inner_map.is_empty())
+        .map(|(k,v)| (k.clone(), v.clone()))
+        .collect::<IndexMap<_, _>>()
+}
 pub fn specific_verify_decryption_ac2c() -> SpecificVerifyDecryption {
     Arc::new(|_prf_instrs, _eqs, _proof_api, _decr_reqs, _auth_dks| {
         Err(Error::General("specific_verify_decryption_ac2c : UNIMPLEMENTED".to_string()))
