@@ -78,12 +78,11 @@ pub fn accumulator_add_remove_with_map(
         let AccumulatorAddRemoveResponse {
             witness_update_info: paui,
             witnesses_for_new: wits,
-            accumulator_data: acc_data,
             accumulator: new_accum,
         } = accumulator_add_remove(acc_data_api, &acc, adds, rms)?;
         accs.insert(
             a_idx,
-            (acc_data, orig_acc.clone(), {
+            (acc_data_api.clone(), orig_acc.clone(), {
                 let mut upd_info_and_accums = upd_info_and_accums.clone();
                 upd_info_and_accums.insert(sn as u64, (paui.clone(), new_accum.clone()));
                 upd_info_and_accums

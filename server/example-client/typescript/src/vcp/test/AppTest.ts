@@ -235,6 +235,12 @@ export function testAccumulatorsAux(x : X)  {
     ]).then(([dAddRmResp, sAddRmResp]) => {
       const dWit       = dAddRmResp.witnessesForNew[TestData.DL_HOLDER_ID];
       const sWit       = sAddRmResp.witnessesForNew[TestData.SUB_HOLDER_ID];
+
+      // Ensure same witness
+      x.ci.getAccumulatorWitness(dCar.accumulatorData, dAddRmResp.accumulator, dAccElem).then((dWitViaGet) => {
+        assert.equal(dWit, dWitViaGet, "AddRemove and Get should be the same");
+      });
+
       // Holder in conjunction with Issuer and Revocation Manager
       x.dSard.accumulatorWitnesses = { [ TestData.DL_ACC_INDEX_STR ] : dWit };
       x.sSard.accumulatorWitnesses = { [ TestData.SUB_ACC_INDEX_STR] : sWit };

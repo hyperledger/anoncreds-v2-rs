@@ -13,14 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { AccumulatorData } from './AccumulatorData';
-import {
-    AccumulatorDataFromJSON,
-    AccumulatorDataFromJSONTyped,
-    AccumulatorDataToJSON,
-    AccumulatorDataToJSONTyped,
-} from './AccumulatorData';
-
 /**
  * Response from call to AccumulatorAddRemove, including data to update witnesses, witnesses for added elements, and updated accumlator data and value.
  * @export
@@ -40,12 +32,6 @@ export interface AccumulatorAddRemoveResponse {
      */
     witnessesForNew: { [key: string]: string; };
     /**
-     * Updated accumulator data.
-     * @type {AccumulatorData}
-     * @memberof AccumulatorAddRemoveResponse
-     */
-    accumulatorData: AccumulatorData;
-    /**
      * Updated accumulator value.
      * @type {string}
      * @memberof AccumulatorAddRemoveResponse
@@ -59,7 +45,6 @@ export interface AccumulatorAddRemoveResponse {
 export function instanceOfAccumulatorAddRemoveResponse(value: object): value is AccumulatorAddRemoveResponse {
     if (!('witnessUpdateInfo' in value) || value['witnessUpdateInfo'] === undefined) return false;
     if (!('witnessesForNew' in value) || value['witnessesForNew'] === undefined) return false;
-    if (!('accumulatorData' in value) || value['accumulatorData'] === undefined) return false;
     if (!('accumulator' in value) || value['accumulator'] === undefined) return false;
     return true;
 }
@@ -76,7 +61,6 @@ export function AccumulatorAddRemoveResponseFromJSONTyped(json: any, ignoreDiscr
         
         'witnessUpdateInfo': json['witnessUpdateInfo'],
         'witnessesForNew': json['witnessesForNew'],
-        'accumulatorData': AccumulatorDataFromJSON(json['accumulatorData']),
         'accumulator': json['accumulator'],
     };
 }
@@ -94,7 +78,6 @@ export function AccumulatorAddRemoveResponseToJSONTyped(value?: AccumulatorAddRe
         
         'witnessUpdateInfo': value['witnessUpdateInfo'],
         'witnessesForNew': value['witnessesForNew'],
-        'accumulatorData': AccumulatorDataToJSON(value['accumulatorData']),
         'accumulator': value['accumulator'],
     };
 }

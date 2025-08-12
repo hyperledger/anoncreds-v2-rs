@@ -26,7 +26,7 @@ popd
 make get-vcp-server-swagger
 
 # install tools
-nix-shell -p openapi-generator-cli
+make install-openapi-cli
 nix-shell -p maven
 
 # generate and compile code from swagger the description

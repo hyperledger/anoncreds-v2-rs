@@ -440,6 +440,46 @@ paths:
       x-content-type: application/json
       x-accepts:
       - application/json
+  /vcp/getAccumulatorWitness:
+    post:
+      description: Returns AccumulatorWitness
+      operationId: getAccumulatorWitness
+      parameters:
+      - description: "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if\
+          \ missing)."
+        explode: true
+        in: query
+        name: zkpLib
+        required: true
+        schema:
+          description: "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error\
+            \ if missing)."
+          type: string
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetAccumulatorWitnessRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccumulatorMembershipWitness'
+          description: ""
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ""
+      summary: Get an accumulator witness for an element that already exists in the
+        accumulator.
+      x-content-type: application/json
+      x-accepts:
+      - application/json
   /vcp/createMembershipProvingKey:
     post:
       description: Returns MembershipProvingKey.
@@ -798,6 +838,7 @@ components:
       - CTEncryptableText
       - CTInt
       - CTAccumulatorMember
+      - CTTextOrInt
       type: string
     SignerSecretData:
       description: A Signer's secret keys.
@@ -1088,7 +1129,6 @@ components:
         witnessesForNew:
           key: null
         witnessUpdateInfo: ""
-        accumulatorData: ""
         accumulator: ""
       properties:
         witnessUpdateInfo:
@@ -1100,17 +1140,12 @@ components:
             $ref: '#/components/schemas/AccumulatorMembershipWitness'
           description: A new witnesses for each element added.
           type: object
-        accumulatorData:
-          allOf:
-          - $ref: '#/components/schemas/AccumulatorData'
-          description: Updated accumulator data.
         accumulator:
           allOf:
           - $ref: '#/components/schemas/Accumulator'
           description: Updated accumulator value.
       required:
       - accumulator
-      - accumulatorData
       - witnessUpdateInfo
       - witnessesForNew
       type: object
@@ -1184,6 +1219,32 @@ components:
       - element
       - witness
       - witnessUpdateInfo
+      type: object
+    GetAccumulatorWitnessRequest:
+      description: "Information used for getting an accumulator witness. Note: this\
+        \ routine assumes the given element already exists in the given accumulator.\
+        \ It does NOT check."
+      example:
+        accumulatorElement: ""
+        accumulatorData: ""
+        accumulator: ""
+      properties:
+        accumulatorData:
+          allOf:
+          - $ref: '#/components/schemas/AccumulatorData'
+          description: Public/secret info.
+        accumulator:
+          allOf:
+          - $ref: '#/components/schemas/Accumulator'
+          description: The accumulator.
+        accumulatorElement:
+          allOf:
+          - $ref: '#/components/schemas/AccumulatorElement'
+          description: The element.
+      required:
+      - accumulator
+      - accumulatorData
+      - accumulatorElement
       type: object
     MembershipProvingKey:
       description: Key to use in accumlator membership proofs.

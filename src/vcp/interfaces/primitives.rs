@@ -116,10 +116,10 @@ pub type SpecificUnblindBlindedSignature = Arc<
 
 pub type CreateAccumulatorElement = Arc<
     dyn Fn(
-            String
-        ) -> VCPResult<AccumulatorElement>
-        + Send
-        + Sync,
+        AccumulatorMember
+    ) -> VCPResult<AccumulatorElement>
+    + Send
+    + Sync,
 >;
 
 pub type AccumulatorAddRemove = Arc<
@@ -131,6 +131,16 @@ pub type AccumulatorAddRemove = Arc<
         ) -> VCPResult<AccumulatorAddRemoveResponse>
         + Send
         + Sync,
+>;
+
+pub type GetAccumulatorWitness = Arc<
+    dyn Fn(
+        &AccumulatorData,
+        &Accumulator,
+        &AccumulatorElement,
+    ) -> VCPResult<AccumulatorMembershipWitness>
+    + Send
+    + Sync,
 >;
 
 pub type UpdateAccumulatorWitness = Arc<

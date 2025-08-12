@@ -35,6 +35,7 @@ import com.example.vcp.client.model.CreateBlindSigningInfoRequest;
 import com.example.vcp.client.model.CreateProofRequest;
 import com.example.vcp.client.model.CreateSignerDataRequest;
 import com.example.vcp.client.model.Error;
+import com.example.vcp.client.model.GetAccumulatorWitnessRequest;
 import com.example.vcp.client.model.SignRequest;
 import com.example.vcp.client.model.SignWithBlindedAttributesRequest;
 import com.example.vcp.client.model.SignerData;
@@ -1360,6 +1361,150 @@ public class DefaultApi {
 
         okhttp3.Call localVarCall = createSignerDataValidateBeforeCall(createSignerDataRequest, zkpLib, rngSeed, _callback);
         Type localVarReturnType = new TypeToken<SignerData>(){}.getType();
+        localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
+        return localVarCall;
+    }
+    /**
+     * Build call for getAccumulatorWitness
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (required)
+     * @param getAccumulatorWitnessRequest  (required)
+     * @param _callback Callback for upload/download progress
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call getAccumulatorWitnessCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull GetAccumulatorWitnessRequest getAccumulatorWitnessRequest, final ApiCallback _callback) throws ApiException {
+        String basePath = null;
+        // Operation Servers
+        String[] localBasePaths = new String[] {  };
+
+        // Determine Base Path to Use
+        if (localCustomBaseUrl != null){
+            basePath = localCustomBaseUrl;
+        } else if ( localBasePaths.length > 0 ) {
+            basePath = localBasePaths[localHostIndex];
+        } else {
+            basePath = null;
+        }
+
+        Object localVarPostBody = getAccumulatorWitnessRequest;
+
+        // create path and map variables
+        String localVarPath = "/vcp/getAccumulatorWitness";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        if (zkpLib != null) {
+            localVarQueryParams.addAll(localVarApiClient.parameterToPair("zkpLib", zkpLib));
+        }
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+            "application/json"
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        if (localVarContentType != null) {
+            localVarHeaderParams.put("Content-Type", localVarContentType);
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return localVarApiClient.buildCall(basePath, localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private okhttp3.Call getAccumulatorWitnessValidateBeforeCall(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull GetAccumulatorWitnessRequest getAccumulatorWitnessRequest, final ApiCallback _callback) throws ApiException {
+        // verify the required parameter 'zkpLib' is set
+        if (zkpLib == null) {
+            throw new ApiException("Missing the required parameter 'zkpLib' when calling getAccumulatorWitness(Async)");
+        }
+
+        // verify the required parameter 'getAccumulatorWitnessRequest' is set
+        if (getAccumulatorWitnessRequest == null) {
+            throw new ApiException("Missing the required parameter 'getAccumulatorWitnessRequest' when calling getAccumulatorWitness(Async)");
+        }
+
+        return getAccumulatorWitnessCall(zkpLib, getAccumulatorWitnessRequest, _callback);
+
+    }
+
+    /**
+     * Get an accumulator witness for an element that already exists in the accumulator.
+     * Returns AccumulatorWitness
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (required)
+     * @param getAccumulatorWitnessRequest  (required)
+     * @return String
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public String getAccumulatorWitness(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull GetAccumulatorWitnessRequest getAccumulatorWitnessRequest) throws ApiException {
+        ApiResponse<String> localVarResp = getAccumulatorWitnessWithHttpInfo(zkpLib, getAccumulatorWitnessRequest);
+        return localVarResp.getData();
+    }
+
+    /**
+     * Get an accumulator witness for an element that already exists in the accumulator.
+     * Returns AccumulatorWitness
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (required)
+     * @param getAccumulatorWitnessRequest  (required)
+     * @return ApiResponse&lt;String&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public ApiResponse<String> getAccumulatorWitnessWithHttpInfo(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull GetAccumulatorWitnessRequest getAccumulatorWitnessRequest) throws ApiException {
+        okhttp3.Call localVarCall = getAccumulatorWitnessValidateBeforeCall(zkpLib, getAccumulatorWitnessRequest, null);
+        Type localVarReturnType = new TypeToken<String>(){}.getType();
+        return localVarApiClient.execute(localVarCall, localVarReturnType);
+    }
+
+    /**
+     * Get an accumulator witness for an element that already exists in the accumulator. (asynchronously)
+     * Returns AccumulatorWitness
+     * @param zkpLib Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing). (required)
+     * @param getAccumulatorWitnessRequest  (required)
+     * @param _callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td>  </td><td>  -  </td></tr>
+        <tr><td> 0 </td><td>  </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call getAccumulatorWitnessAsync(@javax.annotation.Nonnull String zkpLib, @javax.annotation.Nonnull GetAccumulatorWitnessRequest getAccumulatorWitnessRequest, final ApiCallback<String> _callback) throws ApiException {
+
+        okhttp3.Call localVarCall = getAccumulatorWitnessValidateBeforeCall(zkpLib, getAccumulatorWitnessRequest, _callback);
+        Type localVarReturnType = new TypeToken<String>(){}.getType();
         localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
         return localVarCall;
     }

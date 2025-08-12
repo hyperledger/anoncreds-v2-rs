@@ -249,6 +249,14 @@ public class AppTest
         Util.sop("dWit", dWit);
         Util.sop("sWit", sWit);
 
+        // Ensure same witness.
+        final var getWitReq  = new GetAccumulatorWitnessRequest()
+            .accumulator(dAddRmResp.getAccumulator())
+            .accumulatorData(dCar.getAccumulatorData())
+            .accumulatorElement(dAccElem);
+        final var dWitViaGet = x.api.getAccumulatorWitness(x.zkpLib, getWitReq);
+        assertEquals("AddRemove and Get should be the same", dWit, dWitViaGet);
+
         // Holder in conjunction with Issuer and Revocation Manager
         x.dSard.setAccumulatorWitnesses(Map.of(TestData.DL_ACC_INDEX_STR, dWit));
         x.sSard.setAccumulatorWitnesses(Map.of(TestData.SUB_ACC_INDEX_STR, sWit));

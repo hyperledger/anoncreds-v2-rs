@@ -526,6 +526,57 @@
         }
       }
     },
+    "/vcp/getAccumulatorWitness": {
+      "post": {
+        "summary": "Get an accumulator witness for an element that already exists in the accumulator.",
+        "description": "Returns AccumulatorWitness",
+        "operationId": "getAccumulatorWitness",
+        "parameters": [
+          {
+            "name": "zkpLib",
+            "in": "query",
+            "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+            "required": true,
+            "schema": {
+              "description": "Which ZKP library to use. AC2C_BBS, AC2C_PS or DNC (error if missing).",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetAccumulatorWitnessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccumulatorMembershipWitness"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/vcp/createMembershipProvingKey": {
       "post": {
         "summary": "Create accumulator membership proving key.",
@@ -942,7 +993,8 @@
           "CTText",
           "CTEncryptableText",
           "CTInt",
-          "CTAccumulatorMember"
+          "CTAccumulatorMember",
+          "CTTextOrInt"
         ]
       },
       "SignerSecretData": {
@@ -1262,7 +1314,6 @@
         "type": "object",
         "required": [
           "accumulator",
-          "accumulatorData",
           "witnessUpdateInfo",
           "witnessesForNew"
         ],
@@ -1281,14 +1332,6 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/AccumulatorMembershipWitness"
             }
-          },
-          "accumulatorData": {
-            "description": "Updated accumulator data.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AccumulatorData"
-              }
-            ]
           },
           "accumulator": {
             "description": "Updated accumulator value.",
@@ -1380,6 +1423,41 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/AccumulatorWitnessUpdateInfo"
+              }
+            ]
+          }
+        }
+      },
+      "GetAccumulatorWitnessRequest": {
+        "description": "Information used for getting an accumulator witness. Note: this routine assumes the given element already exists in the given accumulator. It does NOT check.",
+        "type": "object",
+        "required": [
+          "accumulator",
+          "accumulatorData",
+          "accumulatorElement"
+        ],
+        "properties": {
+          "accumulatorData": {
+            "description": "Public/secret info.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AccumulatorData"
+              }
+            ]
+          },
+          "accumulator": {
+            "description": "The accumulator.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Accumulator"
+              }
+            ]
+          },
+          "accumulatorElement": {
+            "description": "The element.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AccumulatorElement"
               }
             ]
           }

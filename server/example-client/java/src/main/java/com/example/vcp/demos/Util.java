@@ -3,7 +3,6 @@ package com.example.vcp.demos;
 // ------------------------------------------------------------------------------
 import com.example.vcp.client.model.*;
 // ------------------------------------------------------------------------------
-import java.util.function.BiFunction;
 import java.util.ArrayList;
 import java.util.List;
 // ------------------------------------------------------------------------------

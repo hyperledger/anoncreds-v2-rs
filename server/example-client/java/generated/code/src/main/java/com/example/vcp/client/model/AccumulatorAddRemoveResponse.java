@@ -13,7 +13,6 @@
 package com.example.vcp.client.model;
 
 import java.util.Objects;
-import com.example.vcp.client.model.AccumulatorData;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -60,11 +59,6 @@ public class AccumulatorAddRemoveResponse {
   @SerializedName(SERIALIZED_NAME_WITNESSES_FOR_NEW)
   @javax.annotation.Nonnull
   private Map<String, String> witnessesForNew = new HashMap<>();
-
-  public static final String SERIALIZED_NAME_ACCUMULATOR_DATA = "accumulatorData";
-  @SerializedName(SERIALIZED_NAME_ACCUMULATOR_DATA)
-  @javax.annotation.Nonnull
-  private AccumulatorData accumulatorData;
 
   public static final String SERIALIZED_NAME_ACCUMULATOR = "accumulator";
   @SerializedName(SERIALIZED_NAME_ACCUMULATOR)
@@ -120,25 +114,6 @@ public class AccumulatorAddRemoveResponse {
   }
 
 
-  public AccumulatorAddRemoveResponse accumulatorData(@javax.annotation.Nonnull AccumulatorData accumulatorData) {
-    this.accumulatorData = accumulatorData;
-    return this;
-  }
-
-  /**
-   * Updated accumulator data.
-   * @return accumulatorData
-   */
-  @javax.annotation.Nonnull
-  public AccumulatorData getAccumulatorData() {
-    return accumulatorData;
-  }
-
-  public void setAccumulatorData(@javax.annotation.Nonnull AccumulatorData accumulatorData) {
-    this.accumulatorData = accumulatorData;
-  }
-
-
   public AccumulatorAddRemoveResponse accumulator(@javax.annotation.Nonnull String accumulator) {
     this.accumulator = accumulator;
     return this;
@@ -170,13 +145,12 @@ public class AccumulatorAddRemoveResponse {
     AccumulatorAddRemoveResponse accumulatorAddRemoveResponse = (AccumulatorAddRemoveResponse) o;
     return Objects.equals(this.witnessUpdateInfo, accumulatorAddRemoveResponse.witnessUpdateInfo) &&
         Objects.equals(this.witnessesForNew, accumulatorAddRemoveResponse.witnessesForNew) &&
-        Objects.equals(this.accumulatorData, accumulatorAddRemoveResponse.accumulatorData) &&
         Objects.equals(this.accumulator, accumulatorAddRemoveResponse.accumulator);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(witnessUpdateInfo, witnessesForNew, accumulatorData, accumulator);
+    return Objects.hash(witnessUpdateInfo, witnessesForNew, accumulator);
   }
 
   @Override
@@ -185,7 +159,6 @@ public class AccumulatorAddRemoveResponse {
     sb.append("class AccumulatorAddRemoveResponse {\n");
     sb.append("    witnessUpdateInfo: ").append(toIndentedString(witnessUpdateInfo)).append("\n");
     sb.append("    witnessesForNew: ").append(toIndentedString(witnessesForNew)).append("\n");
-    sb.append("    accumulatorData: ").append(toIndentedString(accumulatorData)).append("\n");
     sb.append("    accumulator: ").append(toIndentedString(accumulator)).append("\n");
     sb.append("}");
     return sb.toString();
@@ -211,14 +184,12 @@ public class AccumulatorAddRemoveResponse {
     openapiFields = new HashSet<String>();
     openapiFields.add("witnessUpdateInfo");
     openapiFields.add("witnessesForNew");
-    openapiFields.add("accumulatorData");
     openapiFields.add("accumulator");
 
     // a set of required properties/fields (JSON key names)
     openapiRequiredFields = new HashSet<String>();
     openapiRequiredFields.add("witnessUpdateInfo");
     openapiRequiredFields.add("witnessesForNew");
-    openapiRequiredFields.add("accumulatorData");
     openapiRequiredFields.add("accumulator");
   }
 
@@ -253,8 +224,6 @@ public class AccumulatorAddRemoveResponse {
       if (!jsonObj.get("witnessUpdateInfo").isJsonPrimitive()) {
         throw new IllegalArgumentException(String.format("Expected the field `witnessUpdateInfo` to be a primitive type in the JSON string but got `%s`", jsonObj.get("witnessUpdateInfo").toString()));
       }
-      // validate the required field `accumulatorData`
-      AccumulatorData.validateJsonElement(jsonObj.get("accumulatorData"));
       if (!jsonObj.get("accumulator").isJsonPrimitive()) {
         throw new IllegalArgumentException(String.format("Expected the field `accumulator` to be a primitive type in the JSON string but got `%s`", jsonObj.get("accumulator").toString()));
       }

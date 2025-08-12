@@ -129,6 +129,12 @@ export interface VCP {
     rms  : AccumulatorElement[],
   ) => Promise<GENERATED.AccumulatorAddRemoveResponse>,
 
+  getAccumulatorWitness: (
+    ad   : GENERATED.AccumulatorData,
+    acc  : Accumulator,
+    elm  : AccumulatorElement,
+  ) => Promise<AccumulatorElement>,
+
 }
 
 export function defineCryptoInterfaceWith(zkpLib: string, port: string) : VCP {
@@ -373,6 +379,24 @@ export function defineCryptoInterfaceWith(zkpLib: string, port: string) : VCP {
         return x;
       } catch (error) {
         const e = await handleError(zkpLib, "accumulatorAddRemove", error)
+        throw e;
+      }
+    },
+
+    getAccumulatorWitness: async(ad, acc, elm) => {
+      try {
+        //console.log("enter getAccumulatorElement");
+        const x = await network.getAccumulatorWitness(
+          { getAccumulatorWitnessRequest : {
+              accumulatorData    : ad,
+              accumulator        : acc,
+              accumulatorElement : elm },
+            zkpLib: zkpLib
+          });
+        //console.log("exit getAccumulatorWitness");
+        return x;
+      } catch (error) {
+        const e = await handleError(zkpLib, "getAccumulatorWitness", error)
         throw e;
       }
     },

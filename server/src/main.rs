@@ -316,6 +316,44 @@ fn updateAccumulatorWitness(
 
 // ------------------------------------------------------------------------------
 
+/// Information used for getting an accumulator witness.
+/// Note: this routine assumes the given element already exists in the given accumulator.
+/// It does NOT check.
+#[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
+struct GetAccumulatorWitnessRequest {
+
+    /// Public/secret info.
+    accumulatorData    : AccumulatorData,
+
+    /// The accumulator.
+    accumulator        : Accumulator,
+
+    /// The element.
+    accumulatorElement : AccumulatorElement,
+}
+
+/// # Get an accumulator witness for an element that already exists in the accumulator.
+///
+/// Returns AccumulatorWitness
+// #[openapi(tag = "Accumulator Manager")]
+#[openapi()]
+#[post("/vcp/getAccumulatorWitness?<zkp..>", data = "<dat>")]
+fn getAccumulatorWitness(
+    zkp : ZkpLibQueryParam,
+    dat : crate::DataResult<'_, GetAccumulatorWitnessRequest>,
+) -> Result<Json<AccumulatorMembershipWitness>, (Status, Json<Error>)> {
+    let api = getApiFromQP(zkp, "getAccumlatorWitness")?;
+    let dat = dat.map_or_else(
+        |e| err(format!("{:?}", e), "getAccumulatorWitness"),
+        |v| Ok(v.into_inner()))?;
+    let op  = api.get_accumulator_witness;
+    op(&dat.accumulatorData, &dat.accumulator, &dat.accumulatorElement).map_or_else(
+        |e| vcpErr(e, "createMembershipProvingKey"),
+        |v| Ok(Json(v)))
+}
+
+// ------------------------------------------------------------------------------
+
 /// # Create accumulator membership proving key.
 ///
 /// Returns MembershipProvingKey.
@@ -546,6 +584,7 @@ async fn main() {
                 createAccumulatorElement,
                 accumulatorAddRemove,
                 updateAccumulatorWitness,
+                getAccumulatorWitness,
                 createMembershipProvingKey,
                 createRangeProofProvingKey,
                 getRangeProofMaxValue,

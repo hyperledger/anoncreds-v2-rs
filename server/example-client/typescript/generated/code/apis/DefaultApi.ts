@@ -23,6 +23,7 @@ import type {
   CreateBlindSigningInfoRequest,
   CreateProofRequest,
   CreateSignerDataRequest,
+  GetAccumulatorWitnessRequest,
   SignRequest,
   SignWithBlindedAttributesRequest,
   SignerData,
@@ -51,6 +52,8 @@ import {
     CreateProofRequestToJSON,
     CreateSignerDataRequestFromJSON,
     CreateSignerDataRequestToJSON,
+    GetAccumulatorWitnessRequestFromJSON,
+    GetAccumulatorWitnessRequestToJSON,
     SignRequestFromJSON,
     SignRequestToJSON,
     SignWithBlindedAttributesRequestFromJSON,
@@ -118,6 +121,11 @@ export interface CreateSignerDataOperationRequest {
     createSignerDataRequest: CreateSignerDataRequest;
     zkpLib?: string | null;
     rngSeed?: number | null;
+}
+
+export interface GetAccumulatorWitnessOperationRequest {
+    zkpLib: string;
+    getAccumulatorWitnessRequest: GetAccumulatorWitnessRequest;
 }
 
 export interface GetRangeProofMaxValueRequest {
@@ -554,6 +562,59 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async createSignerData(requestParameters: CreateSignerDataOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SignerData> {
         const response = await this.createSignerDataRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Returns AccumulatorWitness
+     * Get an accumulator witness for an element that already exists in the accumulator.
+     */
+    async getAccumulatorWitnessRaw(requestParameters: GetAccumulatorWitnessOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+        if (requestParameters['zkpLib'] == null) {
+            throw new runtime.RequiredError(
+                'zkpLib',
+                'Required parameter "zkpLib" was null or undefined when calling getAccumulatorWitness().'
+            );
+        }
+
+        if (requestParameters['getAccumulatorWitnessRequest'] == null) {
+            throw new runtime.RequiredError(
+                'getAccumulatorWitnessRequest',
+                'Required parameter "getAccumulatorWitnessRequest" was null or undefined when calling getAccumulatorWitness().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['zkpLib'] != null) {
+            queryParameters['zkpLib'] = requestParameters['zkpLib'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/vcp/getAccumulatorWitness`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: GetAccumulatorWitnessRequestToJSON(requestParameters['getAccumulatorWitnessRequest']),
+        }, initOverrides);
+
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<string>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
+    }
+
+    /**
+     * Returns AccumulatorWitness
+     * Get an accumulator witness for an element that already exists in the accumulator.
+     */
+    async getAccumulatorWitness(requestParameters: GetAccumulatorWitnessOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getAccumulatorWitnessRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

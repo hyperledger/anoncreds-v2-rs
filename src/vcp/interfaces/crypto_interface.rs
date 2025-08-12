@@ -21,7 +21,7 @@ pub struct CryptoInterface {
     // Acccumulator functions
     pub create_accumulator_element: CreateAccumulatorElement,
     pub accumulator_add_remove: AccumulatorAddRemove,
-    // Auxiliary data functions
+    pub get_accumulator_witness: GetAccumulatorWitness,
     pub update_accumulator_witness: UpdateAccumulatorWitness,
     // Proofs
     pub specific_prover: SpecificProver,

@@ -335,7 +335,6 @@ pub fn step_accumulator_add_remove(
         let api::AccumulatorAddRemoveResponse {
             witness_update_info: awui,
             witnesses_for_new: wits_for_adds,
-            accumulator_data: updated_acc_data,
             accumulator: updated_acc_val,
         } = accumulator_add_remove(
             acc_data,
@@ -351,7 +350,7 @@ pub fn step_accumulator_add_remove(
             let mut upd_info_and_accums = upd_info_and_accums.clone();
             upd_info_and_accums.insert(sn, (awui, updated_acc_val));
             let mut accs = accs.clone();
-            accs.insert(a_idx, (updated_acc_data, orig_accum.clone(), upd_info_and_accums));
+            accs.insert(a_idx, (acc_data.clone(), orig_accum.clone(), upd_info_and_accums));
             accs
         };
         ts.accums.insert(spd.as_ref().clone(), accs);

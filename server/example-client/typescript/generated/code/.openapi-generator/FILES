@@ -21,6 +21,7 @@ models/DataValueOneOf1.ts
 models/DecryptRequest.ts
 models/DecryptResponse.ts
 models/EqInfo.ts
+models/GetAccumulatorWitnessRequest.ts
 models/InAccumInfo.ts
 models/InRangeInfo.ts
 models/IndexAndLabel.ts

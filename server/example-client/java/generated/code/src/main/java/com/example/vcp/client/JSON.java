@@ -114,6 +114,7 @@ public class JSON {
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.DecryptResponse.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.EqInfo.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.Error.CustomTypeAdapterFactory());
+        gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.GetAccumulatorWitnessRequest.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.InAccumInfo.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.InRangeInfo.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(new com.example.vcp.client.model.IndexAndLabel.CustomTypeAdapterFactory());

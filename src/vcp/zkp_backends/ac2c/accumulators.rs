@@ -87,10 +87,19 @@ pub fn accumulator_add_remove() -> AccumulatorAddRemove {
         let r = AccumulatorAddRemoveResponse {
             witness_update_info : to_api(wui)?,
             witnesses_for_new,
-            accumulator_data    : ad.clone(),
             accumulator         : to_api(acc2)?,
         };
         Ok(r)
+    })
+}
+
+pub fn get_accumulator_witness() -> GetAccumulatorWitness {
+    Arc::new(|accumulator_data, accumulator, element| {
+        let (sk,_pk)                = from_api(accumulator_data)?;
+        let acc : vb20::Accumulator = from_api(accumulator)?;
+        let e                       = from_api(element)?;
+        let wit                     = vb20::MembershipWitness::new(e, acc, &sk);
+        to_api(wit)
     })
 }
 

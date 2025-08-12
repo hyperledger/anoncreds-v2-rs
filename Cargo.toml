@@ -83,3 +83,4 @@ env_logger = "0.11"
 verbose = []
 ignore_slow = []
 ignore_slow_slow = []
+in_memory_state = []

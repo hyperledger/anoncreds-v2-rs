@@ -23,6 +23,7 @@ lazy_static! {
         create_membership_proving_key  : create_membership_proving_key(),
         create_accumulator_element     : create_accumulator_element(),
         accumulator_add_remove         : accumulator_add_remove(),
+        get_accumulator_witness        : get_accumulator_witness(),
         update_accumulator_witness     : update_accumulator_witness(),
         specific_prover                : specific_prover_dnc(),
         specific_verifier              : specific_verifier_dnc(),

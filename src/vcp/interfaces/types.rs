@@ -28,7 +28,7 @@ macro_rules! impl_Debug_for_OpaqueMaterial_wrapper {
 // signer data
 
 /// Contains a Signer's secret and public data.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct SignerData {
 
     #[serde(rename = "signerPublicData")]
@@ -350,7 +350,7 @@ pub struct MembershipProvingKey(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { MembershipProvingKey }
 
 /// Contains an accumulator's secret and public data.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorData {
 
     #[serde(rename = "accumulatorPublicData")]
@@ -366,14 +366,17 @@ pub struct AccumulatorPublicData(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorPublicData }
 
 /// An accumulator's secret keys.
-#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorSecretData(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorSecretData }
 
 /// A witness that a particular AccumulatorElement is a member of an accumulator.
-#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorMembershipWitness(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorMembershipWitness }
+
+/// AccumulatorMembers are arbitrary Strings that are passed to CreateAccumulatorElement.
+pub type AccumulatorMember = String;
 
 /// An element that may be added to or removed from an accumulator.  Note, elements are created from text (see createAccumulatorElement).
 #[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
@@ -381,7 +384,7 @@ pub struct AccumulatorElement(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorElement }
 
 /// Data used to update an AccumulatorMembershipWitness after elements have been added to and/or removed from an accumulator.
-#[derive(Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct AccumulatorWitnessUpdateInfo(pub OpaqueMaterial);
 impl_Debug_for_OpaqueMaterial_wrapper! { AccumulatorWitnessUpdateInfo }
 
@@ -412,10 +415,6 @@ pub struct AccumulatorAddRemoveResponse {
     /// A new witnesses for each element added.
     #[serde(rename = "witnessesForNew")]
     pub witnesses_for_new: HashMap<HolderID, AccumulatorMembershipWitness>,
-
-    /// Updated accumulator data.
-    #[serde(rename = "accumulatorData")]
-    pub accumulator_data: AccumulatorData,
 
     /// Updated accumulator value.
     #[serde(rename = "accumulator")]

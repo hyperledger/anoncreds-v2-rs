@@ -19,6 +19,7 @@ export * from './DVText';
 export * from './DecryptRequest';
 export * from './DecryptResponse';
 export * from './EqInfo';
+export * from './GetAccumulatorWitnessRequest';
 export * from './InAccumInfo';
 export * from './InRangeInfo';
 export * from './IndexAndLabel';

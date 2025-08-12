@@ -27,6 +27,7 @@ docs/DecryptResponse.md
 docs/DefaultApi.md
 docs/EqInfo.md
 docs/Error.md
+docs/GetAccumulatorWitnessRequest.md
 docs/InAccumInfo.md
 docs/InRangeInfo.md
 docs/IndexAndLabel.md
@@ -95,6 +96,7 @@ src/main/java/com/example/vcp/client/model/DecryptRequest.java
 src/main/java/com/example/vcp/client/model/DecryptResponse.java
 src/main/java/com/example/vcp/client/model/EqInfo.java
 src/main/java/com/example/vcp/client/model/Error.java
+src/main/java/com/example/vcp/client/model/GetAccumulatorWitnessRequest.java
 src/main/java/com/example/vcp/client/model/InAccumInfo.java
 src/main/java/com/example/vcp/client/model/InRangeInfo.java
 src/main/java/com/example/vcp/client/model/IndexAndLabel.java
@@ -136,6 +138,7 @@ src/test/java/com/example/vcp/client/model/DecryptRequestTest.java
 src/test/java/com/example/vcp/client/model/DecryptResponseTest.java
 src/test/java/com/example/vcp/client/model/EqInfoTest.java
 src/test/java/com/example/vcp/client/model/ErrorTest.java
+src/test/java/com/example/vcp/client/model/GetAccumulatorWitnessRequestTest.java
 src/test/java/com/example/vcp/client/model/InAccumInfoTest.java
 src/test/java/com/example/vcp/client/model/InRangeInfoTest.java
 src/test/java/com/example/vcp/client/model/IndexAndLabelTest.java

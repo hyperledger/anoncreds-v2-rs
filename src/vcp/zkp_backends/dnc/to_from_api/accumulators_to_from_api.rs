@@ -84,12 +84,14 @@ impl VcpTryFrom<&api::MembershipProvingKey> for VbaMembershipProvingKey::<G1> {
 
 // ------------------------------------------------------------------------------
 
+#[cfg(not(feature="in_memory_state"))]
 impl VcpTryFrom<PositiveAccumulator::<G1Affine>> for api::Accumulator {
     fn vcp_try_from(x: PositiveAccumulator::<G1Affine>) -> VCPResult<api::Accumulator> {
         Ok(api::Accumulator(to_opaque_json(&x)?))
     }
 }
 
+#[cfg(not(feature="in_memory_state"))]
 impl VcpTryFrom<&api::Accumulator> for PositiveAccumulator::<G1Affine> {
     fn vcp_try_from(x: &api::Accumulator) -> VCPResult<PositiveAccumulator::<G1Affine>> {
         from_opaque_json(&x.0)
@@ -112,32 +114,54 @@ impl VcpTryFrom<&api::AccumulatorPublicData> for (VbaSetupParams::<Bls12_381>,  
 
 // ------------------------------------------------------------------------------
 
+#[cfg(feature="in_memory_state")]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-struct AccumulatorSecretDataOpaque {
+struct AccumulatorOpaque {
     pub acc : PositiveAccumulator::<G1Affine>,
     pub ims : InMemoryStateOpaque,
-    pub kp  : VbaKeypair::<Bls12_381>,
 }
 
-impl VcpTryFrom<(&PositiveAccumulator::<G1Affine>,
-                 &InMemoryState::<Fr>,
-                 &VbaKeypair::<Bls12_381>)> for api::AccumulatorSecretData {
-    fn vcp_try_from((acc,ims,kp): (&PositiveAccumulator::<G1Affine>,
-                                   &InMemoryState::<Fr>,
-                                   &VbaKeypair::<Bls12_381>)) -> VCPResult<api::AccumulatorSecretData> {
-        let ims : InMemoryStateOpaque = to_api(ims)?;
-        Ok(api::AccumulatorSecretData(to_opaque_json(&(acc, ims, kp))?))
+#[cfg(not(feature="in_memory_state"))]
+impl VcpTryFrom<&PositiveAccumulator::<G1Affine>> for api::Accumulator {
+    fn vcp_try_from(acc: &PositiveAccumulator::<G1Affine>) -> VCPResult<api::Accumulator> {
+        Ok(api::Accumulator(to_opaque_json(&acc)?))
     }
 }
 
-impl VcpTryFrom<&api::AccumulatorSecretData> for (PositiveAccumulator::<G1Affine>,
-                                                  InMemoryState::<Fr>,
-                                                  VbaKeypair::<Bls12_381>) {
-    fn vcp_try_from(x: &api::AccumulatorSecretData) -> VCPResult<(PositiveAccumulator::<G1Affine>,
-                                                                  InMemoryState::<Fr>,
-                                                                  VbaKeypair::<Bls12_381>)> {
-        let AccumulatorSecretDataOpaque { acc, ims, kp} = from_opaque_json(&x.0)?;
-        Ok( (acc, from_api(&ims)?, kp) )
+#[cfg(feature="in_memory_state")]
+impl VcpTryFrom<(&PositiveAccumulator::<G1Affine>,
+                 &InMemoryState::<Fr>)> for api::Accumulator {
+    fn vcp_try_from((acc,ims): (&PositiveAccumulator::<G1Affine>,
+                                &InMemoryState::<Fr>,)) -> VCPResult<api::Accumulator> {
+        print_in_memory_state(ims);
+        let ims : InMemoryStateOpaque = to_api(ims)?;
+        Ok(api::Accumulator(to_opaque_json(&(acc, ims))?))
+    }
+}
+
+#[cfg(feature="in_memory_state")]
+impl VcpTryFrom<&api::Accumulator> for (PositiveAccumulator::<G1Affine>,
+                                        InMemoryState::<Fr>) {
+    fn vcp_try_from(x: &api::Accumulator) -> VCPResult<(PositiveAccumulator::<G1Affine>,
+                                                        InMemoryState::<Fr>)> {
+        let AccumulatorOpaque { acc, ims } = from_opaque_json(&x.0)?;
+        let ims = from_api(&ims)?;
+        // TODO: feature gate
+        print_in_memory_state(&ims);
+        Ok((acc, ims))
+    }
+}
+
+impl VcpTryFrom<&VbaKeypair::<Bls12_381>> for api::AccumulatorSecretData {
+    fn vcp_try_from(kp: &VbaKeypair::<Bls12_381>) -> VCPResult<api::AccumulatorSecretData> {
+        Ok(api::AccumulatorSecretData(to_opaque_json(&kp)?))
+    }
+}
+
+impl VcpTryFrom<&api::AccumulatorSecretData> for VbaKeypair::<Bls12_381> {
+    fn vcp_try_from(x: &api::AccumulatorSecretData) -> VCPResult<VbaKeypair::<Bls12_381>> {
+        let kp = from_opaque_json(&x.0)?;
+        Ok(kp)
     }
 }
 
@@ -170,13 +194,11 @@ impl VcpTryFrom<&InMemoryStateOpaque> for InMemoryState::<Fr> {
 pub fn to_api_accumulator_data(
     sp  : &VbaSetupParams::<Bls12_381>,
     kp  : &VbaKeypair::<Bls12_381>,
-    ims : &InMemoryState::<Fr>,
-    acc : &PositiveAccumulator::<G1Affine>
 ) -> VCPResult<api::AccumulatorData>
 {
     let ad = api::AccumulatorData {
         accumulator_public_data : to_api((sp, &kp.public_key))?,
-        accumulator_secret_data : to_api((acc, ims, kp))?
+        accumulator_secret_data : to_api(kp)?
     };
     Ok(ad)
 }
@@ -185,14 +207,12 @@ pub fn to_api_accumulator_data(
 pub fn from_api_accumulator_data(
     ad : &api::AccumulatorData
 ) -> VCPResult<(VbaSetupParams::<Bls12_381>,
-                VbaKeypair::<Bls12_381>,
-                InMemoryState::<Fr>,
-                PositiveAccumulator::<G1Affine>)>
+                VbaKeypair::<Bls12_381>)>
 {
     let api::AccumulatorData { accumulator_public_data, accumulator_secret_data } = ad;
     let (sp, _pk)          = from_api(accumulator_public_data)?;
-    let (acc, mut ims, kp) = from_api(accumulator_secret_data)?;
-    Ok((sp, kp, ims, acc))
+    let kp = from_api(accumulator_secret_data)?;
+    Ok((sp, kp))
 }
 
 // ------------------------------------------------------------------------------
@@ -226,4 +246,3 @@ impl VcpTryFrom<&AccumWitnessesAPI> for AccumWitnesses {
         Ok(hm)
     }
 }
-

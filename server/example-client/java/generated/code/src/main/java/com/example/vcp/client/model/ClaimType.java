@@ -34,7 +34,9 @@ public enum ClaimType {
   
   CT_INT("CTInt"),
   
-  CT_ACCUMULATOR_MEMBER("CTAccumulatorMember");
+  CT_ACCUMULATOR_MEMBER("CTAccumulatorMember"),
+  
+  CT_TEXT_OR_INT("CTTextOrInt");
 
   private String value;
 

@@ -3,6 +3,7 @@ use vb_accumulator::persistence::*;
 // ------------------------------------------------------------------------------
 use ark_std::iter::Iterator;
 // ------------------------------------------------------------------------------
+use std::fmt::Debug;
 
 // This is put in a 'test' module to indicate it should not be used in production.
 pub mod test {
@@ -34,18 +35,28 @@ pub mod test {
     }
 
     #[derive(Clone, Debug)]
-    pub struct InMemoryState<T: Clone> {
+    pub struct InMemoryState<T: Clone + Debug> {
         pub db: HashSet<T>,
     }
 
-    impl<T: Clone> InMemoryState<T> {
+    #[cfg(feature="in_memory_state")]
+    pub fn print_in_memory_state<T: Clone + Debug>(ims: &InMemoryState::<T>) {
+        let mut l: Vec<String> = ims.db.iter().map(|bn| format!("{bn:?}")).collect();
+        l.sort();
+        println!("IMS with {} elements", l.len());
+        for fr in l {
+            println!("  {fr:?}");
+        }
+    }
+
+    impl<T: Clone + Debug> InMemoryState<T> {
         pub fn new() -> Self {
             let db = HashSet::<T>::new();
             Self { db }
         }
     }
 
-    impl<T: Clone + Hash + Eq + Sized> State<T> for InMemoryState<T> {
+    impl<T: Clone + Debug + Hash + Eq + Sized> State<T> for InMemoryState<T> {
         fn add(&mut self, element: T) {
             self.db.insert(element);
         }
@@ -63,7 +74,7 @@ pub mod test {
         }
     }
 
-    impl<'a, T: Clone + Hash + Eq + Sized + 'a> UniversalAccumulatorState<'a, T> for InMemoryState<T> {
+    impl<'a, T: Clone + Debug + Hash + Eq + Sized + 'a> UniversalAccumulatorState<'a, T> for InMemoryState<T> {
         type ElementIterator = std::collections::hash_set::Iter<'a, T>;
 
         fn elements(&'a self) -> Self::ElementIterator {

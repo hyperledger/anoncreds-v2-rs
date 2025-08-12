@@ -386,6 +386,10 @@ fn transform_resolved_disclosure(
             (InAccumResolved { public_data, mem_prv, accumulator, seq_num }) =>
         {
             let (asp, apk) = from_api(public_data)?;
+            #[cfg(not(feature="in_memory_state"))]
+            let accumulator = from_api(accumulator)?;
+            #[cfg(feature="in_memory_state")]
+            let (accumulator, _ims) = from_api(accumulator)?;
             Ok(success(ProofInstructionGeneral {
                 cred_label       : cred_label.clone(),
                 attr_idx_general : *attr_idx_general,
@@ -394,7 +398,7 @@ fn transform_resolved_disclosure(
                     (Box::new(asp),
                      Box::new(apk),
                      Box::new(from_api(mem_prv)?),
-                     from_api(accumulator)?,
+                     accumulator,
                      *seq_num)}))
         },
 
