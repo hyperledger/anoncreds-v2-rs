@@ -39,7 +39,7 @@ sha2 = "0.10"
 sha3 = "0.10"
 subtle = "2.6"
 uint-zigzag = { version = "0.2", features = ["std"] }
-uuid = {version = "1.11", features = ["v4"]}
+uuid = {version = "1.18", features = ["v4"]}
 zeroize = "1"
 
 
