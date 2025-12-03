@@ -53,7 +53,7 @@ impl<S: ShortGroupSignatureScheme> BlindCredentialRequest<S> {
         Ok((
             Self {
                 blind_signature_context: ctx,
-                blind_claim_labels: claims.iter().map(|(l, _)| l.clone()).collect(),
+                blind_claim_labels: claims.keys().cloned().collect(),
                 nonce,
             },
             blinder,
