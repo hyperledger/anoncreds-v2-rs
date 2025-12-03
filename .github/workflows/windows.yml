@@ -30,7 +30,7 @@ jobs:
       - name: Disable git eol translation
         run: git config --global core.autocrlf false
       - name: Checkout
-        run: actions/checkout@v4
+        run: actions/checkout@v3
       - name: Install Stable
         run: |
           $ProgressPreference = "SilentlyContinue"
