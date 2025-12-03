@@ -25,12 +25,12 @@ jobs:
       fail-fast: false
       matrix:
         target: [i686-pc-windows-msvc, x86_64-pc-windows-msvc]
-        cfg_release_channel: stable
+        cfg_release_channel: [stable]
     steps:
       - name: Disable git eol translation
         run: git config --global core.autocrlf false
       - name: Checkout
-        run: actions/checkout@v3
+        run: actions/checkout@v4
       - name: Install Stable
         run: |
           $ProgressPreference = "SilentlyContinue"
