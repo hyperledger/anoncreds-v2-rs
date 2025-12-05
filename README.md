@@ -7,10 +7,10 @@ Our next goal is to define on top of this toolkit a comprehensive, opinionated s
 > Want to help with AnonCreds v2? Check out the [To Do Items] to extend this
 implementation from a toolkit to a standards-based Verifiable Credentials specification and implementation.
 
-[spec]: https://hyperledger.github.io/anoncreds-spec/
-[code]: https://github.com/hyperledger/anoncreds-rs
+[spec]: https://anoncreds.github.io/anoncreds-spec/
+[code]: https://github.com/anoncreds/anoncreds-rs
 [W3C Verifiable Credentials Data Model]: https://www.w3.org/TR/vc-data-model-2.0/
-[To Do Items]: https://github.com/hyperledger/anoncreds-v2-rs/issues?q=label%3A%22AnonCreds+v2+To+Do%22+
+[To Do Items]: https://github.com/anoncreds/anoncreds-v2-rs/issues?q=label%3A%22AnonCreds+v2+To+Do%22+
 
 ## Key Features
 
