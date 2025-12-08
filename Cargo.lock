@@ -358,7 +358,7 @@ dependencies = [
  "bulletproofs-bls",
  "chrono",
  "elliptic-curve",
- "elliptic-curve-tools",
+ "elliptic-curve-tools 0.2.0",
  "env_logger",
  "hex",
  "indexmap",
@@ -496,6 +496,20 @@ name = "elliptic-curve-tools"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e48843edfbd0a370b3dd14cdbb4e446e9a8855311e6b2b57bf9a1fd1367bc317"
+dependencies = [
+ "elliptic-curve",
+ "heapless",
+ "hex",
+ "multiexp",
+ "serde",
+ "zeroize",
+]
+
+[[package]]
+name = "elliptic-curve-tools"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1de2b6fae800f08032a6ea32995b52925b1d451bff9d445c8ab2932323277faf"
 dependencies = [
  "elliptic-curve",
  "heapless",
@@ -1451,7 +1465,7 @@ checksum = "fec4ebcc5594130c31b49594d55c0583fe80621f252f570b222ca4845cafd3cf"
 dependencies = [
  "crypto-bigint",
  "elliptic-curve",
- "elliptic-curve-tools",
+ "elliptic-curve-tools 0.1.2",
  "generic-array 1.2.0",
  "hex",
  "num",
